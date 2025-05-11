@@ -123,7 +123,7 @@ To grab an item out of your inventory, hover over it with your right hand, and p
 
 # Headlamp
 
-In R.E.P.O. VR, by default you will hold your flashlight in your left hand (not unlike the flashlight in lethal or content warning). To make life easier though, you can hold your hand to the side of your head, press the grip key, and the flashlight will be attached to your hand, making the flashlight point to wherever you are looking. You can perform the same action to put the flashlight back onto your hand.
+In R.E.P.O. VR, by default you will hold your flashlight in your left hand (not unlike the flashlight in lethal or content warning). To make life easier though, you can hold your hand to the side of your head, press the grip key, and the flashlight will be attached to your head, making the flashlight point to wherever you are looking. You can perform the same action to put the flashlight back onto your hand.
 
 # The chat
 
