@@ -61,9 +61,9 @@ You can join the [Discord Server](https://discord.gg/2DxNgpPZUF)!
 
 Here is a list of RepoXR versions and which version(s) of R.E.P.O. it supports
 
-| RepoXR | R.E.P.O. |
-|--------|----------|
-| v1.0.0 | v1.0.23  |
+| RepoXR | R.E.P.O. Version |
+|--------|------------------|
+| v1.0.0 | v1.0.23          |
 
 > RepoXR is also able to check hashes remotely, meaning newer R.E.P.O. versions might be supported even though they aren't listed here.
 
