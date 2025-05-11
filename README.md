@@ -17,7 +17,7 @@
 </details>
 <br/>
 
-Ready to satisfy your ~heartless~ **GENEROUS** creator with your hard-earned ~~cash~~ **SURPLUS**... in VR!? Well wait no longer!
+Ready to satisfy your ~~heartless~~ **GENEROUS** creator with your hard-earned ~~cash~~ **SURPLUS**... in VR!? Well wait no longer!
 
 **RepoXR** is a mod that adds full 6-DoF VR support to R.E.P.O., including hand movement and motion-based controls.
 
