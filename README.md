@@ -132,3 +132,10 @@ Contrary to my Lethal Company VR mod, the R.E.P.O. VR mod actually does allow yo
 # Expressions
 
 R.E.P.O. allows you to make your Semibot display a certain expression (or a combination of multiple expressions). In VR, you can access expressions by holding down the chat button, which will pop up a radial menu on the hand that was used to trigger the menu. With the wheel opened, you can position your hand on one of the expressions, and use the trigger button to toggle that expression. Even if the menu is closed, your expressions will stay active. When loading a new scene (e.g. after completing a level), the expressions will be remembered, so you do not have to re-enable expressions (not until you start a new game that is).
+
+# Left handed support
+
+RepoXR allows you to change your dominant hand, so you can swap your primary (grabbing) hand using a simple configuration setting. You can change this option at any time, whether you're in the main menu, or being chased by a Headman (hypothetically).
+
+> [!WARNING]
+> Changing your dominant hand **will not** update your bindings. You will have to manually rebind the controls in the settings menu to your preferred controls if you decide to change your dominant hand.
