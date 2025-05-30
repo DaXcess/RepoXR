@@ -58,12 +58,12 @@ public class VRInventorySlot : MonoBehaviour
     private void LateUpdate()
     {
         lineRenderer.positionCount = 4;
-        lineRenderer.SetPositions([
+        lineRenderer.SetPositions(new Vector3[] {
             transform.TransformPoint(new Vector3(-0.045f, heightOffset, -0.07f)),
             transform.TransformPoint(new Vector3(0.045f, heightOffset, -0.07f)),
             transform.TransformPoint(new Vector3(0.045f, heightOffset, 0.07f)),
             transform.TransformPoint(new Vector3(-0.045f, heightOffset, 0.07f))
-        ]);
+        });
         
         if (spot != null)
         {
