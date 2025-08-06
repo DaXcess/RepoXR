@@ -142,3 +142,7 @@ RepoXR allows you to change your dominant hand, so you can swap your primary (gr
 
 > [!WARNING]
 > Changing your dominant hand **will not** update your bindings. You will have to manually rebind the controls in the settings menu to your preferred controls if you decide to change your dominant hand.
+
+# Other misc features
+
+- While inside of a lobby, you can press "CTRL + C" on your keyboard to copy a Steam join link (steam://joinlobby/...) to allow you to invite people outside your friends list (make sure your game is focussed while you do this)
