@@ -148,20 +148,44 @@ internal static class Entrypoint
     }
 
     /// <summary>
-    /// <see cref="GameDirector"/> is always present in the `Main` scene, so we use it as entrypoint
+    /// <see cref="GameDirector"/> is always present in the `Main` scene, so we use it as a base entrypoint
     /// </summary>
     [HarmonyPatch(typeof(GameDirector), nameof(GameDirector.Start))]
     [HarmonyPostfix]
     private static void OnStartup(GameDirector __instance)
     {
         VRInputSystem.instance.ActivateInput();
-    
+
         if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu ||
-            RunManager.instance.levelCurrent == RunManager.instance.levelLobbyMenu ||
             RunManager.instance.levelCurrent == RunManager.instance.levelSplashScreen)
             OnStartupMainMenu();
-        else
-            OnStartupInGame();
+        
+        // We have to do some magic for the Lobby Menu level because of ✨late join✨
+    }
+
+    /// <summary>
+    /// Special custom entrypoint since we might swap levels shortly after GameDirector startup (Late join)
+    /// </summary>
+    [HarmonyPatch(typeof(LobbyMenuOpen), nameof(LobbyMenuOpen.Awake))]
+    [HarmonyPostfix]
+    private static void OnStartLobbyMenu()
+    {
+        if (RunManager.instance.levelCurrent == RunManager.instance.levelLobbyMenu)
+            OnStartupMainMenu();
+    }
+
+    /// <summary>
+    /// Use the Truck Start Room module to detect if we are in the actual game
+    /// </summary>
+    [HarmonyPatch(typeof(StartRoom), nameof(StartRoom.Start))]
+    [HarmonyPostfix]
+    private static void OnStartTruck(StartRoom __instance)
+    {
+        // The menu levels also have the truck so we should just ignore them
+        if (__instance.name is "Start Room - Main Menu(Clone)" or "Start Room - Lobby Menu(Clone)")
+            return;
+        
+        OnStartupInGame();
     }
 
     [HarmonyPatch(typeof(SplashScreen), nameof(SplashScreen.Start))]

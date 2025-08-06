@@ -66,5 +66,8 @@ public class VRSession : MonoBehaviour
         
         // Initialize VR HUD
         HUD = global::HUD.instance.gameObject.AddComponent<GameHud>();
+        
+        // Initialize Handheld Map (if it wasn't created yet)
+        VRMapTool.Create();
     }
 }

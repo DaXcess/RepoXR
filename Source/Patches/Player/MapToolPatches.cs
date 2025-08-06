@@ -21,13 +21,7 @@ internal static class MapToolPatches
     [HarmonyPostfix]
     private static void OnMapToolCreated(MapToolController __instance)
     {
-        if (!__instance.PlayerAvatar.isLocal || VRSession.Instance is not {} session)
-            return;
-
-        __instance.transform.parent.parent = session.Player.MapParent;
-        __instance.transform.parent.localPosition = Vector3.zero;
-        __instance.transform.parent.localRotation = Quaternion.identity;
-        __instance.gameObject.AddComponent<VRMapTool>();
+        VRMapTool.Create();
     }
 
     /// <summary>

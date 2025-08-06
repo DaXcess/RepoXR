@@ -1,4 +1,5 @@
-﻿using RepoXR.Managers;
+﻿using System.Linq;
+using RepoXR.Managers;
 using UnityEngine;
 
 namespace RepoXR.Player;
@@ -18,6 +19,18 @@ public class VRMapTool : MonoBehaviour
     private RectTransform statsRect;
 
     public bool leftHanded;
+
+    public static void Create()
+    {
+        var tool = FindObjectsOfType<MapToolController>().FirstOrDefault(t => t.PlayerAvatar.isLocal);
+        if (instance != null || VRSession.Instance is not { } session || tool is null || !tool.PlayerAvatar.isLocal)
+            return;
+
+        tool.transform.parent.parent = session.Player.MapParent;
+        tool.transform.parent.localPosition = Vector3.zero;
+        tool.transform.parent.localRotation = Quaternion.identity;
+        tool.gameObject.AddComponent<VRMapTool>();
+    }
     
     private void Awake()
     {
