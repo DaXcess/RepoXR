@@ -1,3 +1,8 @@
+# 1.0.3
+
+**Additions**:
+- Added a keyboard shortcut (CTRL+C) to the lobby menu for easy copying of a steam lobby link
+
 # 1.0.2
 
 **Additions**:

@@ -17,6 +17,9 @@ public class MainMenu : MonoBehaviour
     private void Awake()
     {
         Actions.Instance["ResetHeight"].performed += OnResetHeight;
+
+        if (RunManager.instance.levelCurrent == RunManager.instance.levelLobbyMenu)
+            StartCoroutine(LobbyLinkCopy());
     }
 
     private void OnDestroy()
@@ -84,6 +87,27 @@ public class MainMenu : MonoBehaviour
     private void SetupControllers()
     {
         mainCamera.transform.parent.gameObject.AddComponent<XRRayInteractorManager>();
+    }
+
+    private static IEnumerator LobbyLinkCopy()
+    {
+        while (true)
+        {
+            yield return null;
+            
+            if ((!UnityEngine.Input.GetKey(KeyCode.LeftControl) && !UnityEngine.Input.GetKey(KeyCode.RightControl)) ||
+                !UnityEngine.Input.GetKeyDown(KeyCode.C)) 
+                continue;
+            
+            var lobby = SteamManager.instance.currentLobby;
+            var link = $"steam://joinlobby/3241660/{lobby.Id}/{lobby.Owner.Id}";
+
+            GUIUtility.systemCopyBuffer = link;
+            
+            Logger.LogInfo($"Copied lobby link: {link}");
+        }
+        
+        // ReSharper disable once IteratorNeverReturns
     }
     
     private static void OnResetHeight(InputAction.CallbackContext obj)
