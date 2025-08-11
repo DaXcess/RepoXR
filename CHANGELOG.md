@@ -4,6 +4,9 @@
 - Added a keyboard shortcut (CTRL+C) to the lobby menu for easy copying of a steam lobby link
 - Added support for late joining
 
+**Removals**:
+- Removed redundant checks during startup
+
 # 1.0.2
 
 **Additions**:
