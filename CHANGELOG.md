@@ -1,3 +1,15 @@
+# 1.1.0
+
+**Additions**:
+- Added eye tracking support (for the three people that have it)
+- Added an option to detach arms from body
+- Added an overhauled spectating system
+- Added support for the new climbing mechanic
+- Added support for the monster update
+
+**Removals**:
+- Removed support for REPO v0.2.1
+
 # 1.0.3
 
 **Additions**:

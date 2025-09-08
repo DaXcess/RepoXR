@@ -432,6 +432,7 @@ internal static class OpenXR
             var khrSimple = ScriptableObject.CreateInstance<KHRSimpleControllerProfile>();
             var metaQuestTouch = ScriptableObject.CreateInstance<MetaQuestTouchProControllerProfile>();
             var oculusTouch = ScriptableObject.CreateInstance<OculusTouchControllerProfile>();
+            var eyeTracking = ScriptableObject.CreateInstance<EyeGazeInteraction>();
 
             valveIndex.enabled = true;
             hpReverb.enabled = true;
@@ -440,6 +441,7 @@ internal static class OpenXR
             khrSimple.enabled = true;
             metaQuestTouch.enabled = true;
             oculusTouch.enabled = true;
+            eyeTracking.enabled = true;
 
             OpenXRSettings.Instance.features =
             [
@@ -449,7 +451,8 @@ internal static class OpenXR
                 mmController,
                 khrSimple,
                 metaQuestTouch,
-                oculusTouch
+                oculusTouch,
+                eyeTracking
             ];
         }
     }
