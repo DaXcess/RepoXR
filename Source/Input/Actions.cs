@@ -18,6 +18,10 @@ public class Actions
     public InputAction RightHandPosition { get; private set; }
     public InputAction RightHandRotation { get; private set; }
     public InputAction RightHandTrackingState { get; private set; }
+    
+    public InputAction EyeGazePosition { get; private set; }
+    public InputAction EyeGazeRotation { get; private set; }
+    public InputAction EyeGazeTracked { get; private set; }
 
     private Actions()
     {
@@ -32,6 +36,10 @@ public class Actions
         RightHandPosition = AssetCollection.DefaultXRActions.FindAction("Right/Position");
         RightHandRotation = AssetCollection.DefaultXRActions.FindAction("Right/Rotation");
         RightHandTrackingState = AssetCollection.DefaultXRActions.FindAction("Right/Tracking State");
+
+        EyeGazePosition = AssetCollection.DefaultXRActions.FindAction("Eye Gaze/Position");
+        EyeGazeRotation = AssetCollection.DefaultXRActions.FindAction("Eye Gaze/Rotation");
+        EyeGazeTracked = AssetCollection.DefaultXRActions.FindAction("Eye Gaze/Is Tracked");
         
         AssetCollection.DefaultXRActions.Enable();
     }
