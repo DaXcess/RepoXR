@@ -47,6 +47,8 @@ internal static class AssetCollection
     public static AnimationCurveData HurtHapticCurve;
     public static AnimationCurveData EyeAttachHapticCurve;
     public static AnimationCurveData KeyboardAnimation;
+
+    public static GameObject Cube;
     
     public static bool LoadAssets()
     {
@@ -95,6 +97,8 @@ internal static class AssetCollection
         HurtHapticCurve = assetBundle.LoadAsset<AnimationCurveData>("HurtHapticCurve");
         EyeAttachHapticCurve = assetBundle.LoadAsset<AnimationCurveData>("EyeAttachHapticCurve");
         KeyboardAnimation = assetBundle.LoadAsset<AnimationCurveData>("KeyboardAnimation");
+
+        Cube = assetBundle.LoadAsset<GameObject>("JustACube");
 
         if (RemappableControls?.controls == null)
         {

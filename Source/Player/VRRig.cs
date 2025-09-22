@@ -347,7 +347,7 @@ public class VRRig : MonoBehaviour
         else
         {
             // Not hit!
-            
+
             Crosshair.instance.gameObject.SetActive(true);
         }
     }

@@ -1,5 +1,8 @@
 using HarmonyLib;
+using RepoXR.Assets;
 using RepoXR.Input;
+using RepoXR.Managers;
+using RepoXR.Networking;
 using UnityEngine;
 
 namespace RepoXR.Patches.Player;
@@ -11,23 +14,16 @@ internal static class PlayerEyesPatches
     [HarmonyPostfix]
     private static void LookAtTransformEyeTracking(PlayerEyes __instance)
     {
-        // TODO: Use synced values here if the remote player has eye tracking
-        if (!__instance.playerAvatar.isLocal)
-            return;
-        
-        // TODO: First check if setting is disabled, once setting is added
-        if (!Actions.Instance.EyeGazeTracked.IsPressed())
+        // TODO: Check if we can just do this with the local player
+        if (__instance.playerAvatar.isLocal)
             return;
         
         // TODO: Determine if certain occurrences in the game should override eye gaze
-        // TODO: Network sync this stuff as well somehow
 
-        var gazePosition = Actions.Instance.EyeGazePosition.ReadValue<Vector3>();
-        var gazeRotation = Actions.Instance.EyeGazeRotation.ReadValue<Quaternion>();
-        
-        // Some magic raycasting bs here
-        
+        if (!NetworkSystem.instance.GetNetworkPlayer(__instance.playerAvatar, out var player) && player.EyeTracking)
+            return;
+
         __instance.lookAtActive = true;
-        __instance.lookAt.transform.position = Vector3.zero;  /* raycast using gazePosition and gazeRotation */
+        __instance.lookAt.transform.position = player.EyeGazePoint;
     }
 }

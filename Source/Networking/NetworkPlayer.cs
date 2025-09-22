@@ -37,6 +37,10 @@ public class NetworkPlayer : MonoBehaviour
     private bool isLeftHanded;
     private bool isMapLeftHanded;
     private bool isHeadlampEnabled;
+
+    // Eye tracking
+    public bool EyeTracking { get; private set; }
+    public Vector3 EyeGazePoint { get; private set; }
     
     private void Start()
     {
@@ -205,5 +209,11 @@ public class NetworkPlayer : MonoBehaviour
 
         playerRightArm.physGrabBeam.PhysGrabPointOrigin.SetParent(isLeftHanded ? leftHandAnchor : rightHandAnchor);
         playerRightArm.physGrabBeam.PhysGrabPointOrigin.localPosition = Vector3.zero;
+    }
+
+    public void UpdateEyeTracking(Vector3 gazePoint)
+    {
+        EyeTracking = true;
+        EyeGazePoint = gazePoint;
     }
 }

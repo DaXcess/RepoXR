@@ -25,12 +25,14 @@ public class VRPlayer : MonoBehaviour
     // Reference stuff
     private PlayerController localController;
     private VRRig localRig;
+    private VREyeTracking eyeTracking;
     
     // Public accessors
     public Transform MainHand => VRSession.IsLeftHanded ? localRig.leftHandTip : localRig.rightHandTip;
     public Transform SecondaryHand => VRSession.IsLeftHanded ? localRig.rightHandTip : localRig.leftHandTip;
     public Transform MapParent => localRig.map;
     public VRRig Rig => localRig;
+    public VREyeTracking EyeTracking => eyeTracking;
     
     // Public state
     public float disableRotateTimer;
@@ -77,6 +79,9 @@ public class VRPlayer : MonoBehaviour
         localRig.head = mainCamera;
         localRig.leftArmTarget = leftHand;
         localRig.rightArmTarget = rightHand;
+
+        // TODO: Eye tracking
+        eyeTracking = mainCamera.gameObject.AddComponent<VREyeTracking>();
 
         Actions.Instance["ResetHeight"].performed += OnResetHeight;
     }

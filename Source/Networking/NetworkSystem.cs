@@ -92,6 +92,14 @@ public class NetworkSystem : MonoBehaviour
         });
     }
 
+    public void UpdateEyeTracking(Vector3 gazePoint)
+    {
+        EnqueueFrame(new EyeGaze
+        {
+            GazePoint = gazePoint
+        });
+    }
+
     /// <summary>
     /// Enqueues a frame to be sent next serialization sequence. This function contains an optimization that removes
     /// duplicate frames to reduce network usage, which reduces server costs.
@@ -167,6 +175,17 @@ public class NetworkSystem : MonoBehaviour
                         return;
 
                     networkPlayer.UpdateDominantHand(dominantHandFrame.LeftHanded);
+
+                    break;
+                }
+
+                case FrameHelper.FrameEyeGaze:
+                {
+                    var eyeGazeFrame = (EyeGaze)frame;
+                    if (!networkPlayers.TryGetValue(player.photonView.controllerActorNr, out var networkPlayer))
+                        return;
+
+                    networkPlayer.UpdateEyeTracking(eyeGazeFrame.GazePoint);
 
                     break;
                 }
