@@ -27,6 +27,11 @@ internal static class HarmonyPatcher
         Patch(VRPatcher, RepoXRPatchTarget.VROnly);
     }
 
+    public static void UnpatchVR()
+    {
+        VRPatcher.UnpatchSelf();
+    }
+
     public static void PatchClass(Type type)
     {
         UniversalPatcher.CreateClassProcessor(type, true).Patch();
@@ -197,5 +202,21 @@ internal static class LeaveMyLeaveAlonePatch
         var method = Method(type, "Emit");
 
         method.Invoke(null, [il, opcode, operand]);
+    }
+}
+
+internal static class HarmonyLibPatches
+{
+    /// <summary>
+    /// Ironically, patching Harmony like this fixes some issues with *un*patching
+    /// </summary>
+    [HarmonyPatch(typeof(MethodBaseExtensions), nameof(MethodBaseExtensions.HasMethodBody))]
+    [HarmonyPostfix]
+    private static bool OnUnpatch(MethodBase member, ref bool __result)
+    {
+        if (!__result)
+            Logger.LogDebug($"OnUnpatch: {member.FullDescription()}");
+
+        return true;
     }
 }

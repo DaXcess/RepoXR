@@ -6,6 +6,7 @@
 - Added an overhauled spectating system
 - Added support for the new climbing mechanic
 - Added support for the monster update
+- Added hotswapping in the main menu (F8)
 
 **Removals**:
 - Removed support for REPO v0.2.1

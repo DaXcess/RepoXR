@@ -108,7 +108,7 @@ public class Plugin : BaseUnityPlugin
         Native.BringGameWindowToFront();
         Config.SetupGlobalCallbacks();
 
-        SceneManager.sceneLoaded += (scene, _) => Entrypoint.OnSceneLoad(scene.name);
+        SceneManager.sceneLoaded += (scene, _) => UniversalEntrypoint.OnSceneLoad(scene.name);
     }
 
     public static string GetCommitHash()
@@ -218,6 +218,24 @@ public class Plugin : BaseUnityPlugin
         return true;
     }
 
+    public static void ToggleVR()
+    {
+        if (Flags.HasFlag(Flags.VR))
+        {
+            OpenXR.Loader.DeinitializeXR();
+            HarmonyPatcher.UnpatchVR();
+
+            Flags &= ~Flags.VR;
+        }
+        else
+        {
+            if (!InitializeVR())
+                return;
+
+            Flags |= Flags.VR;
+        }
+    }
+    
     private static bool InitializeVR()
     {
         RepoXR.Logger.LogInfo("Loading VR...");

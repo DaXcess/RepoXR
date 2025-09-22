@@ -16,18 +16,10 @@ namespace RepoXR;
 [RepoXRPatch]
 internal static class Entrypoint
 {
-    public static void OnSceneLoad(string _)
-    {
-        if (Plugin.Flags.HasFlag(Flags.VR))
-            SetupDefaultSceneVR();
-
-        SetupDefaultSceneUniversal();
-    }
-
     /// <summary>
     /// The default setup for VR for every scene
     /// </summary>
-    private static void SetupDefaultSceneVR()
+    internal static void SetupDefaultSceneVR()
     {
         // We grab all these references manually as most of the instances aren't set yet
         // Since most of them run in the "Start" lifetime function
@@ -131,22 +123,6 @@ internal static class Entrypoint
         new GameObject("Data Manager").AddComponent<DataManager>();
     }
 
-    private static bool hasShownErrorMessage;
-
-    /// <summary>
-    /// The default setup for every scene (including for non-vr players)
-    /// </summary>
-    private static void SetupDefaultSceneUniversal()
-    {
-        new GameObject("RepoXR Network System").AddComponent<NetworkSystem>();
-
-        ShowVRFailedWarning();
-
-#if DEBUG
-        ShowEarlyAccessWarning();
-#endif
-    }
-
     /// <summary>
     /// <see cref="GameDirector"/> is always present in the `Main` scene, so we use it as a base entrypoint
     /// </summary>
@@ -205,11 +181,52 @@ internal static class Entrypoint
     {
         GameDirector.instance.gameObject.AddComponent<VRSession>();
     }
+}
 
-    private static void ShowVRFailedWarning()
+[RepoXRPatch(RepoXRPatchTarget.Universal)]
+internal static class UniversalEntrypoint
+{
+    private static bool hasShownErrorMessage;
+    
+    public static void OnSceneLoad(string _)
+    {
+        if (Plugin.Flags.HasFlag(Flags.VR))
+            Entrypoint.SetupDefaultSceneVR();
+
+        SetupDefaultSceneUniversal();
+    }
+
+    /// <summary>
+    /// Enable hotswapping while in the main menu
+    /// </summary>
+    [HarmonyPatch(typeof(GameDirector), nameof(GameDirector.Start))]
+    [HarmonyPostfix]
+    private static void OnStartup(GameDirector __instance)
+    {
+        if (RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu)
+            return;
+
+        new GameObject("VR Hotswapper").AddComponent<HotswapManager>();
+    }
+
+    /// <summary>
+    /// The default setup for every scene (including for non-vr players)
+    /// </summary>
+    private static void SetupDefaultSceneUniversal()
+    {
+        new GameObject("RepoXR Network System").AddComponent<NetworkSystem>();
+
+        ShowVRFailedWarning();
+
+#if DEBUG
+        ShowEarlyAccessWarning();
+#endif
+    }
+    
+    public static void ShowVRFailedWarning(bool force = false)
     {
         if (!Plugin.Flags.HasFlag(Flags.StartupFailed) ||
-            hasShownErrorMessage || RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu)
+            (hasShownErrorMessage && !force) || RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu)
             return;
 
         hasShownErrorMessage = true;

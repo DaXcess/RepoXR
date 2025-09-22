@@ -23,20 +23,23 @@ internal static class InputPatches
         value = InputSettings.BackgroundBehavior.IgnoreFocus;
     }
 
+    /// <summary>
+    /// Add additional mapping tags during <see cref="InputManager" /> startup
+    /// </summary>
     [HarmonyPatch(typeof(InputManager), nameof(InputManager.Start))]
     [HarmonyPostfix]
     private static void OnInputManagerStart(InputManager __instance)
     {
         var offset = Enum.GetNames(typeof(InputKey)).Length;
-        
+
         for (var i = 0; i < AssetCollection.RemappableControls.additionalBindings.Length; i++)
         {
             var binding = AssetCollection.RemappableControls.additionalBindings[i];
-            
+
             __instance.tagDictionary.Add($"[{binding.action.name}]", (InputKey)(i + offset));
         }
     }
-    
+
     /// <summary>
     /// Create a custom <see cref="VRInputSystem"/> component on the <see cref="InputManager"/>, allowing the use of <see cref="InputActionAsset"/>s
     /// </summary>
@@ -54,7 +57,7 @@ internal static class InputPatches
     private static bool GetAction(ref InputKey key, ref InputAction __result)
     {
         var bindings = Enum.GetNames(typeof(InputKey)).Length;
-        
+
         __result = (int)key >= bindings
             ? AssetCollection.RemappableControls.additionalBindings[(int)key - bindings]
             : Actions.Instance[key.ToString()];
@@ -70,7 +73,7 @@ internal static class InputPatches
             return true;
 
         __result = Actions.Instance["Movement"].ReadValue<Vector2>();
-        
+
         return false;
     }
 
@@ -152,7 +155,7 @@ internal static class InputPatches
             return true;
 
         __result = __instance.GetAction(key).WasReleasedThisFrame();
-        
+
         return false;
     }
 
@@ -185,7 +188,7 @@ internal static class InputPatches
             __result = -pull;
             return false;
         }
-        
+
         return false;
     }
 
@@ -200,14 +203,14 @@ internal static class InputPatches
         if (action == null)
         {
             __result = "Unassigned";
-            
+
             return false;
         }
 
         var index = action.GetBindingIndex(VRInputSystem.instance.CurrentControlScheme);
 
         __result = __instance.InputDisplayGetString(action, index);
-        
+
         return false;
     }
 
@@ -220,7 +223,7 @@ internal static class InputPatches
     {
         var binding = action.bindings[bindingIndex].effectivePath;
         __result = Utils.GetControlSpriteString(binding);
-        
+
         return false;
     }
 
@@ -260,7 +263,7 @@ internal static class InputPatches
     private static bool ResetVRControls()
     {
         RebindManager.Instance.ResetControls();
-        
+
         return false;
     }
 
