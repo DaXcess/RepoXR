@@ -203,7 +203,8 @@ internal static class UniversalEntrypoint
     [HarmonyPostfix]
     private static void OnStartup(GameDirector __instance)
     {
-        if (RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu)
+        if (RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu &&
+            RunManager.instance.levelCurrent != RunManager.instance.levelLobbyMenu)
             return;
 
         new GameObject("VR Hotswapper").AddComponent<HotswapManager>();
@@ -223,10 +224,10 @@ internal static class UniversalEntrypoint
 #endif
     }
     
-    public static void ShowVRFailedWarning(bool force = false)
+    private static void ShowVRFailedWarning()
     {
         if (!Plugin.Flags.HasFlag(Flags.StartupFailed) ||
-            (hasShownErrorMessage && !force) || RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu)
+            hasShownErrorMessage || RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu)
             return;
 
         hasShownErrorMessage = true;

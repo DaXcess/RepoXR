@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -205,6 +206,7 @@ internal static class LeaveMyLeaveAlonePatch
     }
 }
 
+[RepoXRPatch(RepoXRPatchTarget.Universal)]
 internal static class HarmonyLibPatches
 {
     /// <summary>
@@ -212,11 +214,9 @@ internal static class HarmonyLibPatches
     /// </summary>
     [HarmonyPatch(typeof(MethodBaseExtensions), nameof(MethodBaseExtensions.HasMethodBody))]
     [HarmonyPostfix]
-    private static bool OnUnpatch(MethodBase member, ref bool __result)
+    private static void OnUnpatch(MethodBase member, ref bool __result)
     {
-        if (!__result)
-            Logger.LogDebug($"OnUnpatch: {member.FullDescription()}");
-
-        return true;
+        if (new StackTrace().GetFrame(2)?.GetMethod().Name == "UnpatchConditional")
+            __result = true;
     }
 }

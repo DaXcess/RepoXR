@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RepoXR.Networking.Frames;
 
-[Frame(FrameHelper.FrameDominantHand)]
+[Frame(FrameHelper.FrameEyeGaze)]
 public class EyeGaze : IFrame
 {
     public Vector3 GazePoint;

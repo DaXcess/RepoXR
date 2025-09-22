@@ -1,8 +1,5 @@
 ﻿using System.Collections;
-using HarmonyLib;
-using RepoXR.Patches;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace RepoXR.UI;
 
@@ -61,16 +58,5 @@ public class LoadingUI : MonoBehaviour
     {
         transform.localPosition = lastLocalPosition;
         transform.localEulerAngles = lastLocalRotation * Vector3.up;
-    }
-}
-
-[RepoXRPatch]
-internal static class LoadingUIPatches
-{
-    [HarmonyPatch(typeof(global::LoadingUI), nameof(global::LoadingUI.StartLoading))]
-    [HarmonyPostfix]
-    private static void OnStartLoading()
-    {
-        Object.FindObjectOfType<LoadingUI>().ResetPosition();
     }
 }

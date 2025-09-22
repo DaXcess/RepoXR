@@ -1,5 +1,7 @@
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace RepoXR.Managers;
 
@@ -10,6 +12,7 @@ public class HotswapManager : MonoBehaviour
     private void Awake()
     {
         swapAction.performed += SwapActionPerformed;
+        swapAction.Enable();
     }
 
     private void OnDestroy()
@@ -31,8 +34,8 @@ public class HotswapManager : MonoBehaviour
     private static void HotswapDisableVR()
     {
         Plugin.ToggleVR();
-        
-        GameDirector.instance.OutroStart(); // Reload scene
+
+        RestartScene();
     }
 
     private static void HotswapEnableVR()
@@ -40,8 +43,20 @@ public class HotswapManager : MonoBehaviour
         Plugin.ToggleVR();
         
         if (VRSession.InVR)
-            GameDirector.instance.OutroStart(); // Reload scene
+            RestartScene();
         else
-            UniversalEntrypoint.ShowVRFailedWarning(true);
+            MenuManager.instance.PagePopUp("VR Startup Failed", Color.red,
+                "RepoXR tried to launch the game in VR, however an error occured during initialization.\n\nYou can disable VR in the settings if you are not planning to play in VR.",
+                "Alright fam",
+                true);
+    }
+
+    private static void RestartScene()
+    {
+        if (SemiFunc.IsMultiplayer() && !PhotonNetwork.IsMasterClient)
+            // RestartScene is not allowed when not the host, so we just re-join the lobby
+            SceneManager.LoadSceneAsync("LobbyJoin");
+        else
+            RunManager.instance.RestartScene();
     }
 }
