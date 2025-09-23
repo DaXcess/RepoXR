@@ -46,8 +46,8 @@ public class HotswapManager : MonoBehaviour
             RestartScene();
         else
             MenuManager.instance.PagePopUp("VR Startup Failed", Color.red,
-                "RepoXR tried to launch the game in VR, however an error occured during initialization.\n\nYou can disable VR in the settings if you are not planning to play in VR.",
-                "Alright fam",
+                "RepoXR tried to swap the game to VR, however an error occured during initialization.\n\nYou can update your settings and press F8 to try again.",
+                "Darn it",
                 true);
     }
 
