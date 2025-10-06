@@ -29,7 +29,7 @@ internal static class ChatPatches
         return new CodeMatcher(instructions)
             .MatchForward(false, new CodeMatch(OpCodes.Call, Method(typeof(SemiFunc), nameof(SemiFunc.InputDown))))
             .Advance(-1)
-            .SetAndAdvance(OpCodes.Ldsfld, Field(typeof(VRInputSystem), nameof(VRInputSystem.instance)))
+            .SetAndAdvance(OpCodes.Ldsfld, Field(typeof(VRInputSystem), "_instance"))
             .SetAndAdvance(OpCodes.Callvirt, Method(typeof(VRInputSystem), nameof(VRInputSystem.ChatPressed)))
             .InstructionEnumeration();
     }
@@ -43,7 +43,7 @@ internal static class ChatPatches
     {
         return new CodeMatcher(instructions)
             .MatchForward(false, new CodeMatch(OpCodes.Ldc_I4_S, (sbyte)InputKey.Back))
-            .SetAndAdvance(OpCodes.Ldsfld, Field(typeof(VRInputSystem), nameof(VRInputSystem.instance)))
+            .SetAndAdvance(OpCodes.Ldsfld, Field(typeof(VRInputSystem), "_instance"))
             .SetAndAdvance(OpCodes.Callvirt, Method(typeof(VRInputSystem), nameof(VRInputSystem.ChatPressed)))
             .InstructionEnumeration();
     }

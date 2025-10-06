@@ -33,8 +33,8 @@ public class VRCustomCamera : MonoBehaviour
         
         gameplayCamera = UnityEngine.Camera.main!.transform;
         
-        transform.localPosition = TrackingInput.instance.HeadTransform.localPosition;
-        transform.localRotation = TrackingInput.instance.HeadTransform.localRotation;
+        transform.localPosition = TrackingInput.Instance.HeadTransform.localPosition;
+        transform.localRotation = TrackingInput.Instance.HeadTransform.localRotation;
         
         Plugin.Config.CustomCameraFOV.SettingChanged += OnFOVChanged;
     }

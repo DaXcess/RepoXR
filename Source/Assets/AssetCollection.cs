@@ -11,6 +11,8 @@ internal static class AssetCollection
 {
     private static AssetBundle assetBundle;
 
+    public static OpenXRFeaturePack OpenXRFeatures;
+
     public static RemappableControls RemappableControls;
     
     public static GameObject RebindHeader;
@@ -60,6 +62,8 @@ internal static class AssetCollection
             Logger.LogError("Failed to load asset bundle!");
             return false;
         }
+
+        OpenXRFeatures = assetBundle.LoadAsset<OpenXRFeaturePack>("OpenXRFeatures");
 
         RemappableControls = assetBundle.LoadAsset<GameObject>("RemappableControls").GetComponent<RemappableControls>();
         

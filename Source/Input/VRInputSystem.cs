@@ -10,7 +10,8 @@ namespace RepoXR.Input;
 
 public class VRInputSystem : MonoBehaviour
 {
-    public static VRInputSystem instance;
+    public static VRInputSystem Instance => _instance ?? InputManager.instance.gameObject.AddComponent<VRInputSystem>();
+    private static VRInputSystem? _instance;
 
     private PlayerInput playerInput;
 
@@ -21,7 +22,7 @@ public class VRInputSystem : MonoBehaviour
     
     private void Awake()
     {
-        instance = this;
+        _instance = this;
         
         playerInput = gameObject.AddComponent<PlayerInput>();
         playerInput.actions = AssetCollection.VRInputs;

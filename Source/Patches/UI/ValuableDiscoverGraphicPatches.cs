@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RepoXR.Managers;
+using RepoXR.Player;
 using UnityEngine;
 
 namespace RepoXR.Patches.UI;
@@ -89,7 +90,7 @@ internal static class ValuableDiscoverGraphicPatches
             canvas.LookAt(mainCamera.position);
             canvas.eulerAngles = new Vector3(0, canvas.eulerAngles.y, 0);
 
-            if (SemiFunc.OnScreen(bounds.center, 0.5f, 0.5f))
+            if (VREyeTracking.LookingAt(bounds.center, 0.5f, 0.5f))
             {
                 if (__instance.first)
                 {

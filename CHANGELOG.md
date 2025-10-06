@@ -1,7 +1,25 @@
 # 1.1.0
 
+## Eye Tracking
+
+RepoXR v1.1.0 adds support for eye tracking (for the three people that have it). 
+
+#### Singleplayer
+
+Players that use eye tracking will have enhanced immersion when it comes to "looking at" things. A few of the enemies in R.E.P.O. behave differently depending on if you're looking at them or not. This detection now factors in where you are looking with your eyes!
+
+Discovering valuables, or your lost friends' heads will also make use of eye tracking. Just look at the items and the game will discover them without you having to move your head.
+
+#### Multiplayer
+
+When playing with other people, other people will see your pupils move based on your real eye movement. Looking down? People will see you look down. Looking straight through your friend's soul because they broke something? Yup, they'll see that!
+
+#### Configuration
+
+Eye tracking can be enabled and disabled mid-game, there's no need to restart. If your headset does not support eye tracking, it will be considered disabled (even when eye tracking is enabled in the config), so no need to change the settings if you don't have eye tracking.
+
 **Additions**:
-- Added eye tracking support (for the three people that have it)
+- Added eye tracking support
 - Added an option to detach arms from body
 - Added an overhauled spectating system
 - Added support for the new climbing mechanic
@@ -9,7 +27,7 @@
 - Added hotswapping in the main menu (F8)
 
 **Removals**:
-- Removed support for REPO v0.2.1
+- Removed support for REPO v0.2.x
 
 # 1.0.3
 

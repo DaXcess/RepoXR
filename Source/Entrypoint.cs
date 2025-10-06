@@ -130,7 +130,7 @@ internal static class Entrypoint
     [HarmonyPostfix]
     private static void OnStartup(GameDirector __instance)
     {
-        VRInputSystem.instance.ActivateInput();
+        VRInputSystem.Instance.ActivateInput();
 
         if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu ||
             RunManager.instance.levelCurrent == RunManager.instance.levelSplashScreen)

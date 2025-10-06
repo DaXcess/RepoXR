@@ -41,14 +41,17 @@ public class HotswapManager : MonoBehaviour
     private static void HotswapEnableVR()
     {
         Plugin.ToggleVR();
-        
+
         if (VRSession.InVR)
             RestartScene();
         else
+        {
+            MenuManager.instance.PageCloseAll();
             MenuManager.instance.PagePopUp("VR Startup Failed", Color.red,
                 "RepoXR tried to launch the game in VR, however an error occured during initialization.\n\nYou can disable VR in the settings if you are not planning to play in VR.",
                 "Alright fam",
                 true);
+        }
     }
 
     private static void RestartScene()

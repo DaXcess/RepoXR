@@ -21,7 +21,6 @@ public class Actions
     
     public InputAction EyeGazePosition { get; private set; }
     public InputAction EyeGazeRotation { get; private set; }
-    public InputAction EyeGazeTracked { get; private set; }
 
     private Actions()
     {
@@ -39,10 +38,9 @@ public class Actions
 
         EyeGazePosition = AssetCollection.DefaultXRActions.FindAction("Eye Gaze/Position");
         EyeGazeRotation = AssetCollection.DefaultXRActions.FindAction("Eye Gaze/Rotation");
-        EyeGazeTracked = AssetCollection.DefaultXRActions.FindAction("Eye Gaze/Is Tracked");
-        
+
         AssetCollection.DefaultXRActions.Enable();
     }
 
-    public InputAction this[string name] => VRInputSystem.instance.Actions[name];
+    public InputAction this[string name] => VRInputSystem.Instance.Actions[name];
 }

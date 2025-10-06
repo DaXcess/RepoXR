@@ -52,7 +52,7 @@ public class RebindManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        playerInput = VRInputSystem.instance.GetPlayerInput();
+        playerInput = VRInputSystem.Instance.GetPlayerInput();
         
         DestroyOldUI();
         CreateUI();

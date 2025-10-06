@@ -168,7 +168,7 @@ public class VRCameraAim : MonoBehaviour
         if (CameraNoPlayerTarget.instance)
             yRot = CameraNoPlayerTarget.instance.transform.eulerAngles.y;
         
-        var angle = new Vector3(0, yRot - TrackingInput.instance.HeadTransform.localEulerAngles.y, 0);
+        var angle = new Vector3(0, yRot - TrackingInput.Instance.HeadTransform.localEulerAngles.y, 0);
         
         ForceSetRotation(angle);
     }

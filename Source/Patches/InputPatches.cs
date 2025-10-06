@@ -47,8 +47,6 @@ internal static class InputPatches
     [HarmonyPostfix]
     private static void OnInitializeInputManager(InputManager __instance)
     {
-        __instance.gameObject.AddComponent<VRInputSystem>();
-
         new GameObject("VR Tracking Input").AddComponent<TrackingInput>();
     }
 
@@ -207,7 +205,7 @@ internal static class InputPatches
             return false;
         }
 
-        var index = action.GetBindingIndex(VRInputSystem.instance.CurrentControlScheme);
+        var index = action.GetBindingIndex(VRInputSystem.Instance.CurrentControlScheme);
 
         __result = __instance.InputDisplayGetString(action, index);
 
@@ -234,7 +232,7 @@ internal static class InputPatches
     [HarmonyPrefix]
     private static bool InputToggleGet(ref InputKey key, ref bool __result)
     {
-        __result = VRInputSystem.instance.InputToggleGet(key.ToString());
+        __result = VRInputSystem.Instance.InputToggleGet(key.ToString());
 
         return false;
     }

@@ -45,6 +45,10 @@ public class Config(string assemblyPath, ConfigFile file)
                 "Controls how much haptic feedback you will experience while playing with the VR mod.",
                 new AcceptableValueEnum<HapticFeedbackOption>()));
 
+    [ConfigDescriptor(trueText: "Enabled", falseText: "Disabled")]
+    public ConfigEntry<bool> EnableEyeTracking { get; } = file.Bind("Gameplay", nameof(EnableEyeTracking), true,
+        "If supported by the headset, use eye tracking to move your characters pupils for other players and for checking line of sight with enemies.");
+
     [ConfigDescriptor(pointerSize: 0.01f, stepSize: 0.05f)]
     public ConfigEntry<float> HUDPlaneOffset { get; } = file.Bind("Gameplay", nameof(HUDPlaneOffset), -0.45f,
         new ConfigDescription("The default height offset for the HUD", new AcceptableValueRange<float>(-0.6f, 0.5f)));
