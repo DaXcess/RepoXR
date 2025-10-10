@@ -19,6 +19,7 @@ public class VREyeTracking : MonoBehaviour
     private Quaternion gazeRotation;
 
     private bool supported;
+    private float lastHardwareInput;
 
     private void Awake()
     {
@@ -46,6 +47,7 @@ public class VREyeTracking : MonoBehaviour
     private void OnEyeGazePosition(InputAction.CallbackContext ctx)
     {
         supported = true;
+        lastHardwareInput = Time.realtimeSinceStartup;
 
         gazePosition = ctx.ReadValue<Vector3>();
     }
@@ -53,6 +55,7 @@ public class VREyeTracking : MonoBehaviour
     private void OnEyeGazeRotation(InputAction.CallbackContext ctx)
     {
         supported = true;
+        lastHardwareInput = Time.realtimeSinceStartup;
 
         gazeRotation = ctx.ReadValue<Quaternion>();
     }
@@ -60,13 +63,21 @@ public class VREyeTracking : MonoBehaviour
     private static void OnEyeTrackingSettingChanged(object sender, EventArgs e)
     {
         if (!Plugin.Config.EnableEyeTracking.Value)
-            NetworkSystem.instance.UpdateEyeTracking(Vector3.down * 1000);
+            NetworkSystem.instance.DisableEyeTracking();
     }
 
     private void Update()
     {
         if (!Enabled)
             return;
+
+        // Assume eye tracking is no longer enabled if no data has been received for over 5 seconds
+        if (Time.realtimeSinceStartup - lastHardwareInput > 5)
+        {
+            supported = false;
+            NetworkSystem.instance.DisableEyeTracking();
+            return;
+        }
 
         var ray = new Ray(transform.parent.TransformPoint(gazePosition),
             transform.parent.TransformDirection(gazeRotation * Vector3.forward));

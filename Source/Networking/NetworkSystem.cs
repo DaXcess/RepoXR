@@ -100,6 +100,11 @@ public class NetworkSystem : MonoBehaviour
         });
     }
 
+    public void DisableEyeTracking()
+    {
+        UpdateEyeTracking(Vector3.down * 1000);
+    }
+
     /// <summary>
     /// Enqueues a frame to be sent next serialization sequence. This function contains an optimization that removes
     /// duplicate frames to reduce network usage, which reduces server costs.

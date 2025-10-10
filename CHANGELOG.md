@@ -1,5 +1,9 @@
 # 1.1.0
 
+## Detached Arms
+
+You can now detach your arms from your body, giving you more control over your aim, not being constrained by the maximum length of the Semibot's arms anymore. You can change this setting at any time, no restarts or rejoins needed.
+
 ## Eye Tracking
 
 RepoXR v1.1.0 adds support for eye tracking (for the three people that have it). 
@@ -18,6 +22,10 @@ When playing with other people, other people will see your pupils move based on 
 
 Eye tracking can be enabled and disabled mid-game, there's no need to restart. If your headset does not support eye tracking, it will be considered disabled (even when eye tracking is enabled in the config), so no need to change the settings if you don't have eye tracking.
 
+## Hotswap
+
+You can now swap between VR mode and flatscreen mode by pressing the F8 button on your keyboard while you are in the main menu or in the lobby menu. This works even when you are the host (though the lobby will reload for everybody).
+
 **Additions**:
 - Added eye tracking support
 - Added an option to detach arms from body
@@ -25,6 +33,9 @@ Eye tracking can be enabled and disabled mid-game, there's no need to restart. I
 - Added support for the new climbing mechanic
 - Added support for the monster update
 - Added hotswapping in the main menu (F8)
+
+**Changed**:
+- Removed the performance tab and replaced it with UI in the settings
 
 **Removals**:
 - Removed support for REPO v0.2.x

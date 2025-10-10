@@ -26,6 +26,12 @@ public class Config(string assemblyPath, ConfigFile file)
 
     // Gameplay configuration
 
+    [ConfigDescriptor(stepSize: 5f, suffix: "%")]
+    public ConfigEntry<int> CameraResolution { get; } = file.Bind("Gameplay", nameof(CameraResolution), 100,
+        new ConfigDescription(
+            "This setting configures the resolution scale of the game, lower values are more performant, but will make the game look worse.",
+            new AcceptableValueRange<int>(5, 200)));
+
     [ConfigDescriptor]
     public ConfigEntry<bool> ReducedAimImpact { get; } = file.Bind("Gameplay", nameof(ReducedAimImpact), false,
         "When enabled, lowers the severity of force-look events (like the ceiling eye), which can be helpful for people with motion sickness");
@@ -38,6 +44,10 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<bool> LeftHandDominant { get; } = file.Bind("Gameplay", nameof(LeftHandDominant), false,
         "Whether to use the left or right hand as dominant hand (the hand used to pick up items)");
 
+    [ConfigDescriptor(customName: "Arms", falseText: "Attached", trueText: "Detached")]
+    public ConfigEntry<bool> DetachedArms { get; } = file.Bind("Gameplay", nameof(DetachedArms), false,
+        "Whether your arms are attached to your body, or if they are separate");
+
     [ConfigDescriptor]
     public ConfigEntry<HapticFeedbackOption> HapticFeedback { get; } =
         file.Bind("Gameplay", nameof(HapticFeedback), HapticFeedbackOption.All,
@@ -49,29 +59,24 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<bool> EnableEyeTracking { get; } = file.Bind("Gameplay", nameof(EnableEyeTracking), true,
         "If supported by the headset, use eye tracking to move your characters pupils for other players and for checking line of sight with enemies.");
 
+    // UI configuration
+
     [ConfigDescriptor(pointerSize: 0.01f, stepSize: 0.05f)]
-    public ConfigEntry<float> HUDPlaneOffset { get; } = file.Bind("Gameplay", nameof(HUDPlaneOffset), -0.45f,
+    public ConfigEntry<float> HUDPlaneOffset { get; } = file.Bind("UI", nameof(HUDPlaneOffset), -0.45f,
         new ConfigDescription("The default height offset for the HUD", new AcceptableValueRange<float>(-0.6f, 0.5f)));
 
     [ConfigDescriptor(pointerSize: 0.01f, stepSize: 0.05f)]
-    public ConfigEntry<float> HUDGazePlaneOffset { get; } = file.Bind("Gameplay", nameof(HUDGazePlaneOffset), -0.25f,
-        new ConfigDescription("The height offset for the HUD when looking at it", new AcceptableValueRange<float>(-0.6f, 0.5f)));
+    public ConfigEntry<float> HUDGazePlaneOffset { get; } = file.Bind("UI", nameof(HUDGazePlaneOffset), -0.25f,
+        new ConfigDescription("The height offset for the HUD when looking at it",
+            new AcceptableValueRange<float>(-0.6f, 0.5f)));
 
     [ConfigDescriptor(pointerSize: 0.05f, stepSize: 0.25f)]
-    public ConfigEntry<float> SmoothCanvasDistance { get; } = file.Bind("Gameplay", nameof(SmoothCanvasDistance), 1.5f,
+    public ConfigEntry<float> SmoothCanvasDistance { get; } = file.Bind("UI", nameof(SmoothCanvasDistance), 1.5f,
         new ConfigDescription("The distance that the smooth canvas should be away from the main camera",
             new AcceptableValueRange<float>(1.25f, 3)));
 
-    // Performance configuration
-
-    [ConfigDescriptor(stepSize: 5f, suffix: "%")]
-    public ConfigEntry<int> CameraResolution { get; } = file.Bind("Performance", nameof(CameraResolution), 100,
-        new ConfigDescription(
-            "This setting configures the resolution scale of the game, lower values are more performant, but will make the game look worse.",
-            new AcceptableValueRange<int>(5, 200)));
-
     // Input configuration
-    
+
     [ConfigDescriptor(enumDisableBar: true)]
     public ConfigEntry<TurnProviderOption> TurnProvider { get; } = file.Bind("Input", nameof(TurnProvider),
         TurnProviderOption.Smooth,
@@ -128,7 +133,7 @@ public class Config(string assemblyPath, ConfigFile file)
         "FOR INTERNAL USE ONLY, DO NOT EDIT");
 
     private static bool leftHandedWarningShown;
-    
+
     /// <summary>
     /// Create persistent callbacks that persist for the entire duration of the application
     /// </summary>
