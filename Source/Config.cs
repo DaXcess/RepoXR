@@ -26,12 +26,6 @@ public class Config(string assemblyPath, ConfigFile file)
 
     // Gameplay configuration
 
-    [ConfigDescriptor(stepSize: 5f, suffix: "%")]
-    public ConfigEntry<int> CameraResolution { get; } = file.Bind("Gameplay", nameof(CameraResolution), 100,
-        new ConfigDescription(
-            "This setting configures the resolution scale of the game, lower values are more performant, but will make the game look worse.",
-            new AcceptableValueRange<int>(5, 200)));
-
     [ConfigDescriptor]
     public ConfigEntry<bool> ReducedAimImpact { get; } = file.Bind("Gameplay", nameof(ReducedAimImpact), false,
         "When enabled, lowers the severity of force-look events (like the ceiling eye), which can be helpful for people with motion sickness");
@@ -55,7 +49,7 @@ public class Config(string assemblyPath, ConfigFile file)
                 "Controls how much haptic feedback you will experience while playing with the VR mod.",
                 new AcceptableValueEnum<HapticFeedbackOption>()));
 
-    [ConfigDescriptor(trueText: "Enabled", falseText: "Disabled")]
+    [ConfigDescriptor(customName: "Eye Tracking", trueText: "Enabled", falseText: "Disabled")]
     public ConfigEntry<bool> EnableEyeTracking { get; } = file.Bind("Gameplay", nameof(EnableEyeTracking), true,
         "If supported by the headset, use eye tracking to move your characters pupils for other players and for checking line of sight with enemies.");
 
@@ -101,6 +95,12 @@ public class Config(string assemblyPath, ConfigFile file)
 
     // Rendering configuration
 
+    [ConfigDescriptor(stepSize: 5f, suffix: "%")]
+    public ConfigEntry<int> CameraResolution { get; } = file.Bind("Rendering", nameof(CameraResolution), 100,
+        new ConfigDescription(
+            "This setting configures the resolution scale of the game, lower values are more performant, but will make the game look worse.",
+            new AcceptableValueRange<int>(5, 200)));
+
     [ConfigDescriptor]
     public ConfigEntry<bool> Vignette { get; } = file.Bind("Rendering", nameof(Vignette), true,
         "Enables the vignette shader used in certain scenarios and levels in the game.");
@@ -139,9 +139,6 @@ public class Config(string assemblyPath, ConfigFile file)
     /// </summary>
     public void SetupGlobalCallbacks()
     {
-        if (!VRSession.InVR)
-            return;
-
         CameraResolution.SettingChanged += (_, _) =>
         {
             XRSettings.eyeTextureResolutionScale = CameraResolution.Value / 100f;
@@ -149,6 +146,9 @@ public class Config(string assemblyPath, ConfigFile file)
 
         CustomCamera.SettingChanged += (_, _) =>
         {
+            if (!VRSession.InVR)
+                return;
+
             if (CustomCamera.Value)
                 Object.Instantiate(AssetCollection.CustomCamera, Camera.main!.transform.parent);
             else
