@@ -20,7 +20,7 @@ public class CustomPostProcessing : MonoBehaviour
         
         postProcessing.volume.profile.AddSettings(vignette);
         
-        // Disable replaced shaders
+        // Disable original shaders
         postProcessing.vignette.enabled.value = false;
     }
 

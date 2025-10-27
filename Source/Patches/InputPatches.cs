@@ -56,11 +56,19 @@ internal static class InputPatches
     {
         var bindings = Enum.GetNames(typeof(InputKey)).Length;
 
-        __result = (int)key >= bindings
-            ? AssetCollection.RemappableControls.additionalBindings[(int)key - bindings]
-            : Actions.Instance[key.ToString()];
+        try
+        {
+            __result = (int)key >= bindings
+                ? AssetCollection.RemappableControls.additionalBindings[(int)key - bindings]
+                : Actions.Instance[key.ToString()];
 
-        return false;
+            return false;
+        }
+        catch
+        {
+            // If no key was found, fall back to vanilla keybind (likely won't work with VR controllers though)
+            return true;
+        }
     }
 
     [HarmonyPatch(typeof(InputManager), nameof(InputManager.GetMovement))]

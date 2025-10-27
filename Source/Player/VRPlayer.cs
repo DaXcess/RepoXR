@@ -80,7 +80,6 @@ public class VRPlayer : MonoBehaviour
         localRig.leftArmTarget = leftHand;
         localRig.rightArmTarget = rightHand;
 
-        // TODO: Eye tracking
         eyeTracking = mainCamera.gameObject.AddComponent<VREyeTracking>();
 
         Actions.Instance["ResetHeight"].performed += OnResetHeight;

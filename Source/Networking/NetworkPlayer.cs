@@ -213,7 +213,7 @@ public class NetworkPlayer : MonoBehaviour
 
     public void UpdateEyeTracking(Vector3 gazePoint)
     {
-        // (0, -1000, 0) is sent whenever eye tracking is disabled during a session
+        // (0, -1000, 0) is sent whenever eye tracking is disabled (or stopped working) during a session
         if (gazePoint == Vector3.down * 1000)
         {
             EyeTracking = false;

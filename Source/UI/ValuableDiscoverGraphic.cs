@@ -10,14 +10,14 @@ public class ValuableDiscoverGraphic : MonoBehaviour
     private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
     private static readonly int EdgeColor = Shader.PropertyToID("_EdgeColor");
 
-    [SerializeField] private Renderer renderer;
+    public Renderer renderer;
 
     private global::ValuableDiscoverGraphic baseGraphic;
 
     internal PhysGrabObject target;
 
     private global::ValuableDiscoverGraphic.State state;
-    private bool discovered = true;
+    private bool discovered;
     private float waitTimer;
     private float animLerp;
 
@@ -55,7 +55,7 @@ public class ValuableDiscoverGraphic : MonoBehaviour
             targetSize = bounds.size;
 
             var lookingAt = VREyeTracking.LookingAt(bounds.center, 0.5f, 0.5f);
-            if (lookingAt && discovered)
+            if (lookingAt && !discovered)
             {
                 if (state == global::ValuableDiscoverGraphic.State.Reminder)
                     baseGraphic.sound.Play(target.centerPoint, 0.3f);
@@ -63,7 +63,7 @@ public class ValuableDiscoverGraphic : MonoBehaviour
                     baseGraphic.sound.Play(target.centerPoint);
 
                 renderer.enabled = true;
-                discovered = false;
+                discovered = true;
             }
         }
         else
@@ -114,6 +114,14 @@ public class ValuableDiscoverGraphic : MonoBehaviour
 
         var baseColor = baseGraphic.ColorBadMiddle;
         var edgeColor = baseGraphic.ColorBadCorner;
+
+        renderer.material.SetColor(BaseColor, baseColor);
+        renderer.material.SetColor(EdgeColor, edgeColor);
+    }
+
+    public void CustomSetup(global::ValuableDiscoverGraphic.State newState, Color baseColor, Color edgeColor)
+    {
+        state = newState;
 
         renderer.material.SetColor(BaseColor, baseColor);
         renderer.material.SetColor(EdgeColor, edgeColor);

@@ -222,6 +222,10 @@ public class NetworkSystem : MonoBehaviour
 
     internal void WriteAdditionalData(PhotonStream stream)
     {
+        // Just don't send anything if we have nothing to say
+        if (scheduledFrames.Count == 0)
+            return;
+
         stream.SendNext(REPOXR_MAGIC);
         stream.SendNext(PROTOCOL_VERSION);
 

@@ -194,10 +194,6 @@ public class Plugin : BaseUnityPlugin
             {
                 var filename = Path.GetFileName(file);
 
-                // Ignore known unmanaged libraries
-                if (filename is "UnityOpenXR.dll" or "openxr_loader.dll")
-                    continue;
-
                 try
                 {
                     Assembly.LoadFile(file);

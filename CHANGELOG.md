@@ -1,5 +1,11 @@
 # 1.1.0
 
+-- TODOS --
+
+- Death head thingy
+- Climbing
+- *Maybe* Change camera hierarchy setup to fix bug and make better force looking logic
+
 ## Detached Arms
 
 You can now detach your arms from your body, giving you more control over your aim, not being constrained by the maximum length of the Semibot's arms anymore. You can change this setting at any time, no restarts or rejoins needed.
@@ -29,13 +35,15 @@ You can now swap between VR mode and flatscreen mode by pressing the F8 button o
 **Additions**:
 - Added eye tracking support
 - Added an option to detach arms from body
-- Added an overhauled spectating system
 - Added support for the new climbing mechanic
+- Added support for spectating your death head
 - Added support for the monster update
 - Added hotswapping in the main menu (F8)
 
 **Changed**:
 - Removed the performance tab and replaced it with UI in the settings
+- Replaced the valuable discover overlay with a new 3D graphic (supports custom colors)
+- You now look at the enemy/object that killed you while the death animation plays (if possible)
 
 **Removals**:
 - Removed support for REPO v0.2.x

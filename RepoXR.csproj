@@ -30,6 +30,7 @@
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
         <PackageReference Include="BepInEx.Core" Version="5.*" />
+        <PackageReference Include="CustomDiscoverStateLib" Version="1.0.1" />
         <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="PhotonUnityNetworking" Version="0.1.2" />
