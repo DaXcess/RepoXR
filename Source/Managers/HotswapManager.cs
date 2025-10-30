@@ -46,7 +46,10 @@ public class HotswapManager : MonoBehaviour
             RestartScene();
         else
         {
-            MenuManager.instance.PageCloseAll();
+            // Close existing popup if one is open
+            if (MenuPagePopUp.instance != null)
+                MenuPagePopUp.instance.ButtonEvent();
+
             MenuManager.instance.PagePopUp("VR Startup Failed", Color.red,
                 "RepoXR tried to swap the game to VR, however an error occured during initialization.\n\nYou can update your settings and press F8 to try again.",
                 "Darn it",

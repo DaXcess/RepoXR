@@ -28,6 +28,7 @@ public class VREyeTracking : MonoBehaviour
 
         Plugin.Config.EnableEyeTracking.SettingChanged += OnEyeTrackingSettingChanged;
 
+        // TODO: Remove once tested with real hardware
         debugCube = Instantiate(AssetCollection.Cube).transform;
         debugCube.GetComponent<MeshRenderer>().material.color = Color.blue;
         debugCube.GetComponent<Collider>().enabled = false;
@@ -46,18 +47,28 @@ public class VREyeTracking : MonoBehaviour
 
     private void OnEyeGazePosition(InputAction.CallbackContext ctx)
     {
+        gazePosition = ctx.ReadValue<Vector3>();
+
+        // Sometimes the OpenXR runtime misfires and triggers eye tracking callbacks even when it doesn't support it
+        // In that case the data is always 0, so we can just discard the event if we didn't already have data before
+        if (!supported && gazePosition == Vector3.zero)
+            return;
+
         supported = true;
         lastHardwareInput = Time.realtimeSinceStartup;
-
-        gazePosition = ctx.ReadValue<Vector3>();
     }
 
     private void OnEyeGazeRotation(InputAction.CallbackContext ctx)
     {
+        gazeRotation = ctx.ReadValue<Quaternion>();
+
+        // Sometimes the OpenXR runtime misfires and triggers eye tracking callbacks even when it doesn't support it
+        // In that case the data is always 0, so we can just discard the event if we didn't already have data before
+        if (!supported && gazeRotation == Quaternion.identity)
+            return;
+
         supported = true;
         lastHardwareInput = Time.realtimeSinceStartup;
-
-        gazeRotation = ctx.ReadValue<Quaternion>();
     }
 
     private static void OnEyeTrackingSettingChanged(object sender, EventArgs e)
