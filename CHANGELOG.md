@@ -44,6 +44,7 @@ You can now swap between VR mode and flatscreen mode by pressing the F8 button o
 - Removed the performance tab and replaced it with UI in the settings
 - Replaced the valuable discover overlay with a new 3D graphic (supports custom colors)
 - You now look at the enemy/object that killed you while the death animation plays (if possible)
+- Optimized the custom camera by adding a frame rate limiter
 
 **Removals**:
 - Removed support for REPO v0.2.x

@@ -40,9 +40,9 @@ internal static class Experiments
         __instance.enemiesDifficulty2.Clear();
         __instance.enemiesDifficulty3.Clear();
 
-        __instance.enemiesDifficulty1.Add(robe);
-        __instance.enemiesDifficulty2.Add(robe);
-        __instance.enemiesDifficulty3.Add(robe);
+        __instance.enemiesDifficulty1.Add(ceileingEye);
+        __instance.enemiesDifficulty2.Add(ceileingEye);
+        __instance.enemiesDifficulty3.Add(ceileingEye);
     }
 
     [HarmonyPatch(typeof(PlayerController), nameof(PlayerController.FixedUpdate))]

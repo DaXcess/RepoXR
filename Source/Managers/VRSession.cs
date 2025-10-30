@@ -1,4 +1,5 @@
-﻿using RepoXR.Input;
+﻿using RepoXR.Assets;
+using RepoXR.Input;
 using RepoXR.Player;
 using RepoXR.UI;
 using UnityEngine;
@@ -25,6 +26,7 @@ public class VRSession : MonoBehaviour
     public Camera MainCamera { get; private set; }
     public VRPlayer Player { get; private set; }
     public GameHud HUD { get; private set; }
+    public FocusSphere FocusSphere { get; private set; }
     
     private void Awake()
     {
@@ -69,5 +71,8 @@ public class VRSession : MonoBehaviour
         
         // Initialize Handheld Map (if it wasn't created yet)
         VRMapTool.Create();
+
+        // Initialize Focus Sphere
+        FocusSphere = Instantiate(AssetCollection.FocusSphere, MainCamera.transform.parent).GetComponent<FocusSphere>();
     }
 }

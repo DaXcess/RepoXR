@@ -110,6 +110,13 @@ public class Config(string assemblyPath, ConfigFile file)
         file.Bind("Rendering", nameof(CustomCamera), false,
             "Adds a second camera mounted on top of the VR camera that will render separately from the VR camera to the display. This requires extra GPU power!");
 
+    [ConfigDescriptor(stepSize: 15, pointerSize: 5)]
+    public ConfigEntry<float> CustomCameraFramerate { get; } = file.Bind("Rendering", nameof(CustomCameraFramerate),
+        60f,
+        new ConfigDescription(
+            "The maximum frequency that the custom camera can render at. The custom camera framerate is limited to the VR headset's refresh rate, so setting this higher won't have any effect.",
+            new AcceptableValueRange<float>(15, 120)));
+
     [ConfigDescriptor(stepSize: 5)]
     public ConfigEntry<float> CustomCameraFOV { get; } = file.Bind("Rendering", nameof(CustomCameraFOV), 75f,
         new ConfigDescription("The field of view that the custom camera should have.",

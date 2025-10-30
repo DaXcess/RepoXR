@@ -13,6 +13,10 @@ internal static class CameraPatches
     [HarmonyPrefix]
     private static void DisableTargetTextureOverride(Camera __instance, ref RenderTexture? value)
     {
+        // We make an exception for our manually rendered custom camera
+        if (__instance.name.StartsWith("Custom Camera"))
+            return;
+
         value = null;
     }
 

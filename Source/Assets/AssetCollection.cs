@@ -24,6 +24,7 @@ internal static class AssetCollection
     public static GameObject Keyboard;
     public static GameObject ExpressionWheel;
     public static GameObject ValuableDiscover;
+    public static GameObject FocusSphere;
 
     public static GameObject MenuSettings;
     public static GameObject MenuSettingsCategory;
@@ -77,6 +78,7 @@ internal static class AssetCollection
         Keyboard = assetBundle.LoadAsset<GameObject>("NonNativeKeyboard");
         ExpressionWheel = assetBundle.LoadAsset<GameObject>("Expression Radial");
         ValuableDiscover = assetBundle.LoadAsset<GameObject>("Valuable Discover");
+        FocusSphere = assetBundle.LoadAsset<GameObject>("Focus Sphere");
         
         MenuSettings = assetBundle.LoadAsset<GameObject>("VR Settings Page");
         MenuSettingsCategory = assetBundle.LoadAsset<GameObject>("VR Settings Page - Category");

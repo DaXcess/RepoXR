@@ -5,6 +5,7 @@ using HarmonyLib;
 using RepoXR.Assets;
 using RepoXR.Managers;
 using RepoXR.Player.Camera;
+using RepoXR.UI;
 using static HarmonyLib.AccessTools;
 
 namespace RepoXR.Patches.Enemy;
@@ -32,6 +33,27 @@ internal static class EnemyCeilingEyePatches
             .InsertAndAdvance(new CodeInstruction(OpCodes.Callvirt,
                 PropertyGetter(typeof(ConfigEntry<bool>), nameof(ConfigEntry<bool>.Value))))
             .SetOperandAndAdvance(Method(typeof(VRCameraAim), nameof(VRCameraAim.SetAimTargetSoft)))
+            // Set focus sphere target to look at the ceiling eye
+            .Insert(
+                // VRSession.Instance.FocusSphere
+                new CodeInstruction(OpCodes.Call, PropertyGetter(typeof(VRSession), nameof(VRSession.Instance))),
+                new CodeInstruction(OpCodes.Callvirt, PropertyGetter(typeof(VRSession), nameof(VRSession.FocusSphere))),
+
+                // target: this.enemy.CenterTransform
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld, Field(typeof(EnemyCeilingEye), nameof(EnemyCeilingEye.enemy))),
+                new CodeInstruction(OpCodes.Ldfld, Field(typeof(global::Enemy), nameof(global::Enemy.CenterTransform))),
+
+                // time: 1f
+                new CodeInstruction(OpCodes.Ldc_R4, 0.5f),
+
+                // speed: 2f
+                new CodeInstruction(OpCodes.Ldc_R4, 2f),
+
+                // strength: 1f (100%)
+                new CodeInstruction(OpCodes.Ldc_R4, 1f),
+                new CodeInstruction(OpCodes.Callvirt, Method(typeof(FocusSphere), nameof(FocusSphere.SetLookAtTarget)))
+            )
             .InstructionEnumeration();
     }
 
@@ -67,7 +89,7 @@ internal static class EnemyCeilingEyePatches
     {
         if (__instance.currentState != EnemyCeilingEye.State.HasTarget)
             return;
-        
+
         if (!__instance.targetPlayer || !__instance.targetPlayer.isLocal)
             return;
 
