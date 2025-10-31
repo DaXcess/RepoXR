@@ -143,6 +143,16 @@ RepoXR allows you to change your dominant hand, so you can swap your primary (gr
 > [!WARNING]
 > Changing your dominant hand **will not** update your bindings. You will have to manually rebind the controls in the settings menu to your preferred controls if you decide to change your dominant hand.
 
+# Eye Tracking
+
+If your headset supports it, you can make use of eye tracking when using the VR mod. Eye tracking alters mechanics in both singleplayer and multiplayer, so nobody is left out!
+
+When eye tracking is enabled, certain features within the game that require you to look at (or away) from certain points in your vision will now take into account your real focus, instead of only relying on the rotation of your head. For example: looking away from the Shadow Child with your head, but still looking at it with your eyes, will cause the shadow child to snatch you up and throw you around.
+
+Other people can also enjoy the use of eye tracking! When used in multiplayer, the eyes of the semibot will look wherever you are looking in real life, so you can roll your eyes, or stare into the soul of that one friend that keeps destroying all the fragile valuables.
+
 # Other misc features
 
 - While inside of a lobby, you can press "CTRL + C" on your keyboard to copy a Steam join link (steam://joinlobby/...) to allow you to invite people outside your friends list (make sure your game is focussed while you do this)
+
+- While inside of the main menu, or a multiplayer **menu** lobby, you can press F8 to toggle between VR and flatscreen mode.
