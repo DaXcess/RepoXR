@@ -161,7 +161,8 @@ public class GameHud : MonoBehaviour
             {
                 parent = camera.transform.parent.parent, 
                 localPosition = Vector3.down * 3000, // Move very far away initially to prevent UI flashes during loading
-                localRotation = Quaternion.identity, localScale = Vector3.one * 0.01f
+                localRotation = Quaternion.identity,
+                localScale = Vector3.one * 0.01f
             },
             layer = 5
         }.AddComponent<Canvas>();

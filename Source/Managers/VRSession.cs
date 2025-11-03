@@ -1,11 +1,8 @@
 ﻿using RepoXR.Assets;
-using RepoXR.Input;
 using RepoXR.Player;
 using RepoXR.UI;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
-using UnityEngine.InputSystem.XR;
 
 namespace RepoXR.Managers;
 
@@ -51,12 +48,6 @@ public class VRSession : MonoBehaviour
         MainCamera = CameraUtils.Instance.MainCamera;
         MainCamera.targetTexture = null;
         MainCamera.depth = 0;
-
-        // Setup camera tracking
-        var cameraPoseDriver = MainCamera.gameObject.AddComponent<TrackedPoseDriver>();
-        cameraPoseDriver.positionAction = Actions.Instance.HeadPosition;
-        cameraPoseDriver.rotationAction = Actions.Instance.HeadRotation;
-        cameraPoseDriver.trackingStateInput = new InputActionProperty(Actions.Instance.HeadTrackingState);
         
         // Setup "on top" camera
         var topCamera = MainCamera.transform.Find("Camera Top").GetComponent<Camera>();

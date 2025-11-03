@@ -55,14 +55,14 @@ public class Config(string assemblyPath, ConfigFile file)
 
     // UI configuration
 
-    [ConfigDescriptor(pointerSize: 0.01f, stepSize: 0.05f)]
+    [ConfigDescriptor(customName: "HUD Height", pointerSize: 0.01f, stepSize: 0.05f)]
     public ConfigEntry<float> HUDPlaneOffset { get; } = file.Bind("UI", nameof(HUDPlaneOffset), -0.45f,
-        new ConfigDescription("The default height offset for the HUD", new AcceptableValueRange<float>(-0.6f, 0.5f)));
+        new ConfigDescription("The default height offset for the HUD", new AcceptableValueRange<float>(-1f, 0.5f)));
 
-    [ConfigDescriptor(pointerSize: 0.01f, stepSize: 0.05f)]
+    [ConfigDescriptor(customName: "HUD Secondary Height", pointerSize: 0.01f, stepSize: 0.05f)]
     public ConfigEntry<float> HUDGazePlaneOffset { get; } = file.Bind("UI", nameof(HUDGazePlaneOffset), -0.25f,
         new ConfigDescription("The height offset for the HUD when looking at it",
-            new AcceptableValueRange<float>(-0.6f, 0.5f)));
+            new AcceptableValueRange<float>(-1f, 0.5f)));
 
     [ConfigDescriptor(pointerSize: 0.05f, stepSize: 0.25f)]
     public ConfigEntry<float> SmoothCanvasDistance { get; } = file.Bind("UI", nameof(SmoothCanvasDistance), 1.5f,
@@ -84,7 +84,7 @@ public class Config(string assemblyPath, ConfigFile file)
             new AcceptableValueRange<float>(0.25f, 5)));
 
     [ConfigDescriptor]
-    public ConfigEntry<bool> DynamicSmoothSpeed { get; } = file.Bind("Input", nameof(DynamicSmoothSpeed), true,
+    public ConfigEntry<bool> AnalogSmoothTurn { get; } = file.Bind("Input", nameof(AnalogSmoothTurn), true,
         "When enabled, makes the speed of the smooth turning dependent on how far the analog stick is pushed.");
 
     [ConfigDescriptor(stepSize: 5, suffix: "°")]

@@ -46,6 +46,8 @@ public class VRCustomCamera : MonoBehaviour
 
         Plugin.Config.CustomCameraFOV.SettingChanged += OnFOVChanged;
 
+        Application.onBeforeRender += OnBeforeRender;
+
         UpdateRenderTexture();
     }
 
@@ -54,6 +56,13 @@ public class VRCustomCamera : MonoBehaviour
         instance = null!;
 
         Plugin.Config.CustomCameraFOV.SettingChanged -= OnFOVChanged;
+
+        Application.onBeforeRender -= OnBeforeRender;
+    }
+
+    private void OnBeforeRender()
+    {
+        transform.localPosition = gameplayCamera.localPosition;
     }
 
     private void OnFOVChanged(object sender, EventArgs e)
@@ -79,6 +88,15 @@ public class VRCustomCamera : MonoBehaviour
         // Some weird fog thing, I don't know why but this is needed
         RenderSettings.fogDensity =
             SemiFunc.MenuLevel() || SemiFunc.RunIsShop() || SemiFunc.RunIsLobby() ? 0.015f : 0.15f;
+    }
+
+    private void LateUpdate()
+    {
+        transform.localPosition = gameplayCamera.localPosition;
+
+        // Since we override the FadeOverlay image color in a LateUpdate, we need to read it back in a late update as well
+        // Also this script needs to execute *after* the override, hence the [DefaultExecutionOrder(100)]
+        overlayImage.color = FadeOverlay.Instance.Image.color;
 
         if (lastWidth != Screen.width || lastHeight != Screen.height)
             UpdateRenderTexture();
@@ -94,13 +112,6 @@ public class VRCustomCamera : MonoBehaviour
         mainCamera.Render();
         topCamera.Render();
         uiCamera.Render();
-    }
-
-    private void LateUpdate()
-    {
-        // Since we override the FadeOverlay image color in a LateUpdate, we need to read it back in a late update as well
-        // Also this script needs to execute *after* the override, hence the [DefaultExecutionOrder(100)]
-        overlayImage.color = FadeOverlay.Instance.Image.color;
     }
 
     private void UpdateRenderTexture()

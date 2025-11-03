@@ -32,8 +32,8 @@ internal static class MapToolPatches
     private static IEnumerable<CodeInstruction> MapToolDisableInput(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
-            .Advance(1)
-            .RemoveInstructions(87)
+            .Start()
+            .RemoveInstructions(89)
             .InstructionEnumeration();
     }
 

@@ -73,8 +73,7 @@ public class RebindManager : MonoBehaviour
     private void OnControlsChanged(PlayerInput input)
     {
         Logger.LogDebug($"New control scheme: {input.currentControlScheme}");
-        // TODO: Change some text somewhere
-        
+
         ReloadBindings();
     }
 

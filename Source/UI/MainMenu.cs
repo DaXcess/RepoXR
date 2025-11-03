@@ -112,6 +112,6 @@ public class MainMenu : MonoBehaviour
     
     private static void OnResetHeight(InputAction.CallbackContext obj)
     {
-        VRCameraAim.instance.SetSpawnRotation(0);
+        VRCameraAim.instance.SetPlayerAim(0, true);
     }
 }

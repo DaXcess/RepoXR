@@ -16,31 +16,35 @@ internal static class PhysGrabObjectPatches
     private static Transform GetTargetTransform(PlayerAvatar player)
     {
         if (player.isLocal)
-            return VRSession.Instance is { } session ? session.Player.MainHand : player.localCameraTransform;
+            return VRSession.Instance is { } session ? session.Player.MainHand : player.localCamera.transform;
 
         return NetworkSystem.instance.GetNetworkPlayer(player, out var networkPlayer)
             ? networkPlayer.PrimaryHand
-            : player.localCameraTransform;
+            : player.localCamera.transform;
     }
 
     private static Quaternion GetTargetRotation(PlayerAvatar player)
     {
         if (player.isLocal)
-            return VRSession.Instance is { } session ? session.Player.MainHand.rotation : player.localCameraRotation;
+            return VRSession.Instance is { } session
+                ? session.Player.MainHand.rotation
+                : player.localCamera.transform.rotation;
 
         return NetworkSystem.instance.GetNetworkPlayer(player, out var networkPlayer)
             ? networkPlayer.PrimaryHand.rotation
-            : player.localCameraRotation;
+            : player.localCamera.transform.rotation;
     }
 
     private static Vector3 GetTargetPosition(PlayerAvatar player)
     {
         if (player.isLocal)
-            return VRSession.Instance is { } session ? session.Player.MainHand.position : player.localCameraPosition;
+            return VRSession.Instance is { } session
+                ? session.Player.MainHand.position
+                : player.localCamera.transform.position;
 
         return NetworkSystem.instance.GetNetworkPlayer(player, out var networkPlayer)
             ? networkPlayer.PrimaryHand.position
-            : player.localCameraPosition;
+            : player.localCamera.transform.position;
     }
 
     private static Transform GetCartSteerTransform(PhysGrabber grabber)
@@ -62,7 +66,7 @@ internal static class PhysGrabObjectPatches
     {
         return new CodeMatcher(instructions)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCameraTransform))))
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
             .Repeat(matcher =>
                 matcher.SetInstruction(new CodeInstruction(OpCodes.Call,
                     ((Func<PlayerAvatar, Transform>)GetTargetTransform).Method)))
@@ -106,14 +110,17 @@ internal static class PhysGrabObjectPatches
     {
         return new CodeMatcher(instructions)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCameraRotation))))
-            .Set(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
+            .SetAndAdvance(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
+            .RemoveInstructions(2)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCameraRotation))))
-            .Set(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
+            .SetAndAdvance(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
+            .RemoveInstructions(2)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCameraPosition))))
-            .Set(OpCodes.Call, ((Func<PlayerAvatar, Vector3>)GetTargetPosition).Method)
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
+            .SetAndAdvance(OpCodes.Call, ((Func<PlayerAvatar, Vector3>)GetTargetPosition).Method)
+            .RemoveInstructions(2)
             .InstructionEnumeration();
     }
 
@@ -126,8 +133,9 @@ internal static class PhysGrabObjectPatches
     {
         return new CodeMatcher(instructions)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCameraRotation))))
-            .Set(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
+            .SetAndAdvance(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
+            .RemoveInstructions(2)
             .InstructionEnumeration();
     }
 }

@@ -48,6 +48,7 @@ public class VRRig : MonoBehaviour
     public Collider rightHandCollider;
     public Collider mapPickupCollider;
     public Collider lampTriggerCollider;
+    public Collider shoulderMapPickupCollider;
 
     public VRInventory inventoryController;
 
@@ -55,6 +56,9 @@ public class VRRig : MonoBehaviour
 
     public Vector3 mapRightPosition;
     public Vector3 mapLeftPosition;
+
+    public Vector3 shoulderMapRightPosition;
+    public Vector3 shoulderMapLeftPosition;
 
     private bool armsDetached;
 
@@ -240,7 +244,12 @@ public class VRRig : MonoBehaviour
 
     private Vector3 MapPrimaryPosition => VRSession.IsLeftHanded ? mapLeftPosition : mapRightPosition;
     private Vector3 MapSecondaryPosition => VRSession.IsLeftHanded ? mapRightPosition : mapLeftPosition;
-    
+
+    private Vector3 ShoulderMapPrimaryPosition =>
+        VRSession.IsLeftHanded ? shoulderMapLeftPosition : shoulderMapRightPosition;
+    private Vector3 ShoulderMapSecondaryPosition =>
+        VRSession.IsLeftHanded ? shoulderMapRightPosition : shoulderMapLeftPosition;
+
     private bool mapHovered;
 
     private void MapToolLogic()
@@ -251,6 +260,9 @@ public class VRRig : MonoBehaviour
         // Move map tool anchor to the left if we're holding an item
         map.transform.localPosition = Vector3.Lerp(map.transform.localPosition,
             PhysGrabber.instance.grabbed ? MapSecondaryPosition : MapPrimaryPosition, 8 * Time.deltaTime);
+        shoulderMapPickupCollider.transform.localPosition = PhysGrabber.instance.grabbed
+            ? ShoulderMapSecondaryPosition
+            : ShoulderMapPrimaryPosition;
 
         mapTool.transform.parent.localPosition =
             Vector3.Lerp(mapTool.transform.parent.localPosition, Vector3.zero, 5 * Time.deltaTime);
@@ -293,7 +305,7 @@ public class VRRig : MonoBehaviour
         }
         else if (mapTool.Active || (!leftHandHovered && !rightHandHovered))
             mapHovered = false;
-        
+
         // Flashlight hide logic (before picking up)
         if (!mapTool.Active &&
             Utils.Collide(VRSession.IsLeftHanded ? rightHandCollider : leftHandCollider,
@@ -304,7 +316,8 @@ public class VRRig : MonoBehaviour
 
         // Right hand pickup logic
         if (!mapTool.Active && Actions.Instance["MapGrabRight"].WasPressedThisFrame() &&
-            Utils.Collide(rightHandCollider, mapPickupCollider) && !PlayerController.instance.sprinting)
+            (Utils.Collide(rightHandCollider, mapPickupCollider) ||
+             Utils.Collide(rightHandCollider, shoulderMapPickupCollider)) && !PlayerController.instance.sprinting)
             if (mapTool.HideLerp >= 1)
             {
                 mapTool.transform.parent.parent = rightHandTip;
@@ -315,14 +328,15 @@ public class VRRig : MonoBehaviour
                 // Prevent picking up items while the map is opened
                 if (!VRSession.IsLeftHanded)
                 {
-                    playerAvatar.physGrabber.ReleaseObject();
+                    playerAvatar.physGrabber.ReleaseObject(-1);
                     playerAvatar.physGrabber.enabled = false;
                 }
             }
 
         // Left hand pickup logic
         if (!mapTool.Active && Actions.Instance["MapGrabLeft"].WasPressedThisFrame() &&
-            Utils.Collide(leftHandCollider, mapPickupCollider) && !PlayerController.instance.sprinting)
+            (Utils.Collide(leftHandCollider, mapPickupCollider) ||
+             Utils.Collide(leftHandCollider, shoulderMapPickupCollider)) && !PlayerController.instance.sprinting)
             if (mapTool.HideLerp >= 1)
             {
                 mapTool.transform.parent.parent = leftHandTip;
@@ -330,11 +344,11 @@ public class VRRig : MonoBehaviour
                 VRMapTool.instance.leftHanded = true;
                 mapHeldLeftHand = true;
                 flashlight.hideFlashlight = !headlampEnabled && !VRSession.IsLeftHanded;
-                
+
                 // Prevent picking up items while the map is opened
                 if (VRSession.IsLeftHanded)
                 {
-                    playerAvatar.physGrabber.ReleaseObject();
+                    playerAvatar.physGrabber.ReleaseObject(-1);
                     playerAvatar.physGrabber.enabled = false;
                 }
             }

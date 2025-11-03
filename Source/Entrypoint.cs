@@ -4,10 +4,9 @@ using RepoXR.Input;
 using RepoXR.Managers;
 using RepoXR.Networking;
 using RepoXR.Patches;
+using RepoXR.Player.Camera;
 using RepoXR.UI;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.XR;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.UI;
 
@@ -39,10 +38,10 @@ internal static class Entrypoint
         var mainCamera = Camera.main!;
 
         // Add tracking to camera
-        var poseDriver = mainCamera.gameObject.AddComponent<TrackedPoseDriver>();
-        poseDriver.positionAction = Actions.Instance.HeadPosition;
-        poseDriver.rotationAction = Actions.Instance.HeadRotation;
-        poseDriver.trackingStateInput = new InputActionProperty(Actions.Instance.HeadTrackingState);
+        var poseDriver = mainCamera.gameObject.AddComponent<VRCameraTracker>();
+        // poseDriver.positionAction = Actions.Instance.HeadPosition;
+        // poseDriver.rotationAction = Actions.Instance.HeadRotation;
+        // poseDriver.trackingStateInput = new InputActionProperty(Actions.Instance.HeadTrackingState);
 
         // Parent overlay to main camera
         overlayCamera.transform.SetParent(mainCamera.transform, false);

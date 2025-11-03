@@ -19,6 +19,7 @@ public class VRPlayer : MonoBehaviour
     
     // Tracking stuff
     private Transform mainCamera;
+    private Transform handContainer;
     private Transform leftHand;
     private Transform rightHand;
 
@@ -59,11 +60,14 @@ public class VRPlayer : MonoBehaviour
         
         // Set up hands and stuff
         localRig = Instantiate(AssetCollection.VRRig).GetComponent<VRRig>();
+
+        handContainer = new GameObject("Hand Container").transform;
+        handContainer.transform.SetParent(mainCamera.transform.parent, false);
         
         leftHand = new GameObject("Left Hand").transform;
         rightHand = new GameObject("Right Hand").transform;
 
-        leftHand.transform.parent = rightHand.transform.parent = mainCamera.transform.parent;
+        leftHand.transform.parent = rightHand.transform.parent = handContainer;
         
         var leftHandTracker = leftHand.gameObject.AddComponent<TrackedPoseDriver>();
         var rightHandTracker = rightHand.gameObject.AddComponent<TrackedPoseDriver>();
@@ -156,7 +160,7 @@ public class VRPlayer : MonoBehaviour
 
         movementRelative += movement.sqrMagnitude;
 
-        if (movementRelative > 0.00025f)
+        if (movementRelative > 0.0003f)
         {
             PlayerController.instance.movingResetTimer = 0.1f;
             PlayerController.instance.moving = true;
@@ -239,13 +243,15 @@ public class VRPlayer : MonoBehaviour
                 break;
             
             case Config.TurnProviderOption.Smooth:
-                if (!Plugin.Config.DynamicSmoothSpeed.Value)
+                if (!Plugin.Config.AnalogSmoothTurn.Value)
                     value = value == 0 ? 0 : Math.Sign(value);
 
                 if (PlayerController.instance.overrideTimeScaleTimer > 0)
                     value *= PlayerController.instance.overrideTimeScaleMultiplier;
-                
-                cameraAim.TurnAimNow(180 * Time.deltaTime * Plugin.Config.SmoothTurnSpeedModifier.Value * value);
+
+                if (value != 0)
+                    cameraAim.TurnAimNow(180 * Time.deltaTime * Plugin.Config.SmoothTurnSpeedModifier.Value * value);
+
                 break;
             
             case Config.TurnProviderOption.Disabled:

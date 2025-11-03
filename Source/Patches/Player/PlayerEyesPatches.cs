@@ -16,7 +16,7 @@ internal static class PlayerEyesPatches
     [HarmonyPostfix]
     private static void LookAtTransformEyeTracking(PlayerEyes __instance)
     {
-        if (__instance.playerAvatar.isLocal)
+        if (!__instance.playerAvatar || __instance.playerAvatar.isLocal)
             return;
         
         // TODO: Determine if certain occurrences in the game should override eye gaze

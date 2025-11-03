@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RepoXR.Managers;
 using UnityEngine;
 
 namespace RepoXR.Patches;
@@ -79,5 +80,22 @@ internal static class CameraPatches
 
         return screenPoint.x > -padWidth && screenPoint.x < 1 + padWidth && 
                screenPoint.y > -padHeight && screenPoint.y < 1 + padHeight;
+    }
+
+    /// <summary>
+    /// Assign the <see cref="PlayerLocalCamera"/> transform the same values as our VR camera
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.Update))]
+    [HarmonyPostfix]
+    private static void AlignWithVRCameraPatch(PlayerLocalCamera __instance)
+    {
+        if (SemiFunc.IsMultiplayer() && !__instance.photonView.IsMine)
+            return;
+
+        if (VRSession.Instance is not { } session)
+            return;
+
+        __instance.transform.position = session.MainCamera.transform.position;
+        __instance.transform.rotation = session.MainCamera.transform.rotation;
     }
 }

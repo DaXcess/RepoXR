@@ -160,11 +160,16 @@ public class VRInventory : MonoBehaviour
         var slot = slots[item.equippedSpot.inventorySpotIndex];
 
         slot.heldItem = null;
+
+        item.transform.localPosition = Vector3.zero;
+        item.transform.localRotation = Quaternion.identity;
         item.transform.parent = GameObject.Find("Level Generator/Items")?.transform;
         item.rb.interpolation = RigidbodyInterpolation.Interpolate;
         item.gameObject.SetLayerRecursively(16);
         item.enabled = true;
-        
+
+        PhysGrabber.instance.OverrideGrab(item.physGrabObject, 0.25f);
+
         // Re-enable shadows
         item.GetComponentsInChildren<MeshRenderer>().Do(mesh => mesh.shadowCastingMode = ShadowCastingMode.On);
     }
