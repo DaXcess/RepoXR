@@ -63,6 +63,7 @@ Here is a list of RepoXR versions and which version(s) of R.E.P.O. it supports
 
 | RepoXR | R.E.P.O. Version |
 | ------ | ---------------- |
+| v1.1.0 | v0.3.0           |
 | v1.0.3 | v0.2.1           |
 | v1.0.2 | v0.2.1           |
 | v1.0.1 | v0.2.1           |
@@ -117,6 +118,8 @@ If for any reason your hand becomes obscured by solid geometry (e.g. you put you
 # The map
 
 RepoXR changes the way how you open up your map. Instead of having a keybind to open the map, you have a sort of toolbelt in front of you. On the right side of the toolbelt is the map. You can grab the map by hovering over it with _either_ hand (yes, you can use both hands!) and grabbing it using the grip button. To put the map back, release the grip button. If your player has any upgrades, they will show up when holding the map on the left or right side (depending on which hand is used to pick up the map). If you're holding an item in your hand, the map scoots to the left side of the toolbelt, giving easier access to the map for your left hand.
+
+Additionally, for ease of access, you can also grab the map by grabbing it from over your shoulder.
 
 # The inventory
 
