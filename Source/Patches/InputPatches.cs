@@ -190,10 +190,7 @@ internal static class InputPatches
 
         var pull = Actions.Instance["Pull"].ReadValue<float>();
         if (pull > 0)
-        {
             __result = -pull;
-            return false;
-        }
 
         return false;
     }

@@ -28,7 +28,9 @@ public class VREyeTracking : MonoBehaviour
 
         Plugin.Config.EnableEyeTracking.SettingChanged += OnEyeTrackingSettingChanged;
 
-        // TODO: Remove once tested with real hardware
+        if (!Plugin.Flags.HasFlag(Flags.EyeTrackingDebug))
+            return;
+
         debugCube = Instantiate(AssetCollection.Cube).transform;
         debugCube.GetComponent<MeshRenderer>().material.color = Color.blue;
         debugCube.GetComponent<Collider>().enabled = false;
@@ -100,6 +102,9 @@ public class VREyeTracking : MonoBehaviour
         Gaze = ray;
 
         NetworkSystem.instance.UpdateEyeTracking(position);
+
+        if (!debugCube)
+            return;
 
         debugCube.position = position;
         debugCube.rotation = Quaternion.LookRotation(ray.direction);

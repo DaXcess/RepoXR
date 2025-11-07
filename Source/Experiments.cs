@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
+using UnityEngine;
 
 namespace RepoXR;
 
@@ -10,7 +11,7 @@ namespace RepoXR;
 internal static class Experiments
 {
     [HarmonyPatch(typeof(EnemyDirector), nameof(EnemyDirector.Awake))]
-    [HarmonyPostfix]
+    // [HarmonyPostfix]
     private static void FuckLolEnemy(EnemyDirector __instance)
     {
         // Difficulty 1 enemies
@@ -50,7 +51,7 @@ internal static class Experiments
     private static bool done;
 
     [HarmonyPatch(typeof(MenuButton), nameof(MenuButton.OnHovering))]
-    [HarmonyPrefix]
+    // [HarmonyPrefix]
     private static void ForceMap()
     {
         if (done)
@@ -70,22 +71,28 @@ internal static class Experiments
 
         var boombox = museum.ValuablePresets[0].big[2];
 
-        for (var i = 0; i < museum.ValuablePresets.Count; i++)
+        foreach (var preset in museum.ValuablePresets)
         {
-            for (var j = 0; j < museum.ValuablePresets[i].big.Count; j++)
-                Logger.LogDebug($"[{museum.ValuablePresets[i]}] Big: {museum.ValuablePresets[i].big[j].prefabName}");
-            for (var j = 0; j < museum.ValuablePresets[i].medium.Count; j++)
-                Logger.LogDebug($"[{museum.ValuablePresets[i]}] Medium: {museum.ValuablePresets[i].medium[j].prefabName}");
-            for (var j = 0; j < museum.ValuablePresets[i].small.Count; j++)
-                Logger.LogDebug($"[{museum.ValuablePresets[i]}] Small: {museum.ValuablePresets[i].small[j].prefabName}");
-            for (var j = 0; j < museum.ValuablePresets[i].tall.Count; j++)
-                Logger.LogDebug($"[{museum.ValuablePresets[i]}] Tall: {museum.ValuablePresets[i].tall[j].prefabName}");
-            for (var j = 0; j < museum.ValuablePresets[i].tiny.Count; j++)
-                Logger.LogDebug($"[{museum.ValuablePresets[i]}] Tiny: {museum.ValuablePresets[i].tiny[j].prefabName}");
-            for (var j = 0; j < museum.ValuablePresets[i].veryTall.Count; j++)
-                Logger.LogDebug($"[{museum.ValuablePresets[i]}] Very Tall: {museum.ValuablePresets[i].veryTall[j].prefabName}");
-            for (var j = 0; j < museum.ValuablePresets[i].wide.Count; j++)
-                Logger.LogDebug($"[{museum.ValuablePresets[i]}] Wide: {museum.ValuablePresets[i].wide[j].prefabName}");
+            foreach (var val in preset.big)
+                Logger.LogDebug($"[{preset}] Big: {val.prefabName}");
+
+            foreach (var val in preset.medium)
+                Logger.LogDebug($"[{preset}] Medium: {val.prefabName}");
+
+            foreach (var val in preset.small)
+                Logger.LogDebug($"[{preset}] Small: {val.prefabName}");
+
+            foreach (var val in preset.tall)
+                Logger.LogDebug($"[{preset}] Tall: {val.prefabName}");
+
+            foreach (var val in preset.tiny)
+                Logger.LogDebug($"[{preset}] Tiny: {val.prefabName}");
+
+            foreach (var val in preset.veryTall)
+                Logger.LogDebug($"[{preset}] Very Tall: {val.prefabName}");
+
+            foreach (var val in preset.wide)
+                Logger.LogDebug($"[{preset}] Wide: {val.prefabName}");
         }
 
         museum.ValuablePresets[0].big.Clear();
@@ -152,6 +159,18 @@ internal static class Experiments
     private static void IAmASurgeonIMeanDeveloper(ref bool __result)
     {
         __result = true;
+    }
+
+    [HarmonyPatch(typeof(DebugConsoleUI), nameof(DebugConsoleUI.Update))]
+    [HarmonyTranspiler]
+    [HarmonyDebug]
+    private static IEnumerable<CodeInstruction> KeepEnterKeyThing(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchForward(false, new CodeMatch(OpCodes.Ldc_I4_S, (sbyte)9))
+            .SetOperandAndAdvance((sbyte)KeyCode.Return)
+            .SetOperandAndAdvance(AccessTools.Method(typeof(UnityEngine.Input), nameof(UnityEngine.Input.GetKeyDown), [typeof(KeyCode)]))
+            .InstructionEnumeration();
     }
 }
 #endif

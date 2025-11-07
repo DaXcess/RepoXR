@@ -21,20 +21,21 @@ public class Plugin : BaseUnityPlugin
     public const string PLUGIN_GUID = "io.daxcess.repoxr";
     public const string PLUGIN_NAME = "RepoXR";
     public const string PLUGIN_VERSION = "1.1.0";
-    
-    #if DEBUG
-    private const string SKIP_CHECKSUM_VAR = $"--repoxr-skip-checksum={PLUGIN_VERSION}-dev";
-    #else
-    private const string SKIP_CHECKSUM_VAR = $"--repoxr-skip-checksum={PLUGIN_VERSION}";
-    #endif
 
-    private const string HASHES_OVERRIDE_URL = "https://gist.githubusercontent.com/DaXcess/033e8ff514c505d2372e6f55a412dc00/raw/RepoXR%2520Game%2520Hashes";
+#if DEBUG
+    private const string SKIP_CHECKSUM_VAR = $"--repoxr-skip-checksum={PLUGIN_VERSION}-dev";
+#else
+    private const string SKIP_CHECKSUM_VAR = $"--repoxr-skip-checksum={PLUGIN_VERSION}";
+#endif
+
+    private const string HASHES_OVERRIDE_URL =
+        "https://gist.githubusercontent.com/DaXcess/033e8ff514c505d2372e6f55a412dc00/raw/RepoXR%2520Game%2520Hashes";
 
     private readonly string[] GAME_ASSEMBLY_HASHES =
     [
         "137D6E8475DEA976831CC95D7F56F4B7DA311E52A57B4C420591A5122F25589F" // v0.3.0
     ];
-    
+
     public new static Config Config { get; private set; } = null!;
     public static Flags Flags { get; private set; } = 0;
 
@@ -105,6 +106,9 @@ public class Plugin : BaseUnityPlugin
         }
 #endif
 
+        if (Environment.GetCommandLineArgs().Contains("--repoxr-debug-eyetracking", StringComparer.OrdinalIgnoreCase))
+            Flags |= Flags.EyeTrackingDebug;
+
         Native.BringGameWindowToFront();
         Config.SetupGlobalCallbacks();
 
@@ -112,7 +116,7 @@ public class Plugin : BaseUnityPlugin
     }
 
     public static string GetCommitHash()
-    {            
+    {
         try
         {
             var attribute = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>();
@@ -131,7 +135,7 @@ public class Plugin : BaseUnityPlugin
     {
         var location = Path.Combine(Paths.ManagedPath, "Assembly-CSharp.dll");
         var hash = BitConverter.ToString(Utils.ComputeHash(File.ReadAllBytes(location))).Replace("-", "");
-        
+
         // Attempt local lookup first
         if (GAME_ASSEMBLY_HASHES.Contains(hash))
         {
@@ -139,9 +143,9 @@ public class Plugin : BaseUnityPlugin
 
             return true;
         }
-        
+
         Logger.LogWarning("Failed to verify game version using local hashes, checking remotely for updated hashes...");
-        
+
         // Attempt to fetch a gist with known working assembly hashes
         // This allows me to keep RepoXR up and running if the game updates, without having to push an update out
         try
@@ -150,7 +154,7 @@ public class Plugin : BaseUnityPlugin
             var hashes = Utils.ParseConfig(contents);
 
             var found = false;
-            
+
             foreach (var versionedHash in hashes)
             {
                 try
@@ -206,8 +210,9 @@ public class Plugin : BaseUnityPlugin
         }
         catch (Exception ex)
         {
-            Logger.LogError($"Unexpected error occured while preloading runtime dependencies (incorrect folder structure?): {ex.Message}");
-            
+            Logger.LogError(
+                $"Unexpected error occured while preloading runtime dependencies (incorrect folder structure?): {ex.Message}");
+
             return false;
         }
 
@@ -231,7 +236,7 @@ public class Plugin : BaseUnityPlugin
             Flags |= Flags.VR;
         }
     }
-    
+
     private static bool InitializeVR()
     {
         RepoXR.Logger.LogInfo("Loading VR...");
@@ -245,21 +250,23 @@ public class Plugin : BaseUnityPlugin
 
             return false;
         }
-        
-        if (OpenXR.GetActiveRuntimeName(out var name) && OpenXR.GetActiveRuntimeVersion(out var major, out var minor, out var patch))
+
+        if (OpenXR.GetActiveRuntimeName(out var name) &&
+            OpenXR.GetActiveRuntimeVersion(out var major, out var minor, out var patch))
             RepoXR.Logger.LogInfo($"OpenXR runtime being used: {name} ({major}.{minor}.{patch})");
         else
             RepoXR.Logger.LogError("Could not get OpenXR runtime info?");
 
         HarmonyPatcher.PatchVR();
-        
+
         RepoXR.Logger.LogDebug("Inserted VR patches using Harmony");
-        
+
         // Change render pipeline settings if needed
         XRSettings.eyeTextureResolutionScale = Config.CameraResolution.Value / 100f;
-        
+
         // Input settings
-        InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus; // Prevent VR from getting disabled when losing focus
+        InputSystem.settings.backgroundBehavior =
+            InputSettings.BackgroundBehavior.IgnoreFocus; // Prevent VR from getting disabled when losing focus
 
         return true;
     }
@@ -276,5 +283,6 @@ public class Plugin : BaseUnityPlugin
 public enum Flags
 {
     VR = 1 << 0,
-    StartupFailed = 1 << 1
+    StartupFailed = 1 << 1,
+    EyeTrackingDebug = 1 << 2
 }

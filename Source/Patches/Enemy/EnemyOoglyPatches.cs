@@ -8,8 +8,12 @@ using static HarmonyLib.AccessTools;
 
 namespace RepoXR.Patches.Enemy;
 
+[RepoXRPatch]
 internal static class EnemyOoglyPatches
 {
+    /// <summary>
+    /// Oh you don't wanna know... oh the horror (look at oogly while being attached)
+    /// </summary>
     [HarmonyPatch(typeof(EnemyOogly), nameof(EnemyOogly.UpdateEvilEyesTimer))]
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> LookAtPatch(IEnumerable<CodeInstruction> instructions)

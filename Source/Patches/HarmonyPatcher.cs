@@ -87,6 +87,7 @@ internal enum RepoXRPatchTarget
 /// https://github.com/BepInEx/HarmonyX/blob/master/Harmony/Internal/Patching/ILManipulator.cs#L322
 /// Licensed under MIT: https://github.com/BepInEx/HarmonyX/blob/master/LICENSE
 /// </summary>
+// TODO: It is unclear how BepInEx currently chooses Harmony versions, so we keep this patch in for now
 [RepoXRPatch(RepoXRPatchTarget.Universal)]
 [HarmonyPriority(Priority.First)]
 internal static class LeaveMyLeaveAlonePatch

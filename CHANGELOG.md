@@ -1,8 +1,11 @@
 # 1.1.0
 
--- BUGS --
+-- TODOs --
 
-- Flashlight not aligned (needs more testing)
+- LocalPlayerCamera maybe not being synced properly
+- Dead head spectate tip might have wrong controls
+- Compact canvas UI a little bit (on X axis) so it's easier to see
+- Grab map shoulder is only on one side (should be both), also no haptic feedback
 
 ## Detached Arms
 
@@ -39,10 +42,12 @@ You can now swap between VR mode and flatscreen mode by pressing the F8 button o
 - Added hotswapping in the main menu (F8)
 
 **Changes**:
+- The ceiling eye now darkens the world except for where the eye is (no more cheating hihi)
 - Removed the performance tab and replaced it with UI in the settings
 - Replaced the valuable discover overlay with a new 3D graphic (supports custom colors)
 - You now look at the enemy/object that killed you while the death animation plays (if possible)
-- Optimized the custom camera by adding a frame rate limiter
+- Slightly optimized the custom camera by adding a frame rate limiter
+- Optimized framerate by forcibly disabling ambient occlusion (20%-40% less render time)
 - Renamed "Dynamic Smooth Speed" to "Analog Smooth Turn"
 - Changed the minimum possible HUD height value to account for detached hands
 - The map tool can now also be grabbed from behind your head (near the shoulders)

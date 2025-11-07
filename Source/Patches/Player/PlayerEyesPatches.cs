@@ -19,8 +19,6 @@ internal static class PlayerEyesPatches
         if (!__instance.playerAvatar || __instance.playerAvatar.isLocal)
             return;
         
-        // TODO: Determine if certain occurrences in the game should override eye gaze
-
         if (!NetworkSystem.instance.GetNetworkPlayer(__instance.playerAvatar, out var player) || !player.EyeTracking)
             return;
 
