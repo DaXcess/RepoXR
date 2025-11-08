@@ -82,12 +82,13 @@ internal enum RepoXRPatchTarget
 }
 
 /// <summary>
-/// Fixes a bug in older BepInEx versions (shame on you TS for using a 2-year-old BepInEx)
+/// To keep RepoXR compatible with older BepInEx versions, this patch will not be removed
+///
+/// Fixes a bug in older BepInEx versions
 ///
 /// https://github.com/BepInEx/HarmonyX/blob/master/Harmony/Internal/Patching/ILManipulator.cs#L322
 /// Licensed under MIT: https://github.com/BepInEx/HarmonyX/blob/master/LICENSE
 /// </summary>
-// TODO: It is unclear how BepInEx currently chooses Harmony versions, so we keep this patch in for now
 [RepoXRPatch(RepoXRPatchTarget.Universal)]
 [HarmonyPriority(Priority.First)]
 internal static class LeaveMyLeaveAlonePatch

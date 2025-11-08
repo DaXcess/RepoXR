@@ -48,7 +48,7 @@ public class VRRig : MonoBehaviour
     public Collider rightHandCollider;
     public Collider mapPickupCollider;
     public Collider lampTriggerCollider;
-    public Collider shoulderMapPickupCollider;
+    public Collider[] shoulderMapPickupColliders;
 
     public VRInventory inventoryController;
 
@@ -56,9 +56,6 @@ public class VRRig : MonoBehaviour
 
     public Vector3 mapRightPosition;
     public Vector3 mapLeftPosition;
-
-    public Vector3 shoulderMapRightPosition;
-    public Vector3 shoulderMapLeftPosition;
 
     private bool armsDetached;
 
@@ -245,11 +242,6 @@ public class VRRig : MonoBehaviour
     private Vector3 MapPrimaryPosition => VRSession.IsLeftHanded ? mapLeftPosition : mapRightPosition;
     private Vector3 MapSecondaryPosition => VRSession.IsLeftHanded ? mapRightPosition : mapLeftPosition;
 
-    private Vector3 ShoulderMapPrimaryPosition =>
-        VRSession.IsLeftHanded ? shoulderMapLeftPosition : shoulderMapRightPosition;
-    private Vector3 ShoulderMapSecondaryPosition =>
-        VRSession.IsLeftHanded ? shoulderMapRightPosition : shoulderMapLeftPosition;
-
     private bool mapHovered;
 
     private void MapToolLogic()
@@ -260,9 +252,6 @@ public class VRRig : MonoBehaviour
         // Move map tool anchor to the left if we're holding an item
         map.transform.localPosition = Vector3.Lerp(map.transform.localPosition,
             PhysGrabber.instance.grabbed ? MapSecondaryPosition : MapPrimaryPosition, 8 * Time.deltaTime);
-        shoulderMapPickupCollider.transform.localPosition = PhysGrabber.instance.grabbed
-            ? ShoulderMapSecondaryPosition
-            : ShoulderMapPrimaryPosition;
 
         mapTool.transform.parent.localPosition =
             Vector3.Lerp(mapTool.transform.parent.localPosition, Vector3.zero, 5 * Time.deltaTime);
@@ -287,8 +276,8 @@ public class VRRig : MonoBehaviour
             return;
         }
 
-        var rightHandHovered = Utils.Collide(rightHandCollider, mapPickupCollider);
-        var leftHandHovered = Utils.Collide(leftHandCollider, mapPickupCollider);
+        var rightHandHovered = Utils.Collide(rightHandCollider, [mapPickupCollider, ..shoulderMapPickupColliders]);
+        var leftHandHovered = Utils.Collide(leftHandCollider, [mapPickupCollider, ..shoulderMapPickupColliders]);
 
         // Haptic touch logic
         if (!mapTool.Active && !mapHovered && leftHandHovered)
@@ -309,15 +298,15 @@ public class VRRig : MonoBehaviour
         // Flashlight hide logic (before picking up)
         if (!mapTool.Active &&
             Utils.Collide(VRSession.IsLeftHanded ? rightHandCollider : leftHandCollider,
-                mapPickupCollider) && !PlayerController.instance.sprinting)
+                [mapPickupCollider, ..shoulderMapPickupColliders]) && !PlayerController.instance.sprinting)
             flashlight.hideFlashlight = !headlampEnabled;
         else if (!mapTool.Active)
             flashlight.hideFlashlight = false;
 
         // Right hand pickup logic
         if (!mapTool.Active && Actions.Instance["MapGrabRight"].WasPressedThisFrame() &&
-            (Utils.Collide(rightHandCollider, mapPickupCollider) ||
-             Utils.Collide(rightHandCollider, shoulderMapPickupCollider)) && !PlayerController.instance.sprinting)
+            Utils.Collide(rightHandCollider, [mapPickupCollider, ..shoulderMapPickupColliders]) &&
+            !PlayerController.instance.sprinting)
             if (mapTool.HideLerp >= 1)
             {
                 mapTool.transform.parent.parent = rightHandTip;
@@ -335,8 +324,8 @@ public class VRRig : MonoBehaviour
 
         // Left hand pickup logic
         if (!mapTool.Active && Actions.Instance["MapGrabLeft"].WasPressedThisFrame() &&
-            (Utils.Collide(leftHandCollider, mapPickupCollider) ||
-             Utils.Collide(leftHandCollider, shoulderMapPickupCollider)) && !PlayerController.instance.sprinting)
+            Utils.Collide(leftHandCollider, [mapPickupCollider, ..shoulderMapPickupColliders]) &&
+            !PlayerController.instance.sprinting)
             if (mapTool.HideLerp >= 1)
             {
                 mapTool.transform.parent.parent = leftHandTip;

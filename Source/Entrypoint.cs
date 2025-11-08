@@ -38,10 +38,7 @@ internal static class Entrypoint
         var mainCamera = Camera.main!;
 
         // Add tracking to camera
-        var poseDriver = mainCamera.gameObject.AddComponent<VRCameraTracker>();
-        // poseDriver.positionAction = Actions.Instance.HeadPosition;
-        // poseDriver.rotationAction = Actions.Instance.HeadRotation;
-        // poseDriver.trackingStateInput = new InputActionProperty(Actions.Instance.HeadTrackingState);
+        mainCamera.gameObject.AddComponent<VRCameraTracker>();
 
         // Parent overlay to main camera
         overlayCamera.transform.SetParent(mainCamera.transform, false);

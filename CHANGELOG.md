@@ -1,12 +1,5 @@
 # 1.1.0
 
--- TODOs --
-
-- LocalPlayerCamera maybe not being synced properly
-- Dead head spectate tip might have wrong controls
-- Compact canvas UI a little bit (on X axis) so it's easier to see
-- Grab map shoulder is only on one side (should be both), also no haptic feedback
-
 ## Detached Arms
 
 You can now detach your arms from your body, giving you more control over your aim, not being constrained by the maximum length of the Semibot's arms anymore. You can change this setting at any time, no restarts or rejoins needed.

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Photon.Pun;
 using RepoXR.Managers;
 using UnityEngine;
 
@@ -97,5 +98,26 @@ internal static class CameraPatches
 
         __instance.transform.position = session.MainCamera.transform.position;
         __instance.transform.rotation = session.MainCamera.transform.rotation;
+    }
+
+    /// <summary>
+    /// Make sure to synchronize the VR camera transforms instead of only the aim transforms
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.OnPhotonSerializeView))]
+    [HarmonyPrefix]
+    private static bool CameraSerializeVRParams(PlayerLocalCamera __instance, PhotonStream stream,
+        PhotonMessageInfo info)
+    {
+        if (!SemiFunc.MasterAndOwnerOnlyRPC(info, __instance.photonView))
+            return false;
+
+        if (!stream.IsWriting)
+            return true;
+
+        stream.SendNext(__instance.transform.position);
+        stream.SendNext(__instance.transform.rotation);
+        stream.SendNext(__instance.teleported);
+
+        return false;
     }
 }

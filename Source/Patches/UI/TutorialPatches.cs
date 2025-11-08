@@ -115,4 +115,14 @@ internal static class TutorialPatches
         VRCameraAim.instance.SetAimTarget(__instance.lookTarget.position + Vector3.down, 0.1f, 5, __instance.gameObject,
             90, true);
     }
+
+    /// <summary>
+    /// Make the spectate head prompt UI have the correct control sprites
+    /// </summary>
+    [HarmonyPatch(typeof(SpectateHeadUI), nameof(SpectateHeadUI.Awake))]
+    [HarmonyPostfix]
+    private static void OnSpectateHeadUICreate(SpectateHeadUI __instance)
+    {
+        __instance.promptText.spriteAsset = AssetCollection.TMPInputsSpriteAsset;
+    }
 }
