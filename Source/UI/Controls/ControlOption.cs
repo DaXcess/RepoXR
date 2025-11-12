@@ -30,6 +30,18 @@ public class ControlOption : MonoBehaviour
         manager.StartRebind(this, bindingIndex);
     }
 
+    public void DeleteBinding()
+    {
+        // Don't allow to unbind while no controller scheme is known
+        if (string.IsNullOrEmpty(playerInput.currentControlScheme))
+            return;
+
+        action.ApplyBindingOverride(bindingIndex, "");
+
+        ReloadBinding();
+        manager.SaveBindings();
+    }
+
     public void SetBindToggle(bool toggle)
     {
         VRInputSystem.Instance.InputToggleRebind(action!.name, toggle);

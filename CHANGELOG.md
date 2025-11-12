@@ -39,11 +39,12 @@ You can now swap between VR mode and flatscreen mode by pressing the F8 button o
 - Removed the performance tab and replaced it with UI in the settings
 - Replaced the valuable discover overlay with a new 3D graphic (supports custom colors)
 - You now look at the enemy/object that killed you while the death animation plays (if possible)
-- Slightly optimized the custom camera by adding a frame rate limiter
+- Slightly optimized the custom camera by adding a frame rate limiter (disabled by default)
 - Optimized framerate by forcibly disabling ambient occlusion (20%-40% less render time)
 - Renamed "Dynamic Smooth Speed" to "Analog Smooth Turn"
 - Changed the minimum possible HUD height value to account for detached hands
 - The map tool can now also be grabbed from behind your head (near the shoulders)
+- You can now unbind controls at your leisure
 
 **Removals**:
 - Removed support for REPO v0.2.x

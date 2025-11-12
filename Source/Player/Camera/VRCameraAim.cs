@@ -5,9 +5,6 @@ using UnityEngine;
 
 namespace RepoXR.Player.Camera;
 
-// KNOWN ISSUE: When the player is not near their play area center, the VR aim script will pivot around a far away point
-//              instead of at the camera itself. This is a known issue, no clue how to fix it yet.
-
 public class VRCameraAim : MonoBehaviour
 {
     public static VRCameraAim instance;
