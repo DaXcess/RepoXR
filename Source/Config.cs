@@ -112,10 +112,10 @@ public class Config(string assemblyPath, ConfigFile file)
 
     [ConfigDescriptor(stepSize: 15, pointerSize: 5)]
     public ConfigEntry<float> CustomCameraFramerate { get; } = file.Bind("Rendering", nameof(CustomCameraFramerate),
-        120f,
+        144f,
         new ConfigDescription(
             "The maximum frequency that the custom camera can render at. The custom camera framerate is limited to the VR headset's refresh rate, so setting this higher won't have any effect.",
-            new AcceptableValueRange<float>(15, 120)));
+            new AcceptableValueRange<float>(15, 144)));
 
     [ConfigDescriptor(stepSize: 5)]
     public ConfigEntry<float> CustomCameraFOV { get; } = file.Bind("Rendering", nameof(CustomCameraFOV), 75f,
