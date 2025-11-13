@@ -9,6 +9,16 @@ namespace RepoXR.Patches.UI;
 internal static class LoadingUIPatches
 {
     /// <summary>
+    /// Reset position when loading UI is shown
+    /// </summary>
+    [HarmonyPatch(typeof(LoadingUI), nameof(LoadingUI.StartLoading))]
+    [HarmonyPostfix]
+    private static void OnStartLoading()
+    {
+        Object.FindObjectOfType<RepoXR.UI.LoadingUI>()?.ResetPosition();
+    }
+
+    /// <summary>
     /// Fix the controller binding icon on the stuck text and mask it away when it's not shown
     /// </summary>
     [HarmonyPatch(typeof(LoadingUI), nameof(LoadingUI.Awake))]

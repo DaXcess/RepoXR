@@ -8,12 +8,12 @@ using System.Text;
 using BepInEx.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RepoXR.Assets;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.Management;
 using UnityEngine.XR.OpenXR;
-using UnityEngine.XR.OpenXR.Features.Interactions;
 
 namespace RepoXR;
 
@@ -371,6 +371,12 @@ internal static class OpenXR
             return false;
         }
 
+        public static void DeinitializeXR()
+        {
+            xrManagerSettings?.DeinitializeLoader();
+            xrGeneralSettings?.StopXRSDK();
+        }
+
         private static bool InitializeXR(Runtime? runtime)
         {
             if (xrManagerSettings == null || xrGeneralSettings == null || xrLoader == null)
@@ -421,36 +427,7 @@ internal static class OpenXR
 
             OpenXRSettings.Instance.renderMode = OpenXRSettings.RenderMode.MultiPass;
             OpenXRSettings.Instance.depthSubmissionMode = OpenXRSettings.DepthSubmissionMode.None;
-
-            if (OpenXRSettings.Instance.features.Length != 0)
-                return;
-
-            var valveIndex = ScriptableObject.CreateInstance<ValveIndexControllerProfile>();
-            var hpReverb = ScriptableObject.CreateInstance<HPReverbG2ControllerProfile>();
-            var htcVive = ScriptableObject.CreateInstance<HTCViveControllerProfile>();
-            var mmController = ScriptableObject.CreateInstance<MicrosoftMotionControllerProfile>();
-            var khrSimple = ScriptableObject.CreateInstance<KHRSimpleControllerProfile>();
-            var metaQuestTouch = ScriptableObject.CreateInstance<MetaQuestTouchProControllerProfile>();
-            var oculusTouch = ScriptableObject.CreateInstance<OculusTouchControllerProfile>();
-
-            valveIndex.enabled = true;
-            hpReverb.enabled = true;
-            htcVive.enabled = true;
-            mmController.enabled = true;
-            khrSimple.enabled = true;
-            metaQuestTouch.enabled = true;
-            oculusTouch.enabled = true;
-
-            OpenXRSettings.Instance.features =
-            [
-                valveIndex,
-                hpReverb,
-                htcVive,
-                mmController,
-                khrSimple,
-                metaQuestTouch,
-                oculusTouch
-            ];
+            OpenXRSettings.Instance.features = AssetCollection.OpenXRFeatures.Features.ToArray();
         }
     }
 }

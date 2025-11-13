@@ -7,9 +7,9 @@ namespace RepoXR.UI;
 public class PauseUI : MonoBehaviour
 {
     public static PauseUI? instance;
-    
+
     public Vector3 positionOffset;
-    
+
     private Vector3 targetPos;
     private Quaternion targetRot;
 
@@ -18,7 +18,7 @@ public class PauseUI : MonoBehaviour
 
     private bool isOpen;
     private float darkness;
-    
+
     private void Awake()
     {
         instance = this;
@@ -75,7 +75,7 @@ public class PauseUI : MonoBehaviour
     {
         isOpen = true;
         ResetPosition(true);
-        
+
         interactor.SetVisible(true);
     }
 
@@ -109,12 +109,12 @@ public class PauseUI : MonoBehaviour
             transform.localRotation = targetRot;
         }
     }
-    
+
     private void OnResetHeight(InputAction.CallbackContext ctx)
     {
         if (!ctx.performed || !isOpen)
             return;
-        
+
         ResetPosition();
     }
 }

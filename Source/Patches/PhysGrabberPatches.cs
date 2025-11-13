@@ -149,7 +149,7 @@ internal static class PhysGrabberPatches
                         typeof(int),
                         typeof(QueryTriggerInteraction)
                     ])))
-            .Advance(-10)
+            .Advance(-14)
             .InsertAndAdvance(
                 new CodeInstruction(OpCodes.Call, ((Func<PhysGrabber, Vector3>)CalculateNewForward).Method),
                 new CodeInstruction(OpCodes.Stloc_1),
@@ -158,14 +158,11 @@ internal static class PhysGrabberPatches
             .MatchForward(false,
                 new CodeMatch(OpCodes.Ldfld, Field(typeof(PhysGrabber), nameof(PhysGrabber.playerCamera))))
             .Repeat(matcher => matcher.Advance(-1).ReplaceCameraWithHand())
-            .Start()
-            .MatchForward(false, new CodeMatch(OpCodes.Call, PropertyGetter(typeof(Camera), nameof(Camera.main))))
-            .Repeat(matcher => matcher.ReplaceCameraWithHand())
             .InstructionEnumeration();
 
         static Vector3 CalculateNewForward(PhysGrabber grabber)
         {
-            if (grabber.overrideGrab && grabber.overrideGrabTarget)
+            if (grabber.overrideGrabTarget)
                 return (grabber.overrideGrabTarget.transform.position - VRSession.Instance.Player.MainHand.position)
                     .normalized;
 
@@ -272,38 +269,27 @@ internal static class PhysGrabberPatches
         session.Player.Rig.inventoryController.TryEquipItem(item);
     }
 
-    private static float forceGrabTimer;
-
     /// <summary>
-    /// Every time a grab override is triggered, reset the timer
-    /// </summary>
-    [HarmonyPatch(typeof(PhysGrabber), nameof(PhysGrabber.OverrideGrab))]
-    [HarmonyPostfix]
-    private static void OnOverrideGrab(PhysGrabber __instance)
-    {
-        forceGrabTimer = 0.1f;
-    }
-
-    /// <summary>
-    /// If the <see cref="forceGrabTimer"/> is above zero, do not allow the grabber to let go
+    /// Make sure the force grab timer also works in VR, where the grab key is the same as the "take from inventory" key
     /// </summary>
     [HarmonyPatch(typeof(PhysGrabber), nameof(PhysGrabber.Update))]
     [HarmonyTranspiler]
-    private static IEnumerable<CodeInstruction> ForceOverrideGrabPatch(IEnumerable<CodeInstruction> instructions)
+    private static IEnumerable<CodeInstruction> ForceHoldPatch(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Stfld, Field(typeof(PhysGrabber), nameof(PhysGrabber.overrideGrabTarget))))
-            .Advance(-13)
-            .SetInstruction(new CodeInstruction(OpCodes.Call, ((Func<PhysGrabber, bool>)CheckAndUpdate).Method))
+                new CodeMatch(OpCodes.Ldfld,
+                    Field(typeof(GameplayManager), nameof(GameplayManager.itemUnequipAutoHold))))
+            .Advance(-2)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld, Field(typeof(PhysGrabber), nameof(PhysGrabber.overrideGrabTimer))),
+                new CodeInstruction(OpCodes.Call, ((Func<bool, float, bool>)ShouldToggleGrabOff).Method)
+            )
             .InstructionEnumeration();
 
-        static bool CheckAndUpdate(PhysGrabber grabber)
-        {
-            forceGrabTimer -= Time.deltaTime;
-
-            return grabber.overrideGrab && forceGrabTimer <= 0;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool ShouldToggleGrabOff(bool grabHeld, float grabTimer) => grabHeld && grabTimer <= 0;
     }
 }
 
@@ -313,32 +299,14 @@ internal static class PhysGrabberUniversalPatches
     private static Transform GetHandTransform(PhysGrabber grabber)
     {
         if (grabber.playerAvatar.isLocal)
-            return VRSession.InVR ? VRSession.Instance.Player.MainHand : grabber.playerAvatar.localCameraTransform;
+            return VRSession.InVR ? VRSession.Instance.Player.MainHand : grabber.playerAvatar.localCamera.transform;
 
         if (!NetworkSystem.instance)
-        {
-            Logger.LogError("NetworkSystem is null?");
-            return grabber.playerAvatar.localCameraTransform;
-        }
+            return grabber.playerAvatar.localCamera.transform;
 
-        if (NetworkSystem.instance.GetNetworkPlayer(grabber.playerAvatar, out var networkPlayer))
-        {
-            if (!networkPlayer)
-            {
-                Logger.LogError("NetworkPlayer is null?");
-                return grabber.playerAvatar.localCameraTransform;
-            }
-
-            if (!networkPlayer.PrimaryHand)
-            {
-                Logger.LogError("GrabberHand is null?");
-                return grabber.playerAvatar.localCameraTransform;
-            }
-
-            return networkPlayer.PrimaryHand;
-        }
-
-        return grabber.playerAvatar.localCameraTransform;
+        return NetworkSystem.instance.GetNetworkPlayer(grabber.playerAvatar, out var networkPlayer)
+            ? networkPlayer.PrimaryHand
+            : grabber.playerAvatar.localCamera.transform;
     }
 
     /// <summary>
@@ -363,17 +331,48 @@ internal static class PhysGrabberUniversalPatches
         return new CodeMatcher(instructions)
             // Replace camera transform with hand transform (local player)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCameraTransform))))
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
             .Advance(-1)
-            .RemoveInstructions(2)
+            .RemoveInstructions(3)
             .Insert(new CodeInstruction(OpCodes.Call, ((Func<PhysGrabber, Transform>)GetHandTransform).Method))
             // Replace camera transform with hand transform (remote player)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCameraTransform))))
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
             .Advance(-1)
-            .RemoveInstructions(2)
+            .RemoveInstructions(3)
             .Insert(new CodeInstruction(OpCodes.Call,
                 ((Func<PhysGrabber, Transform>)GetHandTransform).Method))
             .InstructionEnumeration();
+    }
+
+    /// <summary>
+    /// Make our tumble climb follow our hand rotation instead of the camera rotation
+    /// </summary>
+    [HarmonyPatch(typeof(PhysGrabber), nameof(PhysGrabber.GrabStateClimb))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> HandBasedTumbleClimbPatch(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Stloc_2))
+            .Advance(-2)
+            .SetAndAdvance(OpCodes.Call, ((Func<PhysGrabber, Quaternion>)GetRotation).Method)
+            .RemoveInstruction()
+            .InstructionEnumeration();
+
+        static Quaternion GetRotation(PhysGrabber grabber)
+        {
+            if (grabber.playerAvatar.isLocal)
+                return VRSession.InVR
+                    ? VRSession.Instance.Player.MainHand.rotation * Quaternion.Euler(0, 180, 0)
+                    : grabber.climbStickTransform.rotation;
+
+            if (!NetworkSystem.instance)
+                return grabber.climbStickTransform.rotation;
+
+            return NetworkSystem.instance.GetNetworkPlayer(grabber.playerAvatar, out var networkPlayer)
+                ? networkPlayer.PrimaryHand.rotation * Quaternion.Euler(0, 180, 0)
+                : grabber.climbStickTransform.rotation;
+        }
     }
 }

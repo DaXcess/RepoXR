@@ -28,6 +28,8 @@ public class VRRig : MonoBehaviour
     public Transform head;
     public Transform leftArm;
     public Transform rightArm;
+    public Transform leftArmCenter;
+    public Transform rightArmCenter;
     public Transform leftArmTarget;
     public Transform rightArmTarget;
     public Transform leftHandAnchor;
@@ -46,6 +48,7 @@ public class VRRig : MonoBehaviour
     public Collider rightHandCollider;
     public Collider mapPickupCollider;
     public Collider lampTriggerCollider;
+    public Collider[] shoulderMapPickupColliders;
 
     public VRInventory inventoryController;
 
@@ -53,7 +56,9 @@ public class VRRig : MonoBehaviour
 
     public Vector3 mapRightPosition;
     public Vector3 mapLeftPosition;
-    
+
+    private bool armsDetached;
+
     private Transform leftArmMesh;
     private Transform rightArmMesh;
 
@@ -80,11 +85,16 @@ public class VRRig : MonoBehaviour
         headlampEnabled = DataManager.instance.headlampEnabled;
 
         Plugin.Config.LeftHandDominant.SettingChanged += OnDominantHandChanged;
+        Plugin.Config.DetachedArms.SettingChanged += OnDetachedArmsChanged;
+
+        // Update on load
+        OnDetachedArmsChanged(null!, null!);
     }
 
     private void OnDestroy()
     {
         Plugin.Config.LeftHandDominant.SettingChanged -= OnDominantHandChanged;
+        Plugin.Config.DetachedArms.SettingChanged -= OnDetachedArmsChanged;
     }
 
     private IEnumerator Start()
@@ -156,8 +166,21 @@ public class VRRig : MonoBehaviour
         
         NetworkSystem.instance.UpdateDominantHand(Plugin.Config.LeftHandDominant.Value);
     }
-    
+
     private void UpdateArms()
+    {
+        if (armsDetached)
+            UpdateArmsDetached();
+        else
+            UpdateArmsAttached();
+
+        // Synchronize multiplayer rig
+        if (SemiFunc.IsMultiplayer())
+            NetworkSystem.instance.SendRigData(leftHandTip.position, rightHandTip.position, leftHandTip.rotation,
+                rightHandTip.rotation);
+    }
+    
+    private void UpdateArmsAttached()
     {
         leftArm.localPosition = new Vector3(leftArm.localPosition.x, leftArm.localPosition.y, 0);
         rightArm.localPosition = new Vector3(rightArm.localPosition.x, rightArm.localPosition.y, 0);
@@ -191,11 +214,15 @@ public class VRRig : MonoBehaviour
 
         leftHandTip.rotation = leftArmTarget.rotation;
         rightHandTip.rotation = rightArmTarget.rotation;
+    }
 
-        // Synchronize multiplayer rig
-        if (SemiFunc.IsMultiplayer())
-            NetworkSystem.instance.SendRigData(leftHandTip.position, rightHandTip.position, leftHandTip.rotation,
-                rightHandTip.rotation);
+    private void UpdateArmsDetached()
+    {
+        leftArm.position =  leftArmTarget.position - (leftArmCenter.position - leftArm.position);
+        leftArm.rotation = leftArmTarget.rotation;
+
+        rightArm.position = rightArmTarget.position - (rightArmCenter.position - rightArm.position);
+        rightArm.rotation = rightArmTarget.rotation;
     }
 
     private void UpdateClaw()
@@ -214,7 +241,7 @@ public class VRRig : MonoBehaviour
 
     private Vector3 MapPrimaryPosition => VRSession.IsLeftHanded ? mapLeftPosition : mapRightPosition;
     private Vector3 MapSecondaryPosition => VRSession.IsLeftHanded ? mapRightPosition : mapLeftPosition;
-    
+
     private bool mapHovered;
 
     private void MapToolLogic()
@@ -249,8 +276,8 @@ public class VRRig : MonoBehaviour
             return;
         }
 
-        var rightHandHovered = Utils.Collide(rightHandCollider, mapPickupCollider);
-        var leftHandHovered = Utils.Collide(leftHandCollider, mapPickupCollider);
+        var rightHandHovered = Utils.Collide(rightHandCollider, [mapPickupCollider, ..shoulderMapPickupColliders]);
+        var leftHandHovered = Utils.Collide(leftHandCollider, [mapPickupCollider, ..shoulderMapPickupColliders]);
 
         // Haptic touch logic
         if (!mapTool.Active && !mapHovered && leftHandHovered)
@@ -267,18 +294,19 @@ public class VRRig : MonoBehaviour
         }
         else if (mapTool.Active || (!leftHandHovered && !rightHandHovered))
             mapHovered = false;
-        
+
         // Flashlight hide logic (before picking up)
         if (!mapTool.Active &&
             Utils.Collide(VRSession.IsLeftHanded ? rightHandCollider : leftHandCollider,
-                mapPickupCollider) && !PlayerController.instance.sprinting)
+                [mapPickupCollider, ..shoulderMapPickupColliders]) && !PlayerController.instance.sprinting)
             flashlight.hideFlashlight = !headlampEnabled;
         else if (!mapTool.Active)
             flashlight.hideFlashlight = false;
 
         // Right hand pickup logic
         if (!mapTool.Active && Actions.Instance["MapGrabRight"].WasPressedThisFrame() &&
-            Utils.Collide(rightHandCollider, mapPickupCollider) && !PlayerController.instance.sprinting)
+            Utils.Collide(rightHandCollider, [mapPickupCollider, ..shoulderMapPickupColliders]) &&
+            !PlayerController.instance.sprinting)
             if (mapTool.HideLerp >= 1)
             {
                 mapTool.transform.parent.parent = rightHandTip;
@@ -289,14 +317,15 @@ public class VRRig : MonoBehaviour
                 // Prevent picking up items while the map is opened
                 if (!VRSession.IsLeftHanded)
                 {
-                    playerAvatar.physGrabber.ReleaseObject();
+                    playerAvatar.physGrabber.ReleaseObject(-1);
                     playerAvatar.physGrabber.enabled = false;
                 }
             }
 
         // Left hand pickup logic
         if (!mapTool.Active && Actions.Instance["MapGrabLeft"].WasPressedThisFrame() &&
-            Utils.Collide(leftHandCollider, mapPickupCollider) && !PlayerController.instance.sprinting)
+            Utils.Collide(leftHandCollider, [mapPickupCollider, ..shoulderMapPickupColliders]) &&
+            !PlayerController.instance.sprinting)
             if (mapTool.HideLerp >= 1)
             {
                 mapTool.transform.parent.parent = leftHandTip;
@@ -304,11 +333,11 @@ public class VRRig : MonoBehaviour
                 VRMapTool.instance.leftHanded = true;
                 mapHeldLeftHand = true;
                 flashlight.hideFlashlight = !headlampEnabled && !VRSession.IsLeftHanded;
-                
+
                 // Prevent picking up items while the map is opened
                 if (VRSession.IsLeftHanded)
                 {
-                    playerAvatar.physGrabber.ReleaseObject();
+                    playerAvatar.physGrabber.ReleaseObject(-1);
                     playerAvatar.physGrabber.enabled = false;
                 }
             }
@@ -347,7 +376,7 @@ public class VRRig : MonoBehaviour
         else
         {
             // Not hit!
-            
+
             Crosshair.instance.gameObject.SetActive(true);
         }
     }
@@ -400,6 +429,26 @@ public class VRRig : MonoBehaviour
 
         headlampHovered = collided;
     }
+
+    private void DetachArms()
+    {
+        armsDetached = true;
+
+        leftArm.localScale = rightArm.localScale = Vector3.one * 0.3f;
+        leftHandCollider.transform.localScale = rightHandCollider.transform.localScale = Vector3.one * 3f;
+
+        leftHandTip.localRotation = Quaternion.identity;
+        rightHandTip.localRotation = Quaternion.identity;
+    }
+
+    private void AttachArms()
+    {
+        armsDetached = false;
+
+        leftArm.localScale = rightArm.localScale = Vector3.one;
+        leftHandCollider.transform.localScale = rightHandCollider.transform.localScale = Vector3.one;
+        leftArm.localPosition = rightArm.localPosition = Vector3.zero;
+    }
     
     public void SetVisible(bool visible)
     {
@@ -434,5 +483,13 @@ public class VRRig : MonoBehaviour
     private void OnDominantHandChanged(object sender, EventArgs args)
     {
         UpdateDominantTransforms();
+    }
+
+    private void OnDetachedArmsChanged(object sender, EventArgs args)
+    {
+        if (Plugin.Config.DetachedArms.Value)
+            DetachArms();
+        else
+            AttachArms();
     }
 }

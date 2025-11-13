@@ -92,6 +92,19 @@ public class NetworkSystem : MonoBehaviour
         });
     }
 
+    public void UpdateEyeTracking(Vector3 gazePoint)
+    {
+        EnqueueFrame(new EyeGaze
+        {
+            GazePoint = gazePoint
+        });
+    }
+
+    public void DisableEyeTracking()
+    {
+        UpdateEyeTracking(Vector3.down * 1000);
+    }
+
     /// <summary>
     /// Enqueues a frame to be sent next serialization sequence. This function contains an optimization that removes
     /// duplicate frames to reduce network usage, which reduces server costs.
@@ -170,6 +183,17 @@ public class NetworkSystem : MonoBehaviour
 
                     break;
                 }
+
+                case FrameHelper.FrameEyeGaze:
+                {
+                    var eyeGazeFrame = (EyeGaze)frame;
+                    if (!networkPlayers.TryGetValue(player.photonView.controllerActorNr, out var networkPlayer))
+                        return;
+
+                    networkPlayer.UpdateEyeTracking(eyeGazeFrame.GazePoint);
+
+                    break;
+                }
             }
         }
         catch (Exception ex)
@@ -198,6 +222,10 @@ public class NetworkSystem : MonoBehaviour
 
     internal void WriteAdditionalData(PhotonStream stream)
     {
+        // Just don't send anything if we have nothing to say
+        if (scheduledFrames.Count == 0)
+            return;
+
         stream.SendNext(REPOXR_MAGIC);
         stream.SendNext(PROTOCOL_VERSION);
 
@@ -244,23 +272,23 @@ public class NetworkSystem : MonoBehaviour
 [RepoXRPatch(RepoXRPatchTarget.Universal)]
 internal static class NetworkingPatches
 {
-    // The reason that this code is injected on PhysGrabber is that it's the last observed component on the
-    // player avatar controller's PhotonView, meaning no additional data is available on the PhotonStream.
-    // If we started injecting data too early, it would cause vanilla clients to no longer be able
-    // to understand our photon data, and that breaks multiplayer.
+    // The reason that this code is injected on PlayerLocalCamera is that it's still enabled
+    // even after the player dies. Previous versions of this code would make the NetworkSystem
+    // stop functioning after the player died, which was fine before, but now the game
+    // has features that VR needs some special interactions with even after death
 
     /// <summary>
     /// Inject additional code when serializing/deserializing a network component
     /// </summary>
-    [HarmonyPatch(typeof(PhysGrabber), nameof(PhysGrabber.OnPhotonSerializeView))]
+    [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.OnPhotonSerializeView))]
     [HarmonyPostfix]
-    private static void OnAfterSerializeView(PhysGrabber __instance, PhotonStream stream)
+    private static void OnAfterSerializeView(PlayerLocalCamera __instance, PhotonStream stream)
     {
         if (stream.IsWriting)
             NetworkSystem.instance.WriteAdditionalData(stream);
         else
             NetworkSystem.instance.ReadAdditionalData(
-                __instance.playerAvatar ?? __instance.GetComponent<PlayerAvatar>(), stream);
+                __instance.transform.parent.GetComponentInChildren<PlayerAvatar>(true), stream);
     }
 
     [HarmonyPatch(typeof(NetworkManager), nameof(NetworkManager.OnPlayerLeftRoom))]

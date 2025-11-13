@@ -49,7 +49,7 @@ public class GameHud : MonoBehaviour
             ? SpectateCamera.instance.transform.up
             : Vector3.up;
 
-        var fwd = camera.position + camera.forward * Plugin.Config.SmoothCanvasDistance.Value;
+        var fwd = camera.position + Vector3.down * 0.15f + camera.forward * Plugin.Config.SmoothCanvasDistance.Value;
         var rot = Quaternion.LookRotation(camera.forward, up);
 
         SmoothedCanvas.transform.position = Vector3.Slerp(SmoothedCanvas.transform.position, fwd, 0.1f);
@@ -145,9 +145,11 @@ public class GameHud : MonoBehaviour
         // Dump all the game hud onto this smoothed canvas
         var gameHud = HUDCanvas.instance.transform.Find("HUD/Game Hud");
         var chatLocal = HUDCanvas.instance.transform.Find("HUD/Chat Local");
-        
+        var debugConsole = GameObject.Find("UI/UI/Canvas/DebugConsole")?.transform;
+
         gameHud.SetParent(rect, false);
         chatLocal.SetParent(rect, false);
+        debugConsole?.SetParent(rect, false);
     }
 
     /// <summary>
@@ -161,7 +163,8 @@ public class GameHud : MonoBehaviour
             {
                 parent = camera.transform.parent.parent, 
                 localPosition = Vector3.down * 3000, // Move very far away initially to prevent UI flashes during loading
-                localRotation = Quaternion.identity, localScale = Vector3.one * 0.01f
+                localRotation = Quaternion.identity,
+                localScale = Vector3.one * 0.01f
             },
             layer = 5
         }.AddComponent<Canvas>();

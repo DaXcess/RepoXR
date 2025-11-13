@@ -9,16 +9,16 @@ public class VRMenuKeybindToggle: MonoBehaviour
 
     public void EnableToggle()
     {
-        VRInputSystem.instance.InputToggleRebind(inputAction, true);
+        VRInputSystem.Instance.InputToggleRebind(inputAction, true);
     }
 
     public void DisableToggle()
     {
-        VRInputSystem.instance.InputToggleRebind(inputAction, false);
+        VRInputSystem.Instance.InputToggleRebind(inputAction, false);
     }
     
     public void FetchSetting()
     {
-        GetComponent<MenuTwoOptions>().startSettingFetch = VRInputSystem.instance.InputToggleGet(inputAction);
+        GetComponent<MenuTwoOptions>().startSettingFetch = VRInputSystem.Instance.InputToggleGet(inputAction);
     }
 }

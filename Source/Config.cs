@@ -38,6 +38,10 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<bool> LeftHandDominant { get; } = file.Bind("Gameplay", nameof(LeftHandDominant), false,
         "Whether to use the left or right hand as dominant hand (the hand used to pick up items)");
 
+    [ConfigDescriptor(customName: "Arms", falseText: "Attached", trueText: "Detached")]
+    public ConfigEntry<bool> DetachedArms { get; } = file.Bind("Gameplay", nameof(DetachedArms), false,
+        "Whether your arms are attached to your body, or if they are separate");
+
     [ConfigDescriptor]
     public ConfigEntry<HapticFeedbackOption> HapticFeedback { get; } =
         file.Bind("Gameplay", nameof(HapticFeedback), HapticFeedbackOption.All,
@@ -45,29 +49,28 @@ public class Config(string assemblyPath, ConfigFile file)
                 "Controls how much haptic feedback you will experience while playing with the VR mod.",
                 new AcceptableValueEnum<HapticFeedbackOption>()));
 
-    [ConfigDescriptor(pointerSize: 0.01f, stepSize: 0.05f)]
-    public ConfigEntry<float> HUDPlaneOffset { get; } = file.Bind("Gameplay", nameof(HUDPlaneOffset), -0.45f,
-        new ConfigDescription("The default height offset for the HUD", new AcceptableValueRange<float>(-0.6f, 0.5f)));
+    [ConfigDescriptor(customName: "Eye Tracking", trueText: "Enabled", falseText: "Disabled")]
+    public ConfigEntry<bool> EnableEyeTracking { get; } = file.Bind("Gameplay", nameof(EnableEyeTracking), true,
+        "If supported by the headset, use eye tracking to move your characters pupils for other players and for checking line of sight with enemies.");
 
-    [ConfigDescriptor(pointerSize: 0.01f, stepSize: 0.05f)]
-    public ConfigEntry<float> HUDGazePlaneOffset { get; } = file.Bind("Gameplay", nameof(HUDGazePlaneOffset), -0.25f,
-        new ConfigDescription("The height offset for the HUD when looking at it", new AcceptableValueRange<float>(-0.6f, 0.5f)));
+    // UI configuration
+
+    [ConfigDescriptor(customName: "HUD Height", pointerSize: 0.01f, stepSize: 0.05f)]
+    public ConfigEntry<float> HUDPlaneOffset { get; } = file.Bind("UI", nameof(HUDPlaneOffset), -0.45f,
+        new ConfigDescription("The default height offset for the HUD", new AcceptableValueRange<float>(-1f, 0.5f)));
+
+    [ConfigDescriptor(customName: "HUD Secondary Height", pointerSize: 0.01f, stepSize: 0.05f)]
+    public ConfigEntry<float> HUDGazePlaneOffset { get; } = file.Bind("UI", nameof(HUDGazePlaneOffset), -0.25f,
+        new ConfigDescription("The height offset for the HUD when looking at it",
+            new AcceptableValueRange<float>(-1f, 0.5f)));
 
     [ConfigDescriptor(pointerSize: 0.05f, stepSize: 0.25f)]
-    public ConfigEntry<float> SmoothCanvasDistance { get; } = file.Bind("Gameplay", nameof(SmoothCanvasDistance), 1.5f,
+    public ConfigEntry<float> SmoothCanvasDistance { get; } = file.Bind("UI", nameof(SmoothCanvasDistance), 1.5f,
         new ConfigDescription("The distance that the smooth canvas should be away from the main camera",
             new AcceptableValueRange<float>(1.25f, 3)));
 
-    // Performance configuration
-
-    [ConfigDescriptor(stepSize: 5f, suffix: "%")]
-    public ConfigEntry<int> CameraResolution { get; } = file.Bind("Performance", nameof(CameraResolution), 100,
-        new ConfigDescription(
-            "This setting configures the resolution scale of the game, lower values are more performant, but will make the game look worse.",
-            new AcceptableValueRange<int>(5, 200)));
-
     // Input configuration
-    
+
     [ConfigDescriptor(enumDisableBar: true)]
     public ConfigEntry<TurnProviderOption> TurnProvider { get; } = file.Bind("Input", nameof(TurnProvider),
         TurnProviderOption.Smooth,
@@ -81,7 +84,7 @@ public class Config(string assemblyPath, ConfigFile file)
             new AcceptableValueRange<float>(0.25f, 5)));
 
     [ConfigDescriptor]
-    public ConfigEntry<bool> DynamicSmoothSpeed { get; } = file.Bind("Input", nameof(DynamicSmoothSpeed), true,
+    public ConfigEntry<bool> AnalogSmoothTurn { get; } = file.Bind("Input", nameof(AnalogSmoothTurn), true,
         "When enabled, makes the speed of the smooth turning dependent on how far the analog stick is pushed.");
 
     [ConfigDescriptor(stepSize: 5, suffix: "°")]
@@ -92,6 +95,12 @@ public class Config(string assemblyPath, ConfigFile file)
 
     // Rendering configuration
 
+    [ConfigDescriptor(stepSize: 5f, suffix: "%")]
+    public ConfigEntry<int> CameraResolution { get; } = file.Bind("Rendering", nameof(CameraResolution), 100,
+        new ConfigDescription(
+            "This setting configures the resolution scale of the game, lower values are more performant, but will make the game look worse.",
+            new AcceptableValueRange<int>(5, 200)));
+
     [ConfigDescriptor]
     public ConfigEntry<bool> Vignette { get; } = file.Bind("Rendering", nameof(Vignette), true,
         "Enables the vignette shader used in certain scenarios and levels in the game.");
@@ -100,6 +109,13 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<bool> CustomCamera { get; } =
         file.Bind("Rendering", nameof(CustomCamera), false,
             "Adds a second camera mounted on top of the VR camera that will render separately from the VR camera to the display. This requires extra GPU power!");
+
+    [ConfigDescriptor(stepSize: 15, pointerSize: 5)]
+    public ConfigEntry<float> CustomCameraFramerate { get; } = file.Bind("Rendering", nameof(CustomCameraFramerate),
+        144f,
+        new ConfigDescription(
+            "The maximum frequency that the custom camera can render at. The custom camera framerate is limited to the VR headset's refresh rate, so setting this higher won't have any effect.",
+            new AcceptableValueRange<float>(15, 144)));
 
     [ConfigDescriptor(stepSize: 5)]
     public ConfigEntry<float> CustomCameraFOV { get; } = file.Bind("Rendering", nameof(CustomCameraFOV), 75f,
@@ -124,15 +140,12 @@ public class Config(string assemblyPath, ConfigFile file)
         "FOR INTERNAL USE ONLY, DO NOT EDIT");
 
     private static bool leftHandedWarningShown;
-    
+
     /// <summary>
     /// Create persistent callbacks that persist for the entire duration of the application
     /// </summary>
     public void SetupGlobalCallbacks()
     {
-        if (!VRSession.InVR)
-            return;
-
         CameraResolution.SettingChanged += (_, _) =>
         {
             XRSettings.eyeTextureResolutionScale = CameraResolution.Value / 100f;
@@ -140,6 +153,9 @@ public class Config(string assemblyPath, ConfigFile file)
 
         CustomCamera.SettingChanged += (_, _) =>
         {
+            if (!VRSession.InVR)
+                return;
+
             if (CustomCamera.Value)
                 Object.Instantiate(AssetCollection.CustomCamera, Camera.main!.transform.parent);
             else

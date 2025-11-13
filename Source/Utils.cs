@@ -139,10 +139,11 @@ internal static class Utils
         }
     }
 
-    public static bool Collide(Collider lhs, Collider rhs)
+    public static bool Collide(Collider lhs, params Collider[] rhs)
     {
-        return Physics.ComputePenetration(lhs, lhs.transform.position, lhs.transform.rotation, rhs,
-            rhs.transform.position, rhs.transform.rotation, out _, out _);
+        return rhs.Any(collider => Physics.ComputePenetration(lhs, lhs.transform.position, lhs.transform.rotation,
+            collider,
+            collider.transform.position, collider.transform.rotation, out _, out _));
     }
 
     public static void DisableScanlines(this SemiUI ui)

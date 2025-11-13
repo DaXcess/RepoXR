@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using Photon.Pun;
+using RepoXR.Managers;
 using UnityEngine;
 
 namespace RepoXR.Patches;
@@ -13,6 +15,10 @@ internal static class CameraPatches
     [HarmonyPrefix]
     private static void DisableTargetTextureOverride(Camera __instance, ref RenderTexture? value)
     {
+        // We make an exception for our manually rendered custom camera
+        if (__instance.name.StartsWith("Custom Camera"))
+            return;
+
         value = null;
     }
 
@@ -75,5 +81,43 @@ internal static class CameraPatches
 
         return screenPoint.x > -padWidth && screenPoint.x < 1 + padWidth && 
                screenPoint.y > -padHeight && screenPoint.y < 1 + padHeight;
+    }
+
+    /// <summary>
+    /// Assign the <see cref="PlayerLocalCamera"/> transform the same values as our VR camera
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.Update))]
+    [HarmonyPostfix]
+    private static void AlignWithVRCameraPatch(PlayerLocalCamera __instance)
+    {
+        if (SemiFunc.IsMultiplayer() && !__instance.photonView.IsMine)
+            return;
+
+        if (VRSession.Instance is not { } session)
+            return;
+
+        __instance.transform.position = session.MainCamera.transform.position;
+        __instance.transform.rotation = session.MainCamera.transform.rotation;
+    }
+
+    /// <summary>
+    /// Make sure to synchronize the VR camera transforms instead of only the aim transforms
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.OnPhotonSerializeView))]
+    [HarmonyPrefix]
+    private static bool CameraSerializeVRParams(PlayerLocalCamera __instance, PhotonStream stream,
+        PhotonMessageInfo info)
+    {
+        if (!SemiFunc.MasterAndOwnerOnlyRPC(info, __instance.photonView))
+            return false;
+
+        if (!stream.IsWriting)
+            return true;
+
+        stream.SendNext(__instance.transform.position);
+        stream.SendNext(__instance.transform.rotation);
+        stream.SendNext(__instance.teleported);
+
+        return false;
     }
 }

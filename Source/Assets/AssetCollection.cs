@@ -11,6 +11,8 @@ internal static class AssetCollection
 {
     private static AssetBundle assetBundle;
 
+    public static OpenXRFeaturePack OpenXRFeatures;
+
     public static RemappableControls RemappableControls;
     
     public static GameObject RebindHeader;
@@ -21,6 +23,8 @@ internal static class AssetCollection
     public static GameObject VRTumble;
     public static GameObject Keyboard;
     public static GameObject ExpressionWheel;
+    public static GameObject ValuableDiscover;
+    public static GameObject FocusSphere;
 
     public static GameObject MenuSettings;
     public static GameObject MenuSettingsCategory;
@@ -47,6 +51,8 @@ internal static class AssetCollection
     public static AnimationCurveData HurtHapticCurve;
     public static AnimationCurveData EyeAttachHapticCurve;
     public static AnimationCurveData KeyboardAnimation;
+
+    public static GameObject Cube;
     
     public static bool LoadAssets()
     {
@@ -59,6 +65,8 @@ internal static class AssetCollection
             return false;
         }
 
+        OpenXRFeatures = assetBundle.LoadAsset<OpenXRFeaturePack>("OpenXRFeatures");
+
         RemappableControls = assetBundle.LoadAsset<GameObject>("RemappableControls").GetComponent<RemappableControls>();
         
         RebindHeader = assetBundle.LoadAsset<GameObject>("Rebind Header");
@@ -69,6 +77,8 @@ internal static class AssetCollection
         VRTumble = assetBundle.LoadAsset<GameObject>("VRTumble");
         Keyboard = assetBundle.LoadAsset<GameObject>("NonNativeKeyboard");
         ExpressionWheel = assetBundle.LoadAsset<GameObject>("Expression Radial");
+        ValuableDiscover = assetBundle.LoadAsset<GameObject>("Valuable Discover");
+        FocusSphere = assetBundle.LoadAsset<GameObject>("Focus Sphere");
         
         MenuSettings = assetBundle.LoadAsset<GameObject>("VR Settings Page");
         MenuSettingsCategory = assetBundle.LoadAsset<GameObject>("VR Settings Page - Category");
@@ -95,6 +105,8 @@ internal static class AssetCollection
         HurtHapticCurve = assetBundle.LoadAsset<AnimationCurveData>("HurtHapticCurve");
         EyeAttachHapticCurve = assetBundle.LoadAsset<AnimationCurveData>("EyeAttachHapticCurve");
         KeyboardAnimation = assetBundle.LoadAsset<AnimationCurveData>("KeyboardAnimation");
+
+        Cube = assetBundle.LoadAsset<GameObject>("JustACube");
 
         if (RemappableControls?.controls == null)
         {

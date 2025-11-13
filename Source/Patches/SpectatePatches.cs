@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RepoXR.Input;
+using RepoXR.Player.Camera;
 using UnityEngine;
 
 using static HarmonyLib.AccessTools;
@@ -153,7 +154,7 @@ internal static class SpectatePatches
                 break;
             
             case Config.TurnProviderOption.Smooth:
-                if (!Plugin.Config.DynamicSmoothSpeed.Value)
+                if (!Plugin.Config.AnalogSmoothTurn.Value)
                     value = value == 0 ? 0 : Math.Sign(value);
 
                 spectateTurnAmount += 180 * Time.deltaTime * Plugin.Config.SmoothTurnSpeedModifier.Value * value;
@@ -161,6 +162,66 @@ internal static class SpectatePatches
 
             case Config.TurnProviderOption.Disabled:
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Allow snap/smooth turning in the spectator head camera
+    /// </summary>
+    [HarmonyPatch(typeof(SpectateCamera), nameof(SpectateCamera.StateHead))]
+    [HarmonyPostfix]
+    private static void HeadCameraTurnPatch(SpectateCamera __instance)
+    {
+        var value = Actions.Instance["Turn"].ReadValue<float>();
+
+        switch (Plugin.Config.TurnProvider.Value)
+        {
+            case Config.TurnProviderOption.Snap:
+                var should = Mathf.Abs(value) > 0.75f;
+                var snapSize = Plugin.Config.SnapTurnSize.Value;
+
+                if (!turnedLastInput && should)
+                    if (value > 0)
+                        VRCameraAim.instance.TurnAimNow(snapSize);
+                    else
+                        VRCameraAim.instance.TurnAimNow(-snapSize);
+
+                turnedLastInput = should;
+
+                break;
+
+            case Config.TurnProviderOption.Smooth:
+                if (!Plugin.Config.AnalogSmoothTurn.Value)
+                    value = value == 0 ? 0 : Math.Sign(value);
+
+                VRCameraAim.instance.TurnAimNow(180 * Time.deltaTime * Plugin.Config.SmoothTurnSpeedModifier.Value * value);
+                break;
+
+            case Config.TurnProviderOption.Disabled:
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Make sure the VR camera is always centered to the player's death head (3-DoF)
+    /// </summary>
+    [HarmonyPatch(typeof(SpectateCamera), nameof(SpectateCamera.StateHead))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> AlignCameraWithHeadPatch(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchForward(false, new CodeMatch(OpCodes.Call, PropertyGetter(typeof(Time), nameof(Time.deltaTime))))
+            .Advance(-3)
+            .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0))
+            .SetAndAdvance(OpCodes.Call, ((Func<PlayerDeathHead, SpectateCamera, Vector3>)GetTargetPoint).Method)
+            .RemoveInstruction()
+            .InstructionEnumeration();
+
+        static Vector3 GetTargetPoint(PlayerDeathHead head, SpectateCamera camera)
+        {
+            var cameraPos = camera.transform.InverseTransformPoint(Camera.main!.transform.position);
+
+            return head.physGrabObject.centerPoint - camera.transform.rotation * cameraPos;
         }
     }
 }

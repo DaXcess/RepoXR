@@ -219,9 +219,10 @@ internal static class UIPatches
             __instance.scrollHandleTargetPosition = pos;
         }
 
-        if (manager.GetUIScrollY() != 0)
+        if (manager.GetUIScrollY() != 0 && SemiFunc.NoTextInputsActive())
         {
             __instance.scrollHandleTargetPosition += manager.GetUIScrollY() * 20 / (__instance.scrollHeight * 0.01f);
+
             if (__instance.scrollHandleTargetPosition < __instance.scrollHandle.sizeDelta.y / 2f)
                 __instance.scrollHandleTargetPosition = __instance.scrollHandle.sizeDelta.y / 2f;
             if (__instance.scrollHandleTargetPosition >
@@ -276,8 +277,7 @@ internal static class UIPatches
             .MatchForward(false, new CodeMatch(OpCodes.Call, Method(typeof(SemiFunc), nameof(SemiFunc.InputMovementY))))
             .Set(OpCodes.Ldc_R4, 0.0f)
             .MatchForward(false, new CodeMatch(OpCodes.Call, Method(typeof(SemiFunc), nameof(SemiFunc.InputScrollY))))
-            // Don't have to keep labels for this one
-            .SetInstruction(new CodeInstruction(OpCodes.Ldc_R4, 0.0f))
+            .Set(OpCodes.Ldc_R4, 0.0f)
             .InstructionEnumeration();
     }
 
@@ -308,7 +308,7 @@ internal static class UIPatches
             return;
 
         MenuManager.instance.MenuEffectClick(MenuManager.MenuClickEffectType.Confirm);
-        __instance.parentPageSaves.SaveFileSelected(__instance.saveFileName);
+        __instance.parentPageSaves.SaveFileSelected(__instance.saveFileName, __instance.saveFileBackups);
     }
 
     /// <summary>

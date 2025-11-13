@@ -33,6 +33,13 @@ public class HapticManager : MonoBehaviour
 
     private void Update()
     {
+        // Destroy object if we toggled out of VR
+        if (SemiFunc.FPSImpulse1() && !VRSession.InVR)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
         if (priorityTimer > 0)
         {
             priorityTimer -= Time.deltaTime;

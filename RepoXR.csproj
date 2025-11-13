@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <Description>Collecting Valuables in VR</Description>
-        <Version>1.0.3</Version>
+        <Version>1.1.0</Version>
         <Authors>DaXcess</Authors>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
@@ -28,13 +28,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+        <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
         <PackageReference Include="BepInEx.Core" Version="5.*" />
+        <PackageReference Include="CustomDiscoverStateLib" Version="1.0.1" />
         <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="PhotonUnityNetworking" Version="0.1.2" />
-        <PackageReference Include="REPO" Version="0.2.1" />
-        <PackageReference Include="Unity.InputSystem" Version="1.7.0" />
+        <PackageReference Include="REPO" Version="0.3.0" />
+        <PackageReference Include="Unity.InputSystem" Version="1.14.2" />
         <PackageReference Include="Unity.Rendering.PostProcessing" Version="3.4.0" />
         <PackageReference Include="Unity.RenderPipelines.Core" Version="14.0.11" />
         <PackageReference Include="Unity.TextMeshPro" Version="3.0.6" />

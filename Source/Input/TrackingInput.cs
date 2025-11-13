@@ -9,7 +9,8 @@ namespace RepoXR.Input;
 /// </summary>
 public class TrackingInput : MonoBehaviour
 {
-    public static TrackingInput instance;
+    public static TrackingInput Instance => _instance ?? InputManager.instance.gameObject.AddComponent<TrackingInput>();
+    private static TrackingInput? _instance;
     
     public Transform HeadTransform { get; private set; }
     public Transform LeftHandTransform { get; private set; }
@@ -17,13 +18,13 @@ public class TrackingInput : MonoBehaviour
     
     private void Awake()
     {
-        if (instance != null)
+        if (_instance != null)
         {
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
+        _instance = this;
         DontDestroyOnLoad(gameObject);
         
         CreateTrackingOrigins();

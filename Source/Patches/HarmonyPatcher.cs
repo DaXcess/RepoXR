@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -25,6 +26,11 @@ internal static class HarmonyPatcher
     public static void PatchVR()
     {
         Patch(VRPatcher, RepoXRPatchTarget.VROnly);
+    }
+
+    public static void UnpatchVR()
+    {
+        VRPatcher.UnpatchSelf();
     }
 
     public static void PatchClass(Type type)
@@ -76,7 +82,9 @@ internal enum RepoXRPatchTarget
 }
 
 /// <summary>
-/// Fixes a bug in older BepInEx versions (shame on you TS for using a 2-year-old BepInEx)
+/// To keep RepoXR compatible with older BepInEx versions, this patch will not be removed
+///
+/// Fixes a bug in older BepInEx versions
 ///
 /// https://github.com/BepInEx/HarmonyX/blob/master/Harmony/Internal/Patching/ILManipulator.cs#L322
 /// Licensed under MIT: https://github.com/BepInEx/HarmonyX/blob/master/LICENSE
@@ -197,5 +205,20 @@ internal static class LeaveMyLeaveAlonePatch
         var method = Method(type, "Emit");
 
         method.Invoke(null, [il, opcode, operand]);
+    }
+}
+
+[RepoXRPatch(RepoXRPatchTarget.Universal)]
+internal static class HarmonyLibPatches
+{
+    /// <summary>
+    /// Ironically, patching Harmony like this fixes some issues with *un*patching
+    /// </summary>
+    [HarmonyPatch(typeof(MethodBaseExtensions), nameof(MethodBaseExtensions.HasMethodBody))]
+    [HarmonyPostfix]
+    private static void OnUnpatch(MethodBase member, ref bool __result)
+    {
+        if (new StackTrace().GetFrame(2)?.GetMethod().Name == "UnpatchConditional")
+            __result = true;
     }
 }

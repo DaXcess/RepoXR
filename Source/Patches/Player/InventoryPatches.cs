@@ -140,6 +140,31 @@ internal static class InventoryPatches
         }
     }
 
+    /// <summary>
+    /// Prevent items from being "hidden" when equipped in an inventory
+    /// </summary>
+    [HarmonyPatch(typeof(PhysGrabObject), nameof(PhysGrabObject.OverrideDeactivate))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> DisableItemOverrideHiding(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Call, Method(typeof(SemiFunc), nameof(SemiFunc.IsMasterClientOrSingleplayer))))
+            .Set(OpCodes.Call, ((Func<PhysGrabObject, bool>)ShouldMoveItem).Method)
+            .Insert(new CodeInstruction(OpCodes.Ldarg_0))
+            .InstructionEnumeration();
+
+        static bool ShouldMoveItem(PhysGrabObject @object)
+        {
+            var result = SemiFunc.IsMasterClientOrSingleplayer();
+
+            if (!@object.TryGetComponent<ItemEquippable>(out var item))
+                return result;
+
+            return result && !ItemIsMine(item);
+        }
+    }
+
     [HarmonyPatch(typeof(InventorySpot), nameof(InventorySpot.EquipItem))]
     [HarmonyPrefix]
     private static void OnItemEquip(InventorySpot __instance, ItemEquippable item)
@@ -187,8 +212,16 @@ internal static class UniversalInventoryPatches
     [HarmonyPrefix]
     private static bool DontMeleeWhenEquipped(ItemMelee __instance)
     {
-        return !(__instance.itemEquippable.currentState == ItemEquippable.ItemState.Equipped &&
-                 (!SemiFunc.IsMultiplayer() || PhotonView.Find(__instance.itemEquippable.ownerPlayerId)
-                     .GetComponent<PlayerAvatar>().IsVRPlayer()));
+        var isEquipped =
+            __instance.itemEquippable.currentState is ItemEquippable.ItemState.Equipped
+                or ItemEquippable.ItemState.Equipping;
+
+        if (!isEquipped) // Return early, as `ownerPlayerId` isn't set here yet
+            return true;
+
+        var isVRPlayer = (SemiFunc.IsMultiplayer() && PhotonView.Find(__instance.itemEquippable.ownerPlayerId)
+            .GetComponent<PlayerAvatar>().IsVRPlayer()) || (!SemiFunc.IsMultiplayer() && VRSession.InVR);
+
+        return !isVRPlayer;
     }
 }

@@ -62,7 +62,7 @@ public class ExpressionRadial : MonoBehaviour
         if (closedLastPress)
             closedLastPress = false;
 
-        var pressed = VRInputSystem.instance.ExpressionPressed() ||
+        var pressed = VRInputSystem.Instance.ExpressionPressed() ||
                       // Close radial menu when chat becomes active
                       (isActive && SemiFunc.InputDown(InputKey.Chat));
         switch (pressed)
@@ -151,7 +151,7 @@ public class ExpressionRadial : MonoBehaviour
     private void UpdateBindingHand()
     {
         var chatAction = Actions.Instance["Chat"];
-        var bindingIndex = Mathf.Max(chatAction.GetBindingIndex(VRInputSystem.instance.CurrentControlScheme), 0);
+        var bindingIndex = Mathf.Max(chatAction.GetBindingIndex(VRInputSystem.Instance.CurrentControlScheme), 0);
         var bindingPath = Actions.Instance["Chat"].bindings[bindingIndex].effectivePath;
 
         if (!Utils.GetControlHand(bindingPath, out var hand))

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace RepoXR.Rendering;
 
@@ -20,8 +21,11 @@ public class CustomPostProcessing : MonoBehaviour
         
         postProcessing.volume.profile.AddSettings(vignette);
         
-        // Disable replaced shaders
+        // Disable original shaders
         postProcessing.vignette.enabled.value = false;
+
+        // Disable ambient occlusion (big performance boost)
+        postProcessing.GetComponent<PostProcessVolume>().profile.GetSetting<AmbientOcclusion>().enabled.value = false;
     }
 
     private void Update()

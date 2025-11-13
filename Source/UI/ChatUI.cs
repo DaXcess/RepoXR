@@ -71,7 +71,7 @@ public class ChatUI : MonoBehaviour
 
         if (chatManager.chatState == ChatManager.ChatState.Active)
         {
-            PhysGrabber.instance.ReleaseObject(); // Drop items while chat is active
+            PhysGrabber.instance.ReleaseObject(-1); // Drop items while chat is active
 
             if (!keyboard.gameObject.activeSelf)
                 keyboard.PresentKeyboard();

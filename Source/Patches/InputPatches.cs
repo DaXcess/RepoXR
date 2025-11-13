@@ -23,20 +23,23 @@ internal static class InputPatches
         value = InputSettings.BackgroundBehavior.IgnoreFocus;
     }
 
+    /// <summary>
+    /// Add additional mapping tags during <see cref="InputManager" /> startup
+    /// </summary>
     [HarmonyPatch(typeof(InputManager), nameof(InputManager.Start))]
     [HarmonyPostfix]
     private static void OnInputManagerStart(InputManager __instance)
     {
         var offset = Enum.GetNames(typeof(InputKey)).Length;
-        
+
         for (var i = 0; i < AssetCollection.RemappableControls.additionalBindings.Length; i++)
         {
             var binding = AssetCollection.RemappableControls.additionalBindings[i];
-            
+
             __instance.tagDictionary.Add($"[{binding.action.name}]", (InputKey)(i + offset));
         }
     }
-    
+
     /// <summary>
     /// Create a custom <see cref="VRInputSystem"/> component on the <see cref="InputManager"/>, allowing the use of <see cref="InputActionAsset"/>s
     /// </summary>
@@ -44,8 +47,6 @@ internal static class InputPatches
     [HarmonyPostfix]
     private static void OnInitializeInputManager(InputManager __instance)
     {
-        __instance.gameObject.AddComponent<VRInputSystem>();
-
         new GameObject("VR Tracking Input").AddComponent<TrackingInput>();
     }
 
@@ -54,12 +55,20 @@ internal static class InputPatches
     private static bool GetAction(ref InputKey key, ref InputAction __result)
     {
         var bindings = Enum.GetNames(typeof(InputKey)).Length;
-        
-        __result = (int)key >= bindings
-            ? AssetCollection.RemappableControls.additionalBindings[(int)key - bindings]
-            : Actions.Instance[key.ToString()];
 
-        return false;
+        try
+        {
+            __result = (int)key >= bindings
+                ? AssetCollection.RemappableControls.additionalBindings[(int)key - bindings]
+                : Actions.Instance[key.ToString()];
+
+            return false;
+        }
+        catch
+        {
+            // If no key was found, fall back to vanilla keybind (likely won't work with VR controllers though)
+            return true;
+        }
     }
 
     [HarmonyPatch(typeof(InputManager), nameof(InputManager.GetMovement))]
@@ -70,7 +79,7 @@ internal static class InputPatches
             return true;
 
         __result = Actions.Instance["Movement"].ReadValue<Vector2>();
-        
+
         return false;
     }
 
@@ -152,7 +161,7 @@ internal static class InputPatches
             return true;
 
         __result = __instance.GetAction(key).WasReleasedThisFrame();
-        
+
         return false;
     }
 
@@ -181,11 +190,8 @@ internal static class InputPatches
 
         var pull = Actions.Instance["Pull"].ReadValue<float>();
         if (pull > 0)
-        {
             __result = -pull;
-            return false;
-        }
-        
+
         return false;
     }
 
@@ -200,14 +206,14 @@ internal static class InputPatches
         if (action == null)
         {
             __result = "Unassigned";
-            
+
             return false;
         }
 
-        var index = action.GetBindingIndex(VRInputSystem.instance.CurrentControlScheme);
+        var index = action.GetBindingIndex(VRInputSystem.Instance.CurrentControlScheme);
 
         __result = __instance.InputDisplayGetString(action, index);
-        
+
         return false;
     }
 
@@ -220,7 +226,7 @@ internal static class InputPatches
     {
         var binding = action.bindings[bindingIndex].effectivePath;
         __result = Utils.GetControlSpriteString(binding);
-        
+
         return false;
     }
 
@@ -231,7 +237,7 @@ internal static class InputPatches
     [HarmonyPrefix]
     private static bool InputToggleGet(ref InputKey key, ref bool __result)
     {
-        __result = VRInputSystem.instance.InputToggleGet(key.ToString());
+        __result = VRInputSystem.Instance.InputToggleGet(key.ToString());
 
         return false;
     }
@@ -260,7 +266,7 @@ internal static class InputPatches
     private static bool ResetVRControls()
     {
         RebindManager.Instance.ResetControls();
-        
+
         return false;
     }
 
