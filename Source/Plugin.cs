@@ -20,7 +20,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PLUGIN_GUID = "io.daxcess.repoxr";
     public const string PLUGIN_NAME = "RepoXR";
-    public const string PLUGIN_VERSION = "1.1.0";
+    public const string PLUGIN_VERSION = "1.1.1";
 
 #if DEBUG
     private const string SKIP_CHECKSUM_VAR = $"--repoxr-skip-checksum={PLUGIN_VERSION}-dev";
@@ -33,7 +33,8 @@ public class Plugin : BaseUnityPlugin
 
     private readonly string[] GAME_ASSEMBLY_HASHES =
     [
-        "137D6E8475DEA976831CC95D7F56F4B7DA311E52A57B4C420591A5122F25589F" // v0.3.0
+        "137D6E8475DEA976831CC95D7F56F4B7DA311E52A57B4C420591A5122F25589F", // v0.3.0
+        "90F31BB66FB6FFA4793A1FE996312B5018AC4AF2E57D0037A98F36DFA201AF45"  // v0.3.1
     ];
 
     public new static Config Config { get; private set; } = null!;
@@ -101,9 +102,7 @@ public class Plugin : BaseUnityPlugin
 
 #if DEBUG
         if (Environment.GetCommandLineArgs().Contains("--repoxr-enable-experiments", StringComparer.OrdinalIgnoreCase))
-        {
             HarmonyPatcher.PatchClass(typeof(Experiments));
-        }
 #endif
 
         if (Environment.GetCommandLineArgs().Contains("--repoxr-debug-eyetracking", StringComparer.OrdinalIgnoreCase))

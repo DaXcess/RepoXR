@@ -10,7 +10,7 @@ public class LoadingUI : MonoBehaviour
     private static Vector3 lastLocalPosition;
     private static float lastLocalRotation;
     
-    private Transform camera;
+    private new Transform camera;
 
     private void Awake()
     {

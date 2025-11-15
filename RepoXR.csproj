@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <Description>Collecting Valuables in VR</Description>
-        <Version>1.1.0</Version>
+        <Version>1.1.1</Version>
         <Authors>DaXcess</Authors>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
@@ -34,7 +34,7 @@
         <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="PhotonUnityNetworking" Version="0.1.2" />
-        <PackageReference Include="REPO" Version="0.3.0" />
+        <PackageReference Include="REPO" Version="0.3.1" />
         <PackageReference Include="Unity.InputSystem" Version="1.14.2" />
         <PackageReference Include="Unity.Rendering.PostProcessing" Version="3.4.0" />
         <PackageReference Include="Unity.RenderPipelines.Core" Version="14.0.11" />
@@ -44,7 +44,7 @@
         <PackageReference Include="Unity.XR.LegacyInputHelpers" Version="2.1.10" />
         <PackageReference Include="Unity.XR.Management" Version="4.5.0" />
         <PackageReference Include="Unity.XR.OpenXR" Version="1.10.0" />
-        <PackageReference Include="UnityEngine.Modules" Version="2022.3.21" IncludeAssets="compile" />
+        <PackageReference Include="UnityEngine.Modules" Version="2022.3.67" IncludeAssets="compile" />
         <PackageReference Include="UnityEngine.UI" Version="1.0.0" />
     </ItemGroup>
 

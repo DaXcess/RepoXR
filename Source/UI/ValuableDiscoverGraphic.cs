@@ -10,7 +10,7 @@ public class ValuableDiscoverGraphic : MonoBehaviour
     private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
     private static readonly int EdgeColor = Shader.PropertyToID("_EdgeColor");
 
-    public Renderer renderer;
+    public new Renderer renderer;
 
     private global::ValuableDiscoverGraphic baseGraphic;
 

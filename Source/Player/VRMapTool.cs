@@ -11,7 +11,7 @@ public class VRMapTool : MonoBehaviour
     private MapToolController controller;
 
     private RenderTexture displayTexture;
-    private Light light;
+    private new Light light;
 
     private Transform displaySpring;
 

@@ -60,9 +60,15 @@ public class HotswapManager : MonoBehaviour
     private static void RestartScene()
     {
         if (SemiFunc.IsMultiplayer() && !PhotonNetwork.IsMasterClient)
+        {
             // RestartScene is not allowed when not the host, so we just re-join the lobby
             SceneManager.LoadSceneAsync("LobbyJoin");
-        else
-            RunManager.instance.RestartScene();
+            return;
+        }
+
+        if (SemiFunc.IsMultiplayer())
+            RunManager.instance.gameOver = true;
+
+        RunManager.instance.RestartScene();
     }
 }

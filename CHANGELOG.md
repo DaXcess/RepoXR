@@ -1,3 +1,15 @@
+# 1.1.1
+
+**Additions**:
+- Added a \[VR\] prefix to VR players in the lobby menu
+- Added a warning popup if the host does not have the VR mod
+
+**Changes**:
+- Moved the main and lobby menus into the truck
+
+**Fixes**:
+- Fixed hotswapping breaking the menu lobby in some circumstances
+
 # 1.1.0
 
 ## Detached Arms

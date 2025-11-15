@@ -10,7 +10,7 @@ public class VRInventorySlot : MonoBehaviour
     
     public int slotIndex = -1;
     public LineRenderer lineRenderer;
-    public Collider collider;
+    public new Collider collider;
     public InventorySpot spot;
 
     public bool isHolding;

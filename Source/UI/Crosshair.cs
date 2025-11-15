@@ -9,7 +9,7 @@ public class Crosshair : MonoBehaviour
     
     public const int LayerMask = 1 << 0 | 1 << 9 | 1 << 10 | 1 << 16 | 1 << 20 | 1 << 23;
     
-    private Transform camera;
+    private new Transform camera;
     private Transform sprite;
 
     private void Awake()

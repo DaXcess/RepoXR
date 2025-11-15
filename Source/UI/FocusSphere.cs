@@ -7,11 +7,11 @@ public class FocusSphere : MonoBehaviour
     private static readonly int FadeStart = Shader.PropertyToID("_FadeStart");
     private static readonly int FadeEnd = Shader.PropertyToID("_FadeEnd");
 
-    [SerializeField] protected Renderer renderer;
+    [SerializeField] protected new Renderer renderer;
     [SerializeField] protected AnimationCurve animIn;
     [SerializeField] protected AnimationCurve animOut;
 
-    private Transform camera;
+    private new Transform camera;
 
     private Transform? lookAtTarget;
     private float lookAtTimer;

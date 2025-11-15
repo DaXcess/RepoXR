@@ -13,7 +13,7 @@ public class PauseUI : MonoBehaviour
     private Vector3 targetPos;
     private Quaternion targetRot;
 
-    private Transform camera;
+    private new Transform camera;
     private XRRayInteractorManager interactor;
 
     private bool isOpen;

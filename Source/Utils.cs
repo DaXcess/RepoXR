@@ -188,4 +188,11 @@ internal static class Utils
         baseColor.a = alpha;
         return baseColor;
     }
+
+    public class WaitUntilTimeout(Func<bool> predicate, float timeout) : CustomYieldInstruction
+    {
+        private readonly float timeStarted = Time.realtimeSinceStartup;
+
+        public override bool keepWaiting => !predicate() && Time.realtimeSinceStartup - timeStarted < timeout;
+    }
 }

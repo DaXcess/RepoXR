@@ -18,7 +18,7 @@ public class GameHud : MonoBehaviour
     public Canvas SmoothedCanvas { get; private set; }
 
     private Transform smoothCanvasContainer;
-    private Transform camera;
+    private new Transform camera;
 
     private PauseUI pause;
 
