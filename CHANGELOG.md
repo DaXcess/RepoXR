@@ -1,3 +1,12 @@
+# 1.1.2
+
+**Changes**:
+- Disabled movement normalization (configurable in input settings)
+
+**Fixes**:
+- Additional hotfixes with hotswapping as host
+- Fixed LobbyImprovements VR prefix issue
+
 # 1.1.1
 
 **Additions**:

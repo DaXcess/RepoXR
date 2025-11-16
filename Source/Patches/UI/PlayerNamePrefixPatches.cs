@@ -65,6 +65,7 @@ internal static class PlayerNamePrefixPatches
     /// </summary>
     [HarmonyPatch(typeof(MenuPageLobby), nameof(MenuPageLobby.Update))]
     [HarmonyPostfix]
+    [HarmonyPriority(Priority.Last)]
     private static void LobbyMenuShowPrefix(MenuPageLobby __instance)
     {
         foreach (var player in __instance.listObjects.Select(entry => entry.GetComponent<MenuPlayerListed>())

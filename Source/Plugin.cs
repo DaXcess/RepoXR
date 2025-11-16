@@ -20,7 +20,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PLUGIN_GUID = "io.daxcess.repoxr";
     public const string PLUGIN_NAME = "RepoXR";
-    public const string PLUGIN_VERSION = "1.1.1";
+    public const string PLUGIN_VERSION = "1.1.2";
 
 #if DEBUG
     private const string SKIP_CHECKSUM_VAR = $"--repoxr-skip-checksum={PLUGIN_VERSION}-dev";

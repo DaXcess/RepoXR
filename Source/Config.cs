@@ -93,6 +93,10 @@ public class Config(string assemblyPath, ConfigFile file)
             "The amount of rotation that is applied when performing a snap turn. Requires turn provider to be set to snap.",
             new AcceptableValueRange<float>(10, 180)));
 
+    [ConfigDescriptor]
+    public ConfigEntry<bool> NormalizeMovement { get; } = file.Bind("Input", nameof(NormalizeMovement), false,
+        "When enabled, any direction you move in will always be at full speed, even when the stick is only pushed slightly.");
+
     // Rendering configuration
 
     [ConfigDescriptor(stepSize: 5f, suffix: "%")]

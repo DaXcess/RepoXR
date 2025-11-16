@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <Description>Collecting Valuables in VR</Description>
-        <Version>1.1.1</Version>
+        <Version>1.1.2</Version>
         <Authors>DaXcess</Authors>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>

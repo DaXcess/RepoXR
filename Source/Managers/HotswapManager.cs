@@ -67,7 +67,11 @@ public class HotswapManager : MonoBehaviour
         }
 
         if (SemiFunc.IsMultiplayer())
-            RunManager.instance.gameOver = true;
+        {
+            NetworkManager.instance.DestroyAll();
+            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.LobbyMenu);
+            return;
+        }
 
         RunManager.instance.RestartScene();
     }
