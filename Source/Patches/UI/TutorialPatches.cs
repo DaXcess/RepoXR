@@ -57,13 +57,25 @@ internal static class TutorialPatches
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> SwitchPagePatch(IEnumerable<CodeInstruction> instructions)
     {
+        // In release: instance is `ldloc.1`
+        // In debug: instance is `this.<>4__this`
+
+        CodeInstruction[] ldThis = Debug.isDebugBuild
+            ?
+            [
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld,
+                    Field(Inner(typeof(TutorialUI), "<SwitchPage>d__30"), "<>4__this"))
+            ]
+            : [new CodeInstruction(OpCodes.Ldloc_1)];
+
         return new CodeMatcher(instructions)
             .MatchForward(false,
                 new CodeMatch(OpCodes.Callvirt, PropertySetter(typeof(TMP_Text), nameof(TMP_Text.text))))
-            .InsertAndAdvance(
-                new CodeInstruction(OpCodes.Ldloc_1),
+            .InsertAndAdvance([
+                ..ldThis,
                 new CodeInstruction(OpCodes.Call, ((Action<TutorialUI>)SetSpriteAtlas).Method)
-            )
+            ])
             .InstructionEnumeration();
 
         static void SetSpriteAtlas(TutorialUI ui)

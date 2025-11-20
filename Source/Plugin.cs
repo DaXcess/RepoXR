@@ -8,6 +8,7 @@ using BepInEx;
 using JetBrains.Annotations;
 using RepoXR.Assets;
 using RepoXR.Patches;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
@@ -132,6 +133,14 @@ public class Plugin : BaseUnityPlugin
 
     private bool VerifyGameVersion()
     {
+        if (Debug.isDebugBuild)
+        {
+            Logger.LogWarning("Unity debug build detected, ignoring all integrity checks");
+            Logger.LogWarning("I am going to assume that you know what you are doing");
+
+            return true;
+        }
+
         var location = Path.Combine(Paths.ManagedPath, "Assembly-CSharp.dll");
         var hash = BitConverter.ToString(Utils.ComputeHash(File.ReadAllBytes(location))).Replace("-", "");
 

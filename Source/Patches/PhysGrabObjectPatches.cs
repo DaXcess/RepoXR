@@ -84,7 +84,9 @@ internal static class PhysGrabObjectPatches
             .MatchForward(false,
                 new CodeMatch(OpCodes.Call,
                     Method(typeof(Mathf), nameof(Mathf.Clamp), [typeof(float), typeof(float), typeof(float)])))
-            .Advance(-7)
+            .MatchBack(false,
+                new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(Component), nameof(Component.transform))))
+            // physGrabber.transform.forward
             .SetInstruction(new CodeInstruction(OpCodes.Call,
                 ((Func<PhysGrabber, Transform>)GetCartSteerTransform).Method))
             .MatchForward(false,

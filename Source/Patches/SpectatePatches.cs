@@ -86,7 +86,8 @@ internal static class SpectatePatches
             .MatchForward(false,
                 new CodeMatch(OpCodes.Call,
                     PropertySetter(typeof(RenderSettings), nameof(RenderSettings.fogStartDistance))))
-            .Advance(6)
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Callvirt, PropertySetter(typeof(Transform), nameof(Transform.position))))
             .InsertAndAdvance(
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldfld, Field(typeof(SpectateCamera), nameof(SpectateCamera.MainCamera))),
@@ -95,13 +96,15 @@ internal static class SpectatePatches
                     PropertyGetter(typeof(Transform), nameof(Transform.localPosition))),
                 new CodeInstruction(OpCodes.Call, Method(typeof(Vector3), "op_Subtraction"))
             )
-            .Advance(3)
+            .MatchForward(false, new CodeMatch(OpCodes.Callvirt, PropertySetter(typeof(Transform), nameof(Transform.rotation))))
+            .Advance(-3)
             .RemoveInstructions(3)
             .InsertAndAdvance(
                 new CodeInstruction(OpCodes.Ldc_R4, 0f),
                 new CodeInstruction(OpCodes.Ldsfld, Field(typeof(SpectatePatches), nameof(spectateTurnAmount))),
                 new CodeInstruction(OpCodes.Ldc_R4, 0f),
-                new CodeInstruction(OpCodes.Newobj, Constructor(typeof(Vector3), [typeof(float), typeof(float), typeof(float)]))
+                new CodeInstruction(OpCodes.Newobj,
+                    Constructor(typeof(Vector3), [typeof(float), typeof(float), typeof(float)]))
             )
             .SetOperandAndAdvance(PropertySetter(typeof(Transform), nameof(Transform.eulerAngles)))
             .InstructionEnumeration();

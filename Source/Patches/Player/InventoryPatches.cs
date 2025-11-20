@@ -18,7 +18,7 @@ internal static class InventoryPatches
     {
         return !SemiFunc.IsMultiplayer() || item.ownerPlayerId == PlayerAvatar.instance.photonView.ViewID;
     }
-    
+
     /// <summary>
     /// Do not allow the item to shrink below 50% if we are the ones holding it
     /// </summary>
@@ -26,14 +26,26 @@ internal static class InventoryPatches
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> MinimumScaleEquip(IEnumerable<CodeInstruction> instructions)
     {
+        // In release: instance is `ldloc.1`
+        // In debug: instance is `this.<>4__this`
+
+        CodeInstruction[] ldThis = Debug.isDebugBuild
+            ?
+            [
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld,
+                    Field(Inner(typeof(ItemEquippable), "<AnimateEquip>d__46"), "<>4__this"))
+            ]
+            : [new CodeInstruction(OpCodes.Ldloc_1)];
+
         return new CodeMatcher(instructions)
             .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 0.01f))
             .Advance(-2)
             .RemoveInstructions(4)
-            .Insert(
-                new CodeInstruction(OpCodes.Ldloc_1), // `this` is `ldloc.1` because we're in an enumerator, I don't make the rules
+            .Insert([
+                ..ldThis,
                 new CodeInstruction(OpCodes.Call, ((Func<ItemEquippable, Vector3>)MinimumScale).Method)
-            )
+            ])
             .InstructionEnumeration();
 
         static Vector3 MinimumScale(ItemEquippable item)
@@ -49,14 +61,26 @@ internal static class InventoryPatches
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> UnequipGrabImmediately(IEnumerable<CodeInstruction> instructions)
     {
+        // In release: instance is `ldloc.1`
+        // In debug: instance is `this.<>4__this`
+
+        CodeInstruction[] ldThis = Debug.isDebugBuild
+            ?
+            [
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld,
+                    Field(Inner(typeof(ItemEquippable), "<AnimateUnequip>d__44"), "<>4__this"))
+            ]
+            : [new CodeInstruction(OpCodes.Ldloc_1)];
+
         return new CodeMatcher(instructions)
             .MatchForward(false,
                 new CodeMatch(OpCodes.Callvirt, PropertySetter(typeof(Transform), nameof(Transform.localScale))))
             .Advance(1)
-            .Insert(
-                new CodeInstruction(OpCodes.Ldloc_1), // `this` is `ldloc.1` because we're in an enumerator, I don't make the rules
+            .Insert([
+                ..ldThis,
                 new CodeInstruction(OpCodes.Callvirt, Method(typeof(ItemEquippable), nameof(ItemEquippable.ForceGrab)))
-            )
+            ])
             .InstructionEnumeration();
     }
 

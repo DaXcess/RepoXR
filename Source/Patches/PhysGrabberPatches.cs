@@ -92,8 +92,10 @@ internal static class PhysGrabberPatches
     /// Make sure the <see cref="PhysGrabber.physGrabPointPlane"/> and <see cref="PhysGrabber.physGrabPointPuller"/> are
     /// manually updated if we are holding something.
     ///
+    /// <para>
     /// This is normally done by having these be a child of the camera, however this doesn't work in VR since
     /// we use our hand to move items, not the main camera.
+    /// </para>
     /// </summary>
     [HarmonyPatch(typeof(PhysGrabber), nameof(PhysGrabber.Update))]
     [HarmonyPostfix]

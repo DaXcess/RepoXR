@@ -33,7 +33,7 @@ internal static class MapToolPatches
     {
         return new CodeMatcher(instructions)
             .Start()
-            .RemoveInstructions(89)
+            .RemoveInstructions(Debug.isDebugBuild ? 147 : 89)
             .InstructionEnumeration();
     }
 
@@ -148,25 +148,44 @@ internal static class UniversalMapToolPatches
     private static IEnumerable<CodeInstruction> MapToolTransformPatch(IEnumerable<CodeInstruction> instructions)
     {
         var shouldMutate = new CodeInstruction(OpCodes.Call, ((Func<PhotonView, bool>)ShouldMutateTransforms).Method);
-        
-        return new CodeMatcher(instructions)
-            .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 90f))
-            .SetAndAdvance(OpCodes.Ldarg_0, null)
-            .Insert(new CodeInstruction(OpCodes.Call, ((Func<MapToolController, float>)GetHoldAngle).Method))
-            .MatchForward(false, new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
-            .SetInstructionAndAdvance(shouldMutate)
-            .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
-            .MatchForward(false, new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
-            .SetInstructionAndAdvance(shouldMutate)
-            .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
-            .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld,
-                    Field(typeof(MapToolController), nameof(MapToolController.FollowTransformClient))))
-            .Advance(-6)
-            .SetInstructionAndAdvance(shouldMutate)
-            .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
-            .InstructionEnumeration();
-        
+
+        return Debug.isDebugBuild
+            ? new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 90f))
+                .SetAndAdvance(OpCodes.Ldarg_0, null)
+                .Insert(new CodeInstruction(OpCodes.Call, ((Func<MapToolController, float>)GetHoldAngle).Method))
+                .MatchForward(false,
+                    new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
+                .SetInstructionAndAdvance(shouldMutate)
+                .MatchForward(false,
+                    new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
+                .SetInstructionAndAdvance(shouldMutate)
+                .MatchForward(false,
+                    new CodeMatch(OpCodes.Ldfld,
+                        Field(typeof(MapToolController), nameof(MapToolController.FollowTransformClient))))
+                .Advance(-13)
+                .SetInstructionAndAdvance(shouldMutate)
+                .InstructionEnumeration()
+            : new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 90f))
+                .SetAndAdvance(OpCodes.Ldarg_0, null)
+                .Insert(new CodeInstruction(OpCodes.Call, ((Func<MapToolController, float>)GetHoldAngle).Method))
+                .MatchForward(false,
+                    new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
+                .SetInstructionAndAdvance(shouldMutate)
+                .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
+                .MatchForward(false,
+                    new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
+                .SetInstructionAndAdvance(shouldMutate)
+                .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
+                .MatchForward(false,
+                    new CodeMatch(OpCodes.Ldfld,
+                        Field(typeof(MapToolController), nameof(MapToolController.FollowTransformClient))))
+                .Advance(-6)
+                .SetInstructionAndAdvance(shouldMutate)
+                .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
+                .InstructionEnumeration();
+
         static bool ShouldMutateTransforms(PhotonView view)
         {
             return !view.IsMine && !NetworkSystem.instance.IsVRView(view);
@@ -197,11 +216,11 @@ internal static class UniversalMapToolPatches
                 new CodeMatch(OpCodes.Call,
                     Method(typeof(Quaternion), nameof(Quaternion.Euler),
                         [typeof(float), typeof(float), typeof(float)])))
-            .Advance(4)
+            .Advance(4) // ldfld MapToolController::HideLerp
             .SetInstruction(new CodeInstruction(OpCodes.Call, ((Func<MapToolController, float>)GetIntroLerp).Method))
             // Fix outro animation
             .MatchForward(false, new CodeMatch(OpCodes.Ldfld, Field(typeof(MapToolController), nameof(MapToolController.OutroCurve))))
-            .Advance(5)
+            .Advance(6) // after stfld MapToolController::HideScale
             .Insert(
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Call, ((Action<MapToolController>)OutroAnimation).Method)

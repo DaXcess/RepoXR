@@ -37,8 +37,11 @@ internal static class CrouchPatches
     private static IEnumerable<CodeInstruction> KeepCrouchTogglePatch(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
-            .MatchForward(false, new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.isTumbling))))
-            .Advance(-4)
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.isTumbling))))
+            .MatchBack(false,
+                new CodeMatch(OpCodes.Stfld, Field(typeof(PlayerController), nameof(PlayerController.toggleCrouch))))
+            .Advance(-1)
             .RemoveInstruction()
             .Insert(
                 new CodeInstruction(OpCodes.Call, ((Func<bool>)IsRoomscaleCrouching).Method)
