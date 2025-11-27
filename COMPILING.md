@@ -27,3 +27,23 @@ $ dotnet build --configuration Release
 ```
 
 The built plugin assemblies can now be found inside the `bin` folder.
+
+## For R.E.P.O. Testers
+
+The main RepoXR codebase is designed to be compatible with all official R.E.P.O. releases (including some tester builds).  
+However, if you want to develop against **private tester builds**, there are a few extra steps to follow.
+
+Since tester builds are private, there are **no public NuGet packages available** for these versions. To let your local build reference the tester assemblies:
+
+Add the following content, updating the `TesterGamePath` if your game is installed elsewhere:
+
+```xml
+<Project>
+    <PropertyGroup>
+        <USE_TESTER>true</USE_TESTER>
+        <TesterGamePath>C:\Program Files (x86)\Steam\steamapps\common\REPO</TesterGamePath>
+    </PropertyGroup>
+</Project>
+```
+
+> **Warning**: Do not share game code or mod code that targets private tester builds until those builds are officially public. Use private repositories or branches, and only merge changes into the main repository once the builds are public.

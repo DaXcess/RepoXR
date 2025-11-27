@@ -17,6 +17,10 @@
         <RootNamespace>RepoXR</RootNamespace>
         <TargetFramework>netstandard2.1</TargetFramework>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <USE_TESTER>false</USE_TESTER>
+    </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DebugType>embedded</DebugType>
@@ -34,7 +38,6 @@
         <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="PhotonUnityNetworking" Version="0.1.2" />
-        <PackageReference Include="REPO" Version="0.3.1" />
         <PackageReference Include="Unity.InputSystem" Version="1.14.2" />
         <PackageReference Include="Unity.Rendering.PostProcessing" Version="3.4.0" />
         <PackageReference Include="Unity.RenderPipelines.Core" Version="14.0.11" />
@@ -46,6 +49,25 @@
         <PackageReference Include="Unity.XR.OpenXR" Version="1.10.0" />
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.67" IncludeAssets="compile" />
         <PackageReference Include="UnityEngine.UI" Version="1.0.0" />
+    </ItemGroup>
+    
+    <!-- R.E.P.O. main game assembly for normal users -->
+    <ItemGroup Condition="'$(USE_TESTER)' == 'false'">
+        <PackageReference Include="REPO" Version="0.3.2" />
+    </ItemGroup>
+    
+    <!-- R.E.P.O. tester game assemblies for testers -->
+    <ItemGroup Condition="'$(USE_TESTER)' == 'true'">
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.5.0-beta.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <Reference Include="Assembly-CSharp" Publicize="true">
+            <HintPath>$(TesterGamePath)\REPO_Data\Managed\Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp-firstpass" Publicize="true">
+            <HintPath>$(TesterGamePath)\REPO_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup>
