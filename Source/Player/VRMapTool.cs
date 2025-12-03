@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using RepoXR.Managers;
 using UnityEngine;
 
@@ -17,6 +18,9 @@ public class VRMapTool : MonoBehaviour
 
     private StatsUI statsUI;
     private RectTransform statsRect;
+
+    private LevelUI levelUI;
+    private RectTransform levelRect;
 
     public bool leftHanded;
 
@@ -47,6 +51,17 @@ public class VRMapTool : MonoBehaviour
 
         statsUI = StatsUI.instance;
         statsRect = statsUI.GetComponent<RectTransform>();
+
+        levelUI = LevelUI.instance;
+        levelRect = levelUI.GetComponent<RectTransform>();
+    }
+
+    private void Start()
+    {
+        // Force hide the UI on startup
+
+        statsUI.AllChildrenSetActive(false);
+        levelUI.AllChildrenSetActive(false);
     }
 
     private void OnDestroy()
@@ -63,6 +78,7 @@ public class VRMapTool : MonoBehaviour
             VRSession.Instance.Player.DisableGrabRotate(0.1f);
 
             statsUI.Show();
+            levelUI.Show();
         }
         else
         {
@@ -72,6 +88,12 @@ public class VRMapTool : MonoBehaviour
     }
 
     private void LateUpdate()
+    {
+        UpdateStatsUI();
+        UpdateLevelUI();
+    }
+
+    private void UpdateStatsUI()
     {
         var isAnimating = !((statsUI.showTimer > 0 && statsUI.hidePositionCurrent == statsUI.showPosition) ||
                             (statsUI.hideTimer > 0.1 && statsUI.hidePositionCurrent == statsUI.hidePosition));
@@ -83,5 +105,19 @@ public class VRMapTool : MonoBehaviour
         statsRect.rotation = displaySpring.rotation * Quaternion.Euler(90, 0, 0);
         statsRect.position = displaySpring.TransformPoint(new Vector3(offset, 0, 0.2f));
         statsRect.localScale = transform.parent.localScale;
+    }
+
+    private void UpdateLevelUI()
+    {
+        var isAnimating = !((levelUI.showTimer > 0 && levelUI.hidePositionCurrent == levelUI.showPosition) ||
+                            (levelUI.hideTimer > 0.1 && levelUI.hidePositionCurrent == levelUI.hidePosition));
+        var animOffset = isAnimating
+            ? (levelUI.showTimer > 0 ? 1 - levelUI.animationEval : levelUI.animationEval) * 0.25f
+            : 0;
+        var offset = (.225f - animOffset) * (leftHanded ? -1 : 1);
+
+        levelRect.rotation = displaySpring.rotation * Quaternion.Euler(90, 0, 0);
+        levelRect.position = displaySpring.TransformPoint(new Vector3(offset, 0, 0.23f));
+        levelRect.localScale = transform.parent.localScale;
     }
 }

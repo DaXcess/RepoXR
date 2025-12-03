@@ -404,8 +404,7 @@ public class VRRig : MonoBehaviour
     private void HeadLampLogic()
     {
         // Disable in shop and lobby
-        if (RunManager.instance.levelCurrent == RunManager.instance.levelLobby ||
-            RunManager.instance.levelCurrent == RunManager.instance.levelShop)
+        if (RunManager.instance.levelCurrent == RunManager.instance.levelLobby || RunManager.instance.levelIsShop)
             return;
         
         var collided = Utils.Collide(VRSession.IsLeftHanded ? rightHandCollider : leftHandCollider, lampTriggerCollider);

@@ -1,3 +1,9 @@
+# tester branch
+
+**Additions**:
+- Added support for new valuable interactions
+- Added support for new level UI
+
 # 1.1.2
 
 **Changes**:

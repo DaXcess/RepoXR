@@ -33,7 +33,7 @@ internal static class MapToolPatches
     {
         return new CodeMatcher(instructions)
             .Start()
-            .RemoveInstructions(Debug.isDebugBuild ? 147 : 89)
+            .RemoveInstructions(Debug.isDebugBuild ? 149 : 89)
             .InstructionEnumeration();
     }
 
@@ -163,8 +163,14 @@ internal static class UniversalMapToolPatches
                 .MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld,
                         Field(typeof(MapToolController), nameof(MapToolController.FollowTransformClient))))
-                .Advance(-13)
+                .Advance(-18) // PhotonView::get_IsMine
                 .SetInstructionAndAdvance(shouldMutate)
+                .SetOpcodeAndAdvance(OpCodes.Brtrue_S)
+                // Nop-ify the else branch since it resets transforms
+                // TODO: Might need to be added to the non-tester branch as well
+                .MatchForward(false, new CodeMatch(OpCodes.Call, PropertyGetter(typeof(Vector3), nameof(Vector3.zero))))
+                .Advance(-3)
+                .RemoveInstructions(16)
                 .InstructionEnumeration()
             : new CodeMatcher(instructions)
                 .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 90f))
@@ -181,7 +187,7 @@ internal static class UniversalMapToolPatches
                 .MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld,
                         Field(typeof(MapToolController), nameof(MapToolController.FollowTransformClient))))
-                .Advance(-6)
+                .Advance(-6) // PhotonView::get_IsMine
                 .SetInstructionAndAdvance(shouldMutate)
                 .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
                 .InstructionEnumeration();
