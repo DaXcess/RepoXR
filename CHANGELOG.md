@@ -2,9 +2,9 @@
 
 **Changes**:
 - Disabled movement normalization (configurable in input settings)
+- Hotswapping can now only be performed in the main menu, not in lobbies anymore
 
 **Fixes**:
-- Additional hotfixes with hotswapping as host
 - Fixed LobbyImprovements VR prefix issue
 
 # 1.1.1

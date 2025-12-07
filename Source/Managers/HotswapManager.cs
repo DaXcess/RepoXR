@@ -1,7 +1,5 @@
-using Photon.Pun;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 
 namespace RepoXR.Managers;
 
@@ -59,20 +57,6 @@ public class HotswapManager : MonoBehaviour
 
     private static void RestartScene()
     {
-        if (SemiFunc.IsMultiplayer() && !PhotonNetwork.IsMasterClient)
-        {
-            // RestartScene is not allowed when not the host, so we just re-join the lobby
-            SceneManager.LoadSceneAsync("LobbyJoin");
-            return;
-        }
-
-        if (SemiFunc.IsMultiplayer())
-        {
-            NetworkManager.instance.DestroyAll();
-            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.LobbyMenu);
-            return;
-        }
-
         RunManager.instance.RestartScene();
     }
 }

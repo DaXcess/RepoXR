@@ -199,8 +199,7 @@ internal static class UniversalEntrypoint
     [HarmonyPostfix]
     private static void OnStartup(GameDirector __instance)
     {
-        if (RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu &&
-            RunManager.instance.levelCurrent != RunManager.instance.levelLobbyMenu)
+        if (RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu)
             return;
 
         new GameObject("VR Hotswapper").AddComponent<HotswapManager>();
