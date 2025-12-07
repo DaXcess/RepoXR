@@ -1,7 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
+using HarmonyLib;
 using RepoXR.Managers;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace RepoXR.Player;
 
@@ -22,6 +23,10 @@ public class VRMapTool : MonoBehaviour
     private LevelUI levelUI;
     private RectTransform levelRect;
 
+    // Shadow stuff
+    private bool shadowVisible = true;
+    private MeshRenderer[] renderers;
+
     public bool leftHanded;
 
     public static void Create()
@@ -33,9 +38,12 @@ public class VRMapTool : MonoBehaviour
         tool.transform.parent.parent = session.Player.MapParent;
         tool.transform.parent.localPosition = Vector3.zero;
         tool.transform.parent.localRotation = Quaternion.identity;
-        tool.gameObject.AddComponent<VRMapTool>();
+
+        var vrTool = tool.gameObject.AddComponent<VRMapTool>();
+        vrTool.renderers = tool.VisualTransform.GetComponentsInChildren<MeshRenderer>()
+            .Where(r => r.shadowCastingMode == ShadowCastingMode.On).ToArray();
     }
-    
+
     private void Awake()
     {
         instance = this;
@@ -73,6 +81,13 @@ public class VRMapTool : MonoBehaviour
     {
         if (controller.Active)
         {
+            if (!shadowVisible)
+            {
+                shadowVisible = true;
+
+                renderers.Do(r => r.shadowCastingMode = ShadowCastingMode.On);
+            }
+
             light.intensity = Mathf.Lerp(light.intensity, 1, 4 * Time.deltaTime);
             
             VRSession.Instance.Player.DisableGrabRotate(0.1f);
@@ -84,6 +99,13 @@ public class VRMapTool : MonoBehaviour
         {
             displayTexture.Release();
             light.intensity = Mathf.Lerp(light.intensity, 0, 4 * Time.deltaTime);
+
+            if (light.intensity < 0.1f && shadowVisible)
+            {
+                shadowVisible = false;
+
+                renderers.Do(r => r.shadowCastingMode = ShadowCastingMode.Off);
+            }
         }
     }
 

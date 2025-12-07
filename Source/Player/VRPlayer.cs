@@ -27,7 +27,14 @@ public class VRPlayer : MonoBehaviour
     private PlayerController localController;
     private VRRig localRig;
     private VREyeTracking eyeTracking;
-    
+
+    // Player shadow visuals
+    private PlayerAvatarVisuals playerAvatarVisuals;
+    private PlayerAvatarLeftArm playerLeftArm;
+    private PlayerAvatarRightArm playerRightArm;
+    private Transform leftHandAnchor;
+    private Transform rightHandAnchor;
+
     // Public accessors
     public Transform MainHand => VRSession.IsLeftHanded ? localRig.leftHandTip : localRig.rightHandTip;
     public Transform SecondaryHand => VRSession.IsLeftHanded ? localRig.rightHandTip : localRig.leftHandTip;
@@ -86,6 +93,25 @@ public class VRPlayer : MonoBehaviour
 
         eyeTracking = mainCamera.gameObject.AddComponent<VREyeTracking>();
 
+        // Set up shadow visuals
+
+        playerAvatarVisuals = localController.playerAvatarScript.playerAvatarVisuals;
+        playerLeftArm = playerAvatarVisuals.GetComponent<PlayerAvatarLeftArm>();
+        playerRightArm = playerAvatarVisuals.playerAvatarRightArm;
+
+        leftHandAnchor = new GameObject("Left Hand Anchor")
+                { transform = { parent = playerLeftArm.leftArmTransform, localPosition = Vector3.forward * 0.513f } }
+            .transform;
+        rightHandAnchor = new GameObject("Right Hand Anchor")
+        {
+            transform =
+            {
+                // ANIM ARM R SCALE is the one that scales, not rightArmTransform
+                parent = playerRightArm.rightArmTransform.Find("ANIM ARM R SCALE"),
+                localPosition = Vector3.forward * 0.513f
+            }
+        }.transform;
+
         Actions.Instance["ResetHeight"].performed += OnResetHeight;
     }
 
@@ -114,6 +140,24 @@ public class VRPlayer : MonoBehaviour
         // Timers
         if (disableRotateTimer > 0)
             disableRotateTimer -= Time.deltaTime;
+    }
+
+    private void LateUpdate()
+    {
+        // Shadow visuals
+        if (!localController.playerAvatarScript.isTumbling)
+        {
+            playerRightArm.rightArmTransform.LookAt(rightHand.position);
+            playerLeftArm.leftArmTransform.LookAt(leftHand.position);
+        }
+
+        // Update flashlight transform (only if headlamp is disabled)
+        var anchor = VRSession.IsLeftHanded ? rightHandAnchor : leftHandAnchor;
+        var shadowTransform = FlashlightController.Instance.meshShadows.transform;
+        var mainTransform = FlashlightController.Instance.mesh.transform;
+
+        shadowTransform.position = localRig.HeadLampEnabled() ? mainTransform.position : anchor.position;
+        shadowTransform.rotation = mainTransform.rotation;
     }
 
     public void DisableGrabRotate(float time)

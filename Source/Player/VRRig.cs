@@ -429,6 +429,8 @@ public class VRRig : MonoBehaviour
         headlampHovered = collided;
     }
 
+    public bool HeadLampEnabled() => headlampEnabled;
+
     private void DetachArms()
     {
         armsDetached = true;
