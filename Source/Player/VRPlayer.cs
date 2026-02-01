@@ -144,8 +144,9 @@ public class VRPlayer : MonoBehaviour
 
     private void LateUpdate()
     {
-        // Shadow visuals
-        if (!localController.playerAvatarScript.isTumbling)
+        // Shadow visuals (let game handle these if override is active)
+        if (!localController.playerAvatarScript.isTumbling &&
+            !localController.playerAvatarScript.localCamera.GetOverrideActive())
         {
             playerRightArm.rightArmTransform.LookAt(rightHand.position);
             playerLeftArm.leftArmTransform.LookAt(leftHand.position);
@@ -186,6 +187,10 @@ public class VRPlayer : MonoBehaviour
     {
         // No tracking data yet
         if (mainCamera.transform.localPosition == Vector3.zero)
+            return;
+
+        // Check for disabled input
+        if (InputManager.instance.disableControlsExceptTimer > 0)
             return;
 
         // If this is our first frame with position data, just reset the position immediately

@@ -35,7 +35,7 @@ However, if you want to develop against **private tester builds**, there are a f
 
 Since tester builds are private, there are **no public NuGet packages available** for these versions. To let your local build reference the tester assemblies:
 
-Add the following content, updating the `TesterGamePath` if your game is installed elsewhere:
+Add the following content to `RepoXR.csproj.user`, updating the `TesterGamePath` if your game is installed elsewhere:
 
 ```xml
 <Project>

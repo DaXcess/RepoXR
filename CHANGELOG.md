@@ -3,6 +3,16 @@
 **Additions**:
 - Added support for new valuable interactions
 - Added support for new level UI
+- Added support for the new walkie-talkie item
+
+**Changes**:
+- Restructured mouse input patching so testing with UnityExplorer is easier
+
+**Removals**:
+- Removed F8 hotswapping completely
+
+**TODOs**:
+- Fix fucking walkies
 
 # 1.1.2
 

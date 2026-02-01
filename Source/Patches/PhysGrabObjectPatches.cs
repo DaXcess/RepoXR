@@ -13,42 +13,9 @@ namespace RepoXR.Patches;
 [RepoXRPatch(RepoXRPatchTarget.Universal)]
 internal static class PhysGrabObjectPatches
 {
-    private static Transform GetTargetTransform(PlayerAvatar player)
-    {
-        if (player.isLocal)
-            return VRSession.Instance is { } session ? session.Player.MainHand : player.localCamera.transform;
-
-        return NetworkSystem.instance.GetNetworkPlayer(player, out var networkPlayer)
-            ? networkPlayer.PrimaryHand
-            : player.localCamera.transform;
-    }
-
-    private static Quaternion GetTargetRotation(PlayerAvatar player)
-    {
-        if (player.isLocal)
-            return VRSession.Instance is { } session
-                ? session.Player.MainHand.rotation
-                : player.localCamera.transform.rotation;
-
-        return NetworkSystem.instance.GetNetworkPlayer(player, out var networkPlayer)
-            ? networkPlayer.PrimaryHand.rotation
-            : player.localCamera.transform.rotation;
-    }
-
-    private static Vector3 GetTargetPosition(PlayerAvatar player)
-    {
-        if (player.isLocal)
-            return VRSession.Instance is { } session
-                ? session.Player.MainHand.position
-                : player.localCamera.transform.position;
-
-        return NetworkSystem.instance.GetNetworkPlayer(player, out var networkPlayer)
-            ? networkPlayer.PrimaryHand.position
-            : player.localCamera.transform.position;
-    }
-
+    // Used instead of "GetHandOverrideTransform" as it is easier to use and isn't affected by overrides anyway
     private static Transform GetCartSteerTransform(PhysGrabber grabber)
-    { 
+    {
         if (grabber.playerAvatar.isLocal)
             return VRSession.Instance is { } session ? session.Player.MainHand : grabber.transform;
 
@@ -66,10 +33,9 @@ internal static class PhysGrabObjectPatches
     {
         return new CodeMatcher(instructions)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
-            .Repeat(matcher =>
-                matcher.SetInstruction(new CodeInstruction(OpCodes.Call,
-                    ((Func<PlayerAvatar, Transform>)GetTargetTransform).Method)))
+                new CodeMatch(OpCodes.Callvirt,
+                    Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform))))
+            .Set(OpCodes.Call, PlayerLocalCameraExtensions.GetHandOverrideTransformMethod)
             .InstructionEnumeration();
     }
 
@@ -112,17 +78,10 @@ internal static class PhysGrabObjectPatches
     {
         return new CodeMatcher(instructions)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
-            .SetAndAdvance(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
-            .RemoveInstructions(2)
-            .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
-            .SetAndAdvance(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
-            .RemoveInstructions(2)
-            .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
-            .SetAndAdvance(OpCodes.Call, ((Func<PlayerAvatar, Vector3>)GetTargetPosition).Method)
-            .RemoveInstructions(2)
+                new CodeMatch(OpCodes.Callvirt,
+                    Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform))))
+            .SetAndAdvance(OpCodes.Call,
+                ((Func<PlayerLocalCamera, Transform>)PlayerLocalCameraExtensions.GetHandOverrideTransform).Method)
             .InstructionEnumeration();
     }
 
@@ -135,9 +94,9 @@ internal static class PhysGrabObjectPatches
     {
         return new CodeMatcher(instructions)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))))
-            .SetAndAdvance(OpCodes.Call, ((Func<PlayerAvatar, Quaternion>)GetTargetRotation).Method)
-            .RemoveInstructions(2)
+                new CodeMatch(OpCodes.Callvirt,
+                    Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform))))
+            .Set(OpCodes.Call, PlayerLocalCameraExtensions.GetHandOverrideTransformMethod)
             .InstructionEnumeration();
     }
 }

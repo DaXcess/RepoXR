@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using HarmonyLib;
 using RepoXR.Assets;
 using RepoXR.Input;
-using RepoXR.ThirdParty.MRTK;
+using RepoXR.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using static HarmonyLib.AccessTools;
 
 namespace RepoXR.Patches;
 
@@ -78,6 +81,9 @@ internal static class InputPatches
         if (__instance.disableMovementTimer > 0)
             return true;
 
+        if (__instance.disableControlsExceptTimer > 0 && !__instance.disableControlsExceptList.Contains(InputKey.Movement))
+            return true;
+
         __result = Actions.Instance["Movement"].ReadValue<Vector2>();
 
         return false;
@@ -99,6 +105,9 @@ internal static class InputPatches
         if (__instance.disableMovementTimer > 0)
             return true;
 
+        if (__instance.disableControlsExceptTimer > 0 && !__instance.disableControlsExceptList.Contains(InputKey.Movement))
+            return true;
+
         __result = Actions.Instance["Movement"].ReadValue<Vector2>().x;
 
         return false;
@@ -109,6 +118,9 @@ internal static class InputPatches
     private static bool GetMovementY(InputManager __instance, ref float __result)
     {
         if (__instance.disableMovementTimer > 0)
+            return true;
+
+        if (__instance.disableControlsExceptTimer > 0 && !__instance.disableControlsExceptList.Contains(InputKey.Movement))
             return true;
 
         __result = Actions.Instance["Movement"].ReadValue<Vector2>().y;
@@ -129,6 +141,9 @@ internal static class InputPatches
     [HarmonyPrefix]
     private static bool KeyDown(InputManager __instance, ref InputKey key, ref bool __result)
     {
+        if (__instance.disableControlsExceptTimer > 0 && !__instance.disableControlsExceptList.Contains(key))
+            return true;
+
         switch (key)
         {
             case InputKey.Jump or InputKey.Crouch or InputKey.Tumble or InputKey.Inventory1 or InputKey.Inventory2
@@ -160,6 +175,9 @@ internal static class InputPatches
         if (key is InputKey.Push or InputKey.Pull)
             return true;
 
+        if (__instance.disableControlsExceptTimer > 0 && !__instance.disableControlsExceptList.Contains(key))
+            return true;
+
         __result = __instance.GetAction(key).WasReleasedThisFrame();
 
         return false;
@@ -170,6 +188,9 @@ internal static class InputPatches
     private static bool KeyHold(InputManager __instance, ref InputKey key, ref bool __result)
     {
         if (key is InputKey.Jump or InputKey.Crouch or InputKey.Tumble && __instance.disableMovementTimer > 0)
+            return true;
+
+        if (__instance.disableControlsExceptTimer > 0 && !__instance.disableControlsExceptList.Contains(key))
             return true;
 
         __result = __instance.GetAction(key).IsPressed();
@@ -270,14 +291,122 @@ internal static class InputPatches
         return false;
     }
 
+    #region Mouse Input Patches
+
+    [HarmonyPatch(typeof(MenuButton), nameof(MenuButton.HoverLogic))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> PatchHoverLogicMouseInputs(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuManager), nameof(MenuManager.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction>
+        PatchMenuManagerMouseInputs(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuScrollBox), nameof(MenuScrollBox.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction>
+        PatchMenuScrollBoxMouseInputs(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuSlider), nameof(MenuSlider.PointerLogic))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> PatchMenuSliderPointerLogicMouseInputs(
+        IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuSlider), nameof(MenuSlider.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> PatchMenuSliderUpdateMouseInputs(
+        IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuButtonArrow), nameof(MenuButtonArrow.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction>
+        PatchMenuButtonArrowMouseInputs(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuElementRegion), nameof(MenuElementRegion.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction>
+        PatchMenuElementRegionMouseInputs(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuElementSaveFile), nameof(MenuElementSaveFile.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> PatchMenuElementSaveFile(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuElementServer), nameof(MenuElementServer.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction>
+        PatchMenuElementServerMouseInputs(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuElementSliderPlayerMicGainSteam), nameof(MenuElementSliderPlayerMicGainSteam.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction>
+        MenuElementSliderPlayerMicGainSteamMouseInputs(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
+    [HarmonyPatch(typeof(MenuPlayerListedSteam), nameof(MenuPlayerListedSteam.Update))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction>
+        PatchMenuPlayerListedSteamMouseInputs(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions).PatchMouseInputs().InstructionEnumeration();
+
     /// <summary>
-    /// Button events are handled manually (unless it's the keyboard), so we block the OnPointerClick unless the
-    /// <see cref="NonNativeKeyboard"/> component is present
+    /// Many UI button on click events are handled by Input.GetMouseButton/Down, so having OnPointerClick fire will
+    /// cause the button to be pressed twice. This patch prevents this event from being fired when not needed.
     /// </summary>
     [HarmonyPatch(typeof(Button), nameof(Button.OnPointerClick))]
     [HarmonyPrefix]
-    private static bool DisablePointerClick(Button __instance)
+    private static bool PreventDoublePressPatch(Button __instance)
     {
-        return __instance.GetComponentInParent<NonNativeKeyboard>() || Compat.IsLoaded(Compat.UnityExplorer);
+        return !__instance.TryGetComponent<MenuButton>(out _);
     }
+
+    private static bool GetMouseButtonVR(int button)
+    {
+        var manager = XRRayInteractorManager.Instance;
+
+        if (button != 0 || manager is null)
+            return UnityEngine.Input.GetMouseButton(button);
+
+        return manager.GetTriggerButton();
+    }
+
+    private static bool GetMouseButtonDownVR(int button)
+    {
+        var manager = XRRayInteractorManager.Instance;
+
+        if (button != 0 || manager is null)
+            return UnityEngine.Input.GetMouseButtonDown(button);
+
+        return manager.GetTriggerDown();
+    }
+
+    private static CodeMatcher PatchMouseInputs(this CodeMatcher matcher)
+    {
+        var matchButton = new CodeMatch(OpCodes.Call,
+            Method(typeof(UnityEngine.Input), nameof(UnityEngine.Input.GetMouseButton)));
+        var matchButtonDown = new CodeMatch(OpCodes.Call,
+            Method(typeof(UnityEngine.Input), nameof(UnityEngine.Input.GetMouseButtonDown)));
+
+        return matcher
+            .MatchForward(false, matchButton)
+            .Repeat(m => m.SetOperandAndAdvance(((Func<int, bool>)GetMouseButtonVR).Method))
+            .Start()
+            .MatchForward(false, matchButtonDown)
+            .Repeat(m => m.SetOperandAndAdvance(((Func<int, bool>)GetMouseButtonDownVR).Method));
+    }
+
+    #endregion
+
+    // TODO: Old Unity UI hooks have been removed, find patches for (if needed):
+    //  - Button.OnPointerClick
+    //  - Input.GetMouseButtonDown
+    //  - Input.GetMouseButton
 }

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Photon.Pun;
 using RepoXR.Managers;
+using RepoXR.Player.Camera;
 using UnityEngine;
 
 namespace RepoXR.Patches;
@@ -117,6 +118,19 @@ internal static class CameraPatches
         stream.SendNext(__instance.transform.position);
         stream.SendNext(__instance.transform.rotation);
         stream.SendNext(__instance.teleported);
+
+        return false;
+    }
+
+    /// <summary>
+    /// Make sure the local camera override actually knows about VR position overrides as well
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideActive))]
+    [HarmonyPrefix]
+    private static bool GetOverrideActivePatch(PlayerLocalCamera __instance, ref bool __result)
+    {
+        __result = __instance.clientPositionOverride ||
+                   (__instance.playerAvatar.isLocal && VRCameraPosition.instance.overridePositionActive);
 
         return false;
     }

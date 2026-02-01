@@ -193,20 +193,6 @@ internal static class UniversalEntrypoint
     }
 
     /// <summary>
-    /// Enable hotswapping while in the main menu
-    /// </summary>
-    [HarmonyPatch(typeof(GameDirector), nameof(GameDirector.Start))]
-    [HarmonyPostfix]
-    private static void OnStartup(GameDirector __instance)
-    {
-        if (RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu &&
-            RunManager.instance.levelCurrent != RunManager.instance.levelLobbyMenu)
-            return;
-
-        new GameObject("VR Hotswapper").AddComponent<HotswapManager>();
-    }
-
-    /// <summary>
     /// The default setup for every scene (including for non-vr players)
     /// </summary>
     private static void SetupDefaultSceneUniversal()

@@ -233,40 +233,6 @@ internal static class UIPatches
     }
 
     /// <summary>
-    /// Handle VR button presses
-    /// </summary>
-    [HarmonyPatch(typeof(UnityEngine.Input), nameof(UnityEngine.Input.GetMouseButtonDown))]
-    [HarmonyPrefix]
-    private static bool MouseButtonDownVR(int button, ref bool __result)
-    {
-        var manager = XRRayInteractorManager.Instance;
-
-        if (button != 0 || manager is null)
-            return true;
-
-        __result = manager.GetTriggerDown();
-
-        return false;
-    }
-
-    /// <summary>
-    /// Handle VR button holds
-    /// </summary>
-    [HarmonyPatch(typeof(UnityEngine.Input), nameof(UnityEngine.Input.GetMouseButton))]
-    [HarmonyPrefix]
-    private static bool MouseButtonHoldVR(int button, ref bool __result)
-    {
-        var manager = XRRayInteractorManager.Instance;
-
-        if (button != 0 || manager is null)
-            return true;
-
-        __result = manager.GetTriggerButton();
-
-        return false;
-    }
-
-    /// <summary>
     /// Disable scrolling using the built-in keybinds (Movement and Scroll), in favor of XR UI Scroll
     /// </summary>
     [HarmonyPatch(typeof(MenuScrollBox), nameof(MenuScrollBox.Update))]

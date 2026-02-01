@@ -282,8 +282,11 @@ internal static class NetworkingPatches
     /// </summary>
     [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.OnPhotonSerializeView))]
     [HarmonyPostfix]
-    private static void OnAfterSerializeView(PlayerLocalCamera __instance, PhotonStream stream)
+    private static void OnAfterSerializeView(PlayerLocalCamera __instance, PhotonStream stream, PhotonMessageInfo info)
     {
+        if (!SemiFunc.MasterAndOwnerOnlyRPC(info, __instance.photonView))
+            return;
+
         if (stream.IsWriting)
             NetworkSystem.instance.WriteAdditionalData(stream);
         else

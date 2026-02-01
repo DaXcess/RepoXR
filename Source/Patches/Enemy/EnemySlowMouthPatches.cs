@@ -9,7 +9,7 @@ internal static class EnemySlowMouthPatches
     /// <summary>
     /// Make the slow mouth enemy puking cause haptic feedback if it's attached to the player
     /// </summary>
-    [HarmonyPatch(typeof(EnemySlowMouthCameraVisuals), nameof(EnemySlowMouthCameraVisuals.StatePuke))]
+    [HarmonyPatch(typeof(EnemySlowMouthAttached), nameof(EnemySlowMouthAttached.StatePuke))]
     [HarmonyPostfix]
     private static void PukeHaptics()
     {

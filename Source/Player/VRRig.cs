@@ -134,9 +134,13 @@ public class VRRig : MonoBehaviour
             Quaternion.Euler(transform.eulerAngles.x, head.eulerAngles.y, transform.eulerAngles.z),
             10 * Time.deltaTime);
 
+        // Hide rig if camera is overridden
+        if (playerAvatar.localCamera.GetOverrideActive())
+            transform.position += Vector3.down * 3000;
+
         headAnchor.position = head.position;
         headAnchor.rotation = head.rotation;
-        
+
         UpdateArms();
         UpdateClaw();
         MapToolLogic();
@@ -148,15 +152,18 @@ public class VRRig : MonoBehaviour
     /// <summary>
     /// Update transform parents and positions based on the current dominant hand
     /// </summary>
-    private void UpdateDominantTransforms()
+    internal void UpdateDominantTransforms()
     {
+        // Prevent messing with transforms while override is active
+        // When the override disengages this function will be called anyway
+        if (playerAvatar.localCamera.GetOverrideActive())
+            return;
+
         playerAvatarRightArm.grabberClawParent.SetParent(VRSession.Instance.Player.MainHand);
         playerAvatarRightArm.grabberClawParent.localPosition = Vector3.zero;
 
-        var beamOrigin = PhysGrabber.instance.physGrabBeamComponent.PhysGrabPointOrigin;
-        beamOrigin.SetParent(VRSession.Instance.Player.MainHand);
-        beamOrigin.localPosition = Vector3.zero;
-        
+        PhysGrabber.instance.physGrabBeamComponent.PhysGrabPointOrigin = VRSession.Instance.Player.MainHand;
+
         flashlight.transform.parent = headlampEnabled ? headLamp : VRSession.Instance.Player.SecondaryHand;
         flashlight.transform.localPosition = Vector3.zero;
         flashlight.transform.localRotation = Quaternion.identity;
@@ -169,6 +176,10 @@ public class VRRig : MonoBehaviour
 
     private void UpdateArms()
     {
+        // Do not update arms if we've been overridden
+        if (playerAvatar.localCamera.GetOverrideActive())
+            return;
+
         if (armsDetached)
             UpdateArmsDetached();
         else
@@ -218,7 +229,7 @@ public class VRRig : MonoBehaviour
 
     private void UpdateArmsDetached()
     {
-        leftArm.position =  leftArmTarget.position - (leftArmCenter.position - leftArm.position);
+        leftArm.position = leftArmTarget.position - (leftArmCenter.position - leftArm.position);
         leftArm.rotation = leftArmTarget.rotation;
 
         rightArm.position = rightArmTarget.position - (rightArmCenter.position - rightArm.position);
@@ -230,9 +241,10 @@ public class VRRig : MonoBehaviour
         // We most likely are changing scenes
         if (!playerAvatarVisuals || !playerAvatar || !playerAvatarRightArm)
             return;
-        
+
         if (playerAvatarVisuals.isMenuAvatar || (playerAvatar.isActiveAndEnabled &&
-                                                 playerAvatarRightArm.playerAvatar.playerHealth.hurtFreeze))
+                                                 playerAvatarRightArm.playerAvatar.playerHealth.hurtFreeze) ||
+            playerAvatar.localCamera.GetOverrideActive())
             return;
         
         playerAvatarRightArm.deltaTime = playerAvatarVisuals.deltaTime;
