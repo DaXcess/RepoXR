@@ -74,8 +74,8 @@ public class Plugin : BaseUnityPlugin
             else
             {
                 Logger.LogError("Error: Unsupported game version, or corrupted game detected!");
-                Logger.LogError("RepoXR only supports legitimate Steam copies of R.E.P.O.");
                 Logger.LogError("R.E.P.O. might have been updated recently, and RepoXR does not yet support this version.");
+                Logger.LogError("It's also worth mentioning that RepoXR only supports legitimate Steam copies of R.E.P.O.");
                 Logger.LogDebug(
                     $"To bypass this check, add the following flag to your launch options in Steam: {SKIP_CHECKSUM_VAR}");
 
@@ -99,6 +99,7 @@ public class Plugin : BaseUnityPlugin
             Flags |= Flags.VR;
 
         HarmonyPatcher.PatchUniversal();
+        HarmonyPatcher.PatchNetworkRPCs();
 
         Logger.LogDebug("Inserted universal patches using Harmony");
 

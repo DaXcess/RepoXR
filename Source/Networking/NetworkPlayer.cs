@@ -1,4 +1,5 @@
-﻿using RepoXR.Networking.Frames;
+﻿using System.Diagnostics;
+using RepoXR.Networking.Frames;
 using UnityEngine;
 
 namespace RepoXR.Networking;
@@ -41,9 +42,14 @@ public class NetworkPlayer : MonoBehaviour
     // Eye tracking
     public bool EyeTracking { get; private set; }
     public Vector3 EyeGazePoint { get; private set; }
-    
+
     private void Start()
     {
+        NetworkSystem.instance.RegisterRPCBehaviour(this, playerAvatar.photonView);
+        
+        if (playerAvatar.isLocal)
+            return;
+        
         playerAvatarVisuals = playerAvatar.playerAvatarVisuals;
         playerLeftArm = playerAvatarVisuals.GetComponent<PlayerAvatarLeftArm>();
         playerRightArm = playerAvatarVisuals.GetComponent<PlayerAvatarRightArm>();
@@ -112,6 +118,13 @@ public class NetworkPlayer : MonoBehaviour
 
     private void Update()
     {
+        if (playerAvatar.isLocal)
+        {
+            DemoRPCSelf(Vector3.forward, true, Quaternion.identity);
+
+            return;
+        }
+        
         // We're most likely unloading the scene, so disable the VR player
         if (!playerAvatarVisuals || !mapTool)
         {
@@ -222,5 +235,19 @@ public class NetworkPlayer : MonoBehaviour
 
         EyeTracking = true;
         EyeGazePoint = gazePoint;
+    }
+
+    [XRRpc]
+    public void DemoRPC(Vector3 param1, bool param2, Quaternion param3)
+    {
+        Logger.LogDebug($"Received DemoRPC XRRpc: {param1}, {param2}, {param3}");
+        Logger.LogDebug(new StackTrace());
+    }
+
+    [XRRpc(true)]
+    public void DemoRPCSelf(Vector3 param1, bool param2, Quaternion param3)
+    {
+        Logger.LogDebug($"Received DemoRPCSelf XRRpc: {param1}, {param2}, {param3}");
+        Logger.LogDebug(new StackTrace());
     }
 }

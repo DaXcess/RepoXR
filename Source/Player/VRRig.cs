@@ -62,6 +62,7 @@ public class VRRig : MonoBehaviour
     private Transform leftArmMesh;
     private Transform rightArmMesh;
 
+    private VRPlayer player;
     private PlayerAvatar playerAvatar;
     private PlayerAvatarVisuals playerAvatarVisuals;
     private PlayerAvatarRightArm playerAvatarRightArm;
@@ -99,6 +100,7 @@ public class VRRig : MonoBehaviour
 
     private IEnumerator Start()
     {
+        player = VRSession.Instance.Player;
         playerAvatar = PlayerController.instance.playerAvatarScript;
         playerAvatarVisuals = playerAvatar.playerAvatarVisuals;
         playerAvatarRightArm = playerAvatarVisuals.GetComponentInChildren<PlayerAvatarRightArm>(true);
@@ -172,6 +174,9 @@ public class VRRig : MonoBehaviour
             lampTriggerCollider.transform.localPosition.y, lampTriggerCollider.transform.localPosition.z);
         
         NetworkSystem.instance.UpdateDominantHand(Plugin.Config.LeftHandDominant.Value);
+        
+        // TODO: Demo RPC
+        player.NetworkPlayer.DemoRPC(Vector3.left, false, Quaternion.Euler(180, 180, 0));
     }
 
     private void UpdateArms()

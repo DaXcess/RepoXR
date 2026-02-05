@@ -7,7 +7,7 @@ using RepoXR.Player.Camera;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
-using Vector3 = UnityEngine.Vector3;
+using NetworkPlayer = RepoXR.Networking.NetworkPlayer;
 
 namespace RepoXR.Player;
 
@@ -34,6 +34,9 @@ public class VRPlayer : MonoBehaviour
     private PlayerAvatarRightArm playerRightArm;
     private Transform leftHandAnchor;
     private Transform rightHandAnchor;
+    
+    // Network
+    private NetworkPlayer networkPlayer;
 
     // Public accessors
     public Transform MainHand => VRSession.IsLeftHanded ? localRig.leftHandTip : localRig.rightHandTip;
@@ -41,6 +44,7 @@ public class VRPlayer : MonoBehaviour
     public Transform MapParent => localRig.map;
     public VRRig Rig => localRig;
     public VREyeTracking EyeTracking => eyeTracking;
+    public NetworkPlayer NetworkPlayer => networkPlayer;
     
     // Public state
     public float disableRotateTimer;
@@ -111,6 +115,10 @@ public class VRPlayer : MonoBehaviour
                 localPosition = Vector3.forward * 0.513f
             }
         }.transform;
+        
+        // Create local network player
+        networkPlayer = gameObject.AddComponent<NetworkPlayer>();
+        networkPlayer.playerAvatar = localController.playerAvatarScript;
 
         Actions.Instance["ResetHeight"].performed += OnResetHeight;
     }

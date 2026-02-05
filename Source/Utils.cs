@@ -9,6 +9,7 @@ using HarmonyLib;
 using RepoXR.Managers;
 using RepoXR.Networking;
 using Steamworks;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 
 namespace RepoXR;
@@ -221,5 +222,56 @@ public static class PlayerLocalCameraExtensions
 
         // Fallback, return the camera transform
         return camera.transform;
+    }
+}
+
+public static class HashExtensions
+{
+    private const ulong FNV_OFFSET_BASIS = 0xA953453332BAB083;
+    private const ulong FNV_PRIME = 0x1B2534321;
+    
+    private static Dictionary<Type, ulong> typeHashCache = [];
+    private static Dictionary<MethodBase, ulong> methodHashCache = [];
+    
+    public static ulong GetNetworkHash(this Type type)
+    {
+        if (typeHashCache.TryGetValue(type, out var hash))
+            return hash;
+        
+        hash = ComputeHash(Encoding.UTF8.GetBytes(type.GetFullNameWithGenericArguments()));
+        typeHashCache[type] = hash;
+        
+        return hash;
+    }
+
+    public static ulong GetNetworkHash(this MethodBase method)
+    {
+        if (methodHashCache.TryGetValue(method, out var hash))
+            return hash;
+        
+        var typeName = method.DeclaringType.GetFullNameWithGenericArguments();
+        var methodName =
+            $"{method.Name}<{string.Join(", ", method.GetGenericArguments().Select(a => a.DeclaringType.GetFullNameWithGenericArguments()))}>({string.Join(",", method.GetParameters().Select(p => p.ParameterType.GetFullNameWithGenericArguments()))}";
+        var fullName = $"{typeName}::{methodName}";
+        
+        Logger.LogDebug(fullName);
+        
+        hash = ComputeHash(Encoding.UTF8.GetBytes(fullName));
+        methodHashCache[method] = hash;
+
+        return hash;
+    }
+
+    private static ulong ComputeHash(byte[] input)
+    {
+        var hash = FNV_OFFSET_BASIS;
+        
+        foreach (var b in input)
+        {
+            hash ^= b;
+            hash *= FNV_PRIME;
+        }
+
+        return hash;
     }
 }

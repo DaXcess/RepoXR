@@ -4,15 +4,14 @@
 - Added support for new valuable interactions
 - Added support for new level UI
 - Added support for the new walkie-talkie item
+- Added support for the new scooters
 
 **Changes**:
 - Restructured mouse input patching so testing with UnityExplorer is easier
+- Reworked networking internals, should not affect gameplay
 
 **Removals**:
 - Removed F8 hotswapping completely
-
-**TODOs**:
-- Fix fucking walkies
 
 # 1.1.2
 

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using Photon.Pun;
 using RepoXR.Networking.Frames;
 using RepoXR.Patches;
 using UnityEngine;
+using RPC = RepoXR.Networking.Frames.RPC;
 
 namespace RepoXR.Networking;
 
@@ -19,6 +22,21 @@ public class NetworkSystem : MonoBehaviour
     private readonly Dictionary<int, NetworkPlayer> networkPlayers = [];
     private readonly List<int> cachedPhotonIds = [];
 
+    /// <summary>
+    /// Dictionary mapping type hashcodes and method hashcodes to their respective <see cref="MethodInfo"/>
+    /// </summary>
+    private readonly Dictionary<ulong, Dictionary<ulong, MethodInfo>> rpcHashcodes = [];
+
+    /// <summary>
+    /// Dictionary mapping actor numbers and type hashcodes to their instances
+    /// </summary>
+    private readonly Dictionary<int, Dictionary<ulong, MonoBehaviour>> rpcInstances = [];
+    
+    /// <summary>
+    /// Dictionary mapping type instances to their PhotonView
+    /// </summary>
+    private readonly Dictionary<MonoBehaviour, PhotonView> rpcViews = [];
+
     private void Awake()
     {
         if (instance)
@@ -32,6 +50,38 @@ public class NetworkSystem : MonoBehaviour
 
         instance = this;
         DontDestroyOnLoad(gameObject);
+        PrecomputeRpcHashes();
+    }
+
+    /// <summary>
+    /// Discover all RPCs and register them by their hashes
+    /// </summary>
+    private void PrecomputeRpcHashes()
+    {
+        // In the case that we ever need to call this initializer more than once, clear out the current hashes
+        rpcHashcodes.Clear();
+        
+        // TODO: Should we scan all assemblies instead of only our own?
+        foreach (var type in AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly()))
+        {
+            if (type == null)
+                continue;
+
+            var typeHash = type.GetNetworkHash();
+
+            // RPC methods are never static
+            foreach (var method in
+                     type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                         .Where(m => m.GetCustomAttribute<XRRpcAttribute>() != null))
+            {
+                var methodHash = method.GetNetworkHash();
+                
+                if (!rpcHashcodes.ContainsKey(typeHash))
+                    rpcHashcodes.Add(typeHash, new Dictionary<ulong, MethodInfo>());
+
+                rpcHashcodes[typeHash][methodHash] = method;
+            }
+        }
     }
 
     public bool GetNetworkPlayer(PlayerAvatar player, out NetworkPlayer networkPlayer)
@@ -194,6 +244,27 @@ public class NetworkSystem : MonoBehaviour
 
                     break;
                 }
+
+                case FrameHelper.FrameRPC:
+                {
+                    var rpcFrame = (RPC)frame;
+
+                    if (!rpcHashcodes.TryGetValue(rpcFrame.TypeHash, out var methodHashes))
+                        return;
+
+                    if (!methodHashes.TryGetValue(rpcFrame.MethodHash, out var method))
+                        return;
+
+                    if (!rpcInstances.TryGetValue(player.photonView.controllerActorNr, out var instances))
+                        return;
+
+                    if (!instances.TryGetValue(rpcFrame.TypeHash, out var inst))
+                        return;
+                    
+                    method.Invoke(inst, rpcFrame.Arguments);
+
+                    break;
+                }
             }
         }
         catch (Exception ex)
@@ -201,6 +272,55 @@ public class NetworkSystem : MonoBehaviour
             Logger.LogError($"Error while handling frame {frame.FrameID} ({frame.GetType().Name}): {ex.Message}");
             Logger.LogError(ex.StackTrace);
         }
+    }
+    
+    // RPC stuff
+
+    /// <summary>
+    /// Register a component instance and photon view with the RPC networking system
+    /// </summary>
+    public void RegisterRPCBehaviour<T>(T behaviour, PhotonView view) where T : MonoBehaviour
+    {
+        var typeHash = typeof(T).GetNetworkHash();
+
+        // Ignore if this isn't a type known to have RPCs
+        if (!rpcHashcodes.ContainsKey(typeHash))
+            throw new InvalidOperationException($"Type {typeof(T)} has not been registered during RPC discovery");
+
+        if (!rpcInstances.ContainsKey(view.controllerActorNr))
+            rpcInstances[view.controllerActorNr] = new Dictionary<ulong, MonoBehaviour>();
+            
+        rpcViews[behaviour] = view;
+        rpcInstances[view.controllerActorNr][typeHash] = behaviour;
+    }
+
+    /// <summary>
+    /// This method is called before the code of an RPC method is executed
+    /// </summary>
+    /// <returns>Whether the RPC handler should be executed</returns>
+    internal bool ExecuteRPC(MonoBehaviour behaviour, MethodBase method, object[] args, bool self)
+    {
+        var typeHash = behaviour.GetType().GetNetworkHash();
+        var methodHash = method.GetNetworkHash();
+
+        // Try get RPC PhotonView, if unknown, just continue execution
+        if (!rpcViews.TryGetValue(behaviour, out var view))
+            return true;
+
+        // If we do not own the view we can just execute the RPC handler
+        if (!view.IsMine)
+            return true;
+
+        // Dispatch RPC
+        EnqueueFrame(new RPC
+        {
+            TypeHash = typeHash,
+            MethodHash = methodHash,
+            Arguments = args
+        }, false);
+
+        // If the RPC is marked as "self" the RPC handler should also be run on the sender
+        return self;
     }
 
     // Internal stuff
@@ -218,6 +338,10 @@ public class NetworkSystem : MonoBehaviour
             Destroy(networkPlayer.gameObject);
 
         cachedPhotonIds.Remove(actorNumber);
+
+        // Clear view mappings for instances that have been destroyed
+        rpcViews.Keys.Where(k => k == null).Do(b => rpcViews.Remove(b));
+        rpcInstances.Remove(actorNumber);
     }
 
     internal void WriteAdditionalData(PhotonStream stream)
@@ -291,7 +415,8 @@ internal static class NetworkingPatches
             NetworkSystem.instance.WriteAdditionalData(stream);
         else
             NetworkSystem.instance.ReadAdditionalData(
-                __instance.transform.parent.GetComponentInChildren<PlayerAvatar>(true), stream);
+                __instance.playerAvatar ?? __instance.transform.parent.GetComponentInChildren<PlayerAvatar>(true),
+                stream);
     }
 
     [HarmonyPatch(typeof(NetworkManager), nameof(NetworkManager.OnPlayerLeftRoom))]
@@ -310,4 +435,20 @@ internal static class NetworkingPatches
     {
         NetworkSystem.instance.ResetCache();
     }
+
+    internal static bool ExecuteRPCPrefix(object __instance, MethodBase __originalMethod, object[] __args)
+    {
+        return NetworkSystem.instance.ExecuteRPC((MonoBehaviour)__instance, __originalMethod, __args, false);
+    }
+
+    internal static bool ExecuteRPCPrefixSelf(object __instance, MethodBase __originalMethod, object[] __args)
+    {
+        return NetworkSystem.instance.ExecuteRPC((MonoBehaviour)__instance, __originalMethod, __args, true);
+    }
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class XRRpcAttribute(bool self = false) : Attribute
+{
+    public bool Self => self;
 }

@@ -58,7 +58,7 @@ internal static class OpenXR
 
         var defaultPath = GetDefaultRuntimePath();
 
-        if (Native.RegOpenKeyEx(Native.HKEY_LOCAL_MACHINE, "SOFTWARE\\Khronos\\OpenXR\\1", 0, 0x20019, out var hKey) !=
+        if (Native.RegOpenKeyEx(Native.HKEY_LOCAL_MACHINE, @"SOFTWARE\Khronos\OpenXR\1", 0, 0x20019, out var hKey) !=
             0)
             return new Runtimes(runtimes.ToArray());
 
