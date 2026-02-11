@@ -158,6 +158,4 @@ Other people can also enjoy the use of eye tracking! When used in multiplayer, t
 
 # Other misc features
 
-- While inside of a lobby, you can press "CTRL + C" on your keyboard to copy a Steam join link (steam://joinlobby/...) to allow you to invite people outside your friends list (make sure your game is focussed while you do this)
-
-- While inside of the main menu, or a multiplayer **menu** lobby, you can press F8 to toggle between VR and flatscreen mode.
+- While inside of a lobby, you can press "CTRL + C" on your keyboard to copy a Steam join link (steam://joinlobby/...) to allow you to invite people outside your friends list (make sure your game is focussed while you do this). The monster update (v0.3.0) also added an invite through Discord feature. To use this, make sure you share which game you're playing on Discord, and then you can send invites while you are in a lobby.
