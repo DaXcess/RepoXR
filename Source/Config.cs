@@ -98,6 +98,10 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<bool> NormalizeMovement { get; } = file.Create("Input", nameof(NormalizeMovement), false,
         "When enabled, any direction you move in will always be at full speed, even when the stick is only pushed slightly.");
 
+    [ConfigDescriptor(customName: "Vehicle direction source", trueText: "Head", falseText: "Hand")]
+    public ConfigEntry<bool> VehicleHeadForward { get; } = file.Create("Input", nameof(VehicleHeadForward), false,
+        "When enabled, will make the scooters go forward based on head rotation instead of hand rotation.");
+
     // Rendering configuration
 
     [ConfigDescriptor(stepSize: 5f, suffix: "%")]

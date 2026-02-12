@@ -133,6 +133,7 @@ public class VRPlayer : MonoBehaviour
         yield return null;
         
         ResetHeight();
+        SyncNetworkVariables();
     }
 
     private void FixedUpdate()
@@ -189,6 +190,15 @@ public class VRPlayer : MonoBehaviour
 
         // The playerOffset field is actually smoothed, making the reset height sequence look a little bit nicer
         cameraPosition.original.playerOffset = new Vector3(0, targetHeight - mainCamera.transform.localPosition.y, 0);
+    }
+
+    private void SyncNetworkVariables()
+    {
+        // Make sure some settings are synced with all other players
+
+        NetworkPlayer.UpdateVehicleHeadForwardRPC(Plugin.Config.VehicleHeadForward.Value);
+        NetworkPlayer.UpdateDominantHandRPC(VRSession.IsLeftHanded);
+        NetworkPlayer.UpdateHeadlampRPC(Rig.HeadLampEnabled());
     }
 
     private void HandleMovement()

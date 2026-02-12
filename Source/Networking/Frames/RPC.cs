@@ -1,33 +1,20 @@
-using Photon.Pun;
-
 namespace RepoXR.Networking.Frames;
 
-[Frame(FrameHelper.FrameRPC)]
-public class RPC : IFrame
+public struct RPCFrame
 {
-    public ulong TypeHash;
-    public ulong MethodHash;
-    public object[] Arguments;
+    public ulong typeHash;
+    public ulong methodHash;
+    public object[] arguments;
 
-    public void Serialize(PhotonStream stream)
+    public static RPCFrame CreateAnnouncement() => new()
     {
-        stream.SendNext(TypeHash);
-        stream.SendNext(MethodHash);
-        stream.SendNext(Arguments.Length);
-        
-        foreach (var arg in Arguments)
-            stream.SendNext(arg);
-    }
+        typeHash = 0,
+        methodHash = 0,
+        arguments = []
+    };
 
-    public void Deserialize(PhotonStream stream)
+    public bool Matches(RPCFrame other)
     {
-        TypeHash = (ulong)stream.ReceiveNext();
-        MethodHash = (ulong)stream.ReceiveNext();
-
-        var len = (int)stream.ReceiveNext();
-        Arguments = new object[len];
-
-        for (var i = 0; i < len; i++)
-            Arguments[i] = stream.ReceiveNext();
+        return other.typeHash == typeHash && other.methodHash == methodHash;
     }
 }

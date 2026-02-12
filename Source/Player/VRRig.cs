@@ -5,7 +5,6 @@ using HarmonyLib;
 using RepoXR.Assets;
 using RepoXR.Input;
 using RepoXR.Managers;
-using RepoXR.Networking;
 using RepoXR.Player.Camera;
 using RepoXR.UI;
 using RepoXR.UI.Expressions;
@@ -173,10 +172,7 @@ public class VRRig : MonoBehaviour
         lampTriggerCollider.transform.localPosition = new Vector3(VRSession.IsLeftHanded ? 0.2f : -0.2f,
             lampTriggerCollider.transform.localPosition.y, lampTriggerCollider.transform.localPosition.z);
         
-        NetworkSystem.instance.UpdateDominantHand(Plugin.Config.LeftHandDominant.Value);
-        
-        // TODO: Demo RPC
-        player.NetworkPlayer.DemoRPC(Vector3.left, false, Quaternion.Euler(180, 180, 0));
+        player.NetworkPlayer.UpdateDominantHandRPC(Plugin.Config.LeftHandDominant.Value);
     }
 
     private void UpdateArms()
@@ -191,11 +187,10 @@ public class VRRig : MonoBehaviour
             UpdateArmsAttached();
 
         // Synchronize multiplayer rig
-        if (SemiFunc.IsMultiplayer())
-            NetworkSystem.instance.SendRigData(leftHandTip.position, rightHandTip.position, leftHandTip.rotation,
-                rightHandTip.rotation);
+        player.NetworkPlayer.UpdateRigRPC(leftHandTip.position, leftHandTip.rotation, rightHandTip.position,
+            rightHandTip.rotation);
     }
-    
+
     private void UpdateArmsAttached()
     {
         leftArm.localPosition = new Vector3(leftArm.localPosition.x, leftArm.localPosition.y, 0);
@@ -372,7 +367,7 @@ public class VRRig : MonoBehaviour
         if (mapTool.Active && !Actions.Instance["MapGrabLeft"].IsPressed() && mapHeldLeftHand && mapTool.HideLerp <= 0)
             mapTool.Active = false;
 
-        NetworkSystem.instance.UpdateMapToolState(flashlight.hideFlashlight, mapHeldLeftHand);
+        player.NetworkPlayer.UpdateMapRPC(mapHeldLeftHand, flashlight.hideFlashlight);
     }
 
     /// <summary>
@@ -440,7 +435,7 @@ public class VRRig : MonoBehaviour
             headlampEnabled = !headlampEnabled;
 
             DataManager.instance.headlampEnabled = headlampEnabled;
-            NetworkSystem.instance.UpdateHeadlamp(headlampEnabled);
+            player.NetworkPlayer.UpdateHeadlampRPC(headlampEnabled);
         }
 
         headlampHovered = collided;

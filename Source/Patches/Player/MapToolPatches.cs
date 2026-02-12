@@ -132,10 +132,10 @@ internal static class MapToolPatches
     [HarmonyPostfix]
     private static void OnPlayerMapCountUpdate(DirtFinderCounter __instance)
     {
-        if (!SemiFunc.FPSImpulse5() || !__instance.isActiveAndEnabled)
-            return;
-        
-        __instance.OnEnable();
+        // if (!SemiFunc.FPSImpulse5() || !__instance.isActiveAndEnabled)
+        //     return;
+        //
+        // __instance.OnEnable();
     }
 }
 

@@ -30,11 +30,6 @@ internal static class HarmonyPatcher
         Patch(VRPatcher, RepoXRPatchTarget.VROnly);
     }
 
-    public static void UnpatchVR()
-    {
-        VRPatcher.UnpatchSelf();
-    }
-
     public static void PatchClass(Type type)
     {
         UniversalPatcher.CreateClassProcessor(type, true).Patch();

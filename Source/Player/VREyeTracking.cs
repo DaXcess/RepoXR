@@ -2,7 +2,6 @@
 using RepoXR.Assets;
 using RepoXR.Input;
 using RepoXR.Managers;
-using RepoXR.Networking;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -76,7 +75,7 @@ public class VREyeTracking : MonoBehaviour
     private static void OnEyeTrackingSettingChanged(object sender, EventArgs e)
     {
         if (!Plugin.Config.EnableEyeTracking.Value)
-            NetworkSystem.instance.DisableEyeTracking();
+            VRSession.Instance.Player.NetworkPlayer.DisableEyeTracking();
     }
 
     private void Update()
@@ -88,7 +87,7 @@ public class VREyeTracking : MonoBehaviour
         if (Time.realtimeSinceStartup - lastHardwareInput > 5)
         {
             supported = false;
-            NetworkSystem.instance.DisableEyeTracking();
+            VRSession.Instance.Player.NetworkPlayer.DisableEyeTracking();
             return;
         }
 
@@ -101,7 +100,7 @@ public class VREyeTracking : MonoBehaviour
 
         Gaze = ray;
 
-        NetworkSystem.instance.UpdateEyeTracking(position);
+        VRSession.Instance.Player.NetworkPlayer.UpdateEyeTrackingRPC(position);
 
         if (!debugCube)
             return;

@@ -251,10 +251,8 @@ public static class HashExtensions
         
         var typeName = method.DeclaringType.GetFullNameWithGenericArguments();
         var methodName =
-            $"{method.Name}<{string.Join(", ", method.GetGenericArguments().Select(a => a.DeclaringType.GetFullNameWithGenericArguments()))}>({string.Join(",", method.GetParameters().Select(p => p.ParameterType.GetFullNameWithGenericArguments()))}";
+            $"{method.Name}<{string.Join(", ", method.GetGenericArguments().Select(a => a.DeclaringType.GetFullNameWithGenericArguments()))}>({string.Join(",", method.GetParameters().Select(p => p.ParameterType.GetFullNameWithGenericArguments()))})";
         var fullName = $"{typeName}::{methodName}";
-        
-        Logger.LogDebug(fullName);
         
         hash = ComputeHash(Encoding.UTF8.GetBytes(fullName));
         methodHashCache[method] = hash;

@@ -21,7 +21,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PLUGIN_GUID = "io.daxcess.repoxr";
     public const string PLUGIN_NAME = "RepoXR";
-    public const string PLUGIN_VERSION = "1.1.2";
+    public const string PLUGIN_VERSION = "1.2.0";
 
 #if DEBUG
     private const string SKIP_CHECKSUM_VAR = $"--repoxr-skip-checksum={PLUGIN_VERSION}-dev";
@@ -227,24 +227,6 @@ public class Plugin : BaseUnityPlugin
         }
 
         return true;
-    }
-
-    public static void ToggleVR()
-    {
-        if (Flags.HasFlag(Flags.VR))
-        {
-            OpenXR.Loader.DeinitializeXR();
-            HarmonyPatcher.UnpatchVR();
-
-            Flags &= ~Flags.VR;
-        }
-        else
-        {
-            if (!InitializeVR())
-                return;
-
-            Flags |= Flags.VR;
-        }
     }
 
     private static bool InitializeVR()

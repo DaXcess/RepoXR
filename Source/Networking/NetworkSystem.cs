@@ -7,18 +7,25 @@ using Photon.Pun;
 using RepoXR.Networking.Frames;
 using RepoXR.Patches;
 using UnityEngine;
-using RPC = RepoXR.Networking.Frames.RPC;
 
 namespace RepoXR.Networking;
 
 public class NetworkSystem : MonoBehaviour
 {
     private const long REPOXR_MAGIC = 0x5245504F5852;
-    private const int PROTOCOL_VERSION = 1;
+    private const int PROTOCOL_VERSION = 2;
+
+    private enum ControlCode : byte
+    {
+        Announce,
+        Rpc,
+
+        // ReSharper disable once InconsistentNaming
+        __max
+    }
 
     public static NetworkSystem instance;
 
-    private readonly List<IFrame> scheduledFrames = [];
     private readonly Dictionary<int, NetworkPlayer> networkPlayers = [];
     private readonly List<int> cachedPhotonIds = [];
 
@@ -36,6 +43,11 @@ public class NetworkSystem : MonoBehaviour
     /// Dictionary mapping type instances to their PhotonView
     /// </summary>
     private readonly Dictionary<MonoBehaviour, PhotonView> rpcViews = [];
+
+    /// <summary>
+    /// List of RPC frames to be sent during next view serialization
+    /// </summary>
+    private readonly List<RPCFrame> rpcBuffer = [];
 
     private void Awake()
     {
@@ -74,6 +86,12 @@ public class NetworkSystem : MonoBehaviour
                      type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                          .Where(m => m.GetCustomAttribute<XRRpcAttribute>() != null))
             {
+                if (method.GetParameters().Length > 6)
+                {
+                    Logger.LogWarning($"RPC {type.FullName}::{method.Name} contains too many parameters and will be ignored");
+                    continue;
+                }
+
                 var methodHash = method.GetNetworkHash();
                 
                 if (!rpcHashcodes.ContainsKey(typeHash))
@@ -103,177 +121,21 @@ public class NetworkSystem : MonoBehaviour
 
     public void AnnounceVRPlayer()
     {
-        scheduledFrames.Add(new Announcement());
-    }
-
-    public void SendRigData(Vector3 leftPosition, Vector3 rightPosition, Quaternion leftRotation,
-        Quaternion rightRotation)
-    {
-        EnqueueFrame(
-            new Rig
-            {
-                LeftPosition = leftPosition, RightPosition = rightPosition, LeftRotation = leftRotation,
-                RightRotation = rightRotation
-            });
-    }
-
-    public void UpdateMapToolState(bool hideFlashlight, bool leftHanded)
-    {
-        EnqueueFrame(new MapTool
-        {
-            HideFlashlight = hideFlashlight,
-            LeftHanded = leftHanded
-        });
-    }
-
-    public void UpdateHeadlamp(bool headLampEnabled)
-    {
-        EnqueueFrame(new Headlamp
-        {
-            HeadlampEnabled = headLampEnabled
-        });
-    }
-
-    public void UpdateDominantHand(bool leftHanded)
-    {
-        EnqueueFrame(new DominantHand
-        {
-            LeftHanded = leftHanded
-        });
-    }
-
-    public void UpdateEyeTracking(Vector3 gazePoint)
-    {
-        EnqueueFrame(new EyeGaze
-        {
-            GazePoint = gazePoint
-        });
-    }
-
-    public void DisableEyeTracking()
-    {
-        UpdateEyeTracking(Vector3.down * 1000);
+        EnqueueRPC(RPCFrame.CreateAnnouncement());
     }
 
     /// <summary>
-    /// Enqueues a frame to be sent next serialization sequence. This function contains an optimization that removes
-    /// duplicate frames to reduce network usage, which reduces server costs.
+    /// Enqueues an RPC frame to be sent next serialization sequence. This function contains an optimization that
+    /// removes duplicate RPCs to reduce network usage, which reduces server costs.
     /// </summary>
-    private void EnqueueFrame<T>(T frame, bool removeDuplicate = true) where T : IFrame
+    private void EnqueueRPC(RPCFrame rpc, bool deduplicate = true)
     {
-        if (removeDuplicate)
-            scheduledFrames.ReplaceOrInsert(frame, f => f.GetType() == typeof(T));
+        if (deduplicate)
+            rpcBuffer.ReplaceOrInsert(rpc, f => f.Matches(rpc));
         else
-            scheduledFrames.Add(frame);
+            rpcBuffer.Add(rpc);
     }
 
-    // Handling
-
-    private void HandleFrame(PlayerAvatar player, IFrame frame)
-    {
-        try
-        {
-            switch (frame.FrameID)
-            {
-                case FrameHelper.FrameAnnouncement:
-                {
-                    if (networkPlayers.ContainsKey(player.photonView.ControllerActorNr))
-                        return;
-
-                    var networkPlayer =
-                        new GameObject($"VR Player Rig - {player.playerName}").AddComponent<NetworkPlayer>();
-                    networkPlayer.playerAvatar = player;
-
-                    networkPlayers.Add(player.photonView.ControllerActorNr, networkPlayer);
-                    cachedPhotonIds.Add(player.photonView.ControllerActorNr);
-
-                    break;
-                }
-
-                case FrameHelper.FrameRig:
-                {
-                    var rigFrame = (Rig)frame;
-                    if (!networkPlayers.TryGetValue(player.photonView.ControllerActorNr, out var networkPlayer))
-                        return;
-
-                    networkPlayer.HandleRigFrame(rigFrame);
-
-                    break;
-                }
-
-                case FrameHelper.FrameMaptool:
-                {
-                    var mapFrame = (MapTool)frame;
-                    if (!networkPlayers.TryGetValue(player.photonView.controllerActorNr, out var networkPlayer))
-                        return;
-
-                    networkPlayer.HandleMapFrame(mapFrame);
-
-                    break;
-                }
-
-                case FrameHelper.FrameHeadlamp:
-                {
-                    var headlampFrame = (Headlamp)frame;
-                    if (!networkPlayers.TryGetValue(player.photonView.controllerActorNr, out var networkPlayer))
-                        return;
-
-                    networkPlayer.HandleHeadlamp(headlampFrame.HeadlampEnabled);
-
-                    break;
-                }
-
-                case FrameHelper.FrameDominantHand:
-                {
-                    var dominantHandFrame = (DominantHand)frame;
-                    if (!networkPlayers.TryGetValue(player.photonView.controllerActorNr, out var networkPlayer))
-                        return;
-
-                    networkPlayer.UpdateDominantHand(dominantHandFrame.LeftHanded);
-
-                    break;
-                }
-
-                case FrameHelper.FrameEyeGaze:
-                {
-                    var eyeGazeFrame = (EyeGaze)frame;
-                    if (!networkPlayers.TryGetValue(player.photonView.controllerActorNr, out var networkPlayer))
-                        return;
-
-                    networkPlayer.UpdateEyeTracking(eyeGazeFrame.GazePoint);
-
-                    break;
-                }
-
-                case FrameHelper.FrameRPC:
-                {
-                    var rpcFrame = (RPC)frame;
-
-                    if (!rpcHashcodes.TryGetValue(rpcFrame.TypeHash, out var methodHashes))
-                        return;
-
-                    if (!methodHashes.TryGetValue(rpcFrame.MethodHash, out var method))
-                        return;
-
-                    if (!rpcInstances.TryGetValue(player.photonView.controllerActorNr, out var instances))
-                        return;
-
-                    if (!instances.TryGetValue(rpcFrame.TypeHash, out var inst))
-                        return;
-                    
-                    method.Invoke(inst, rpcFrame.Arguments);
-
-                    break;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError($"Error while handling frame {frame.FrameID} ({frame.GetType().Name}): {ex.Message}");
-            Logger.LogError(ex.StackTrace);
-        }
-    }
-    
     // RPC stuff
 
     /// <summary>
@@ -300,34 +162,71 @@ public class NetworkSystem : MonoBehaviour
     /// <returns>Whether the RPC handler should be executed</returns>
     internal bool ExecuteRPC(MonoBehaviour behaviour, MethodBase method, object[] args, bool self)
     {
+        // If we're not in a multiplayer game, just either ignore the RPC or execute the handler if it's marked as self
+        if (!SemiFunc.IsMultiplayer())
+            return self;
+
         var typeHash = behaviour.GetType().GetNetworkHash();
         var methodHash = method.GetNetworkHash();
 
-        // Try get RPC PhotonView, if unknown, just continue execution
+        // Try get RPC PhotonView, erroring out if it's unknown
         if (!rpcViews.TryGetValue(behaviour, out var view))
-            return true;
+            throw new InvalidOperationException($"Attempt to execute RPC {method} while not initialized");
 
         // If we do not own the view we can just execute the RPC handler
         if (!view.IsMine)
             return true;
 
         // Dispatch RPC
-        EnqueueFrame(new RPC
+        EnqueueRPC(new RPCFrame
         {
-            TypeHash = typeHash,
-            MethodHash = methodHash,
-            Arguments = args
-        }, false);
+            typeHash = typeHash,
+            methodHash = methodHash,
+            arguments = args
+        });
 
         // If the RPC is marked as "self" the RPC handler should also be run on the sender
         return self;
+    }
+
+    private void HandleRPC(PlayerAvatar player, ulong typeHash, ulong methodHash, object[] args)
+    {
+        // Special case: TypeHash == 0 and MethodHash == 0 is an announcement frame
+        if (typeHash == 0 && methodHash == 0)
+        {
+            if (networkPlayers.ContainsKey(player.photonView.ControllerActorNr))
+                return;
+
+            var networkPlayer =
+                new GameObject($"VR Player Rig - {player.playerName}").AddComponent<NetworkPlayer>();
+            networkPlayer.playerAvatar = player;
+
+            networkPlayers.Add(player.photonView.ControllerActorNr, networkPlayer);
+            cachedPhotonIds.Add(player.photonView.ControllerActorNr);
+
+            return;
+        }
+
+        if (!rpcHashcodes.TryGetValue(typeHash, out var methodHashes))
+            return;
+
+        if (!methodHashes.TryGetValue(methodHash, out var method))
+            return;
+
+        if (!rpcInstances.TryGetValue(player.photonView.controllerActorNr, out var instances))
+            return;
+
+        if (!instances.TryGetValue(typeHash, out var inst))
+            return;
+
+        method.Invoke(inst, args);
     }
 
     // Internal stuff
 
     internal void ResetCache()
     {
-        scheduledFrames.Clear();
+        rpcBuffer.Clear();
         networkPlayers.Clear();
         cachedPhotonIds.Clear();
     }
@@ -340,34 +239,41 @@ public class NetworkSystem : MonoBehaviour
         cachedPhotonIds.Remove(actorNumber);
 
         // Clear view mappings for instances that have been destroyed
-        rpcViews.Keys.Where(k => k == null).Do(b => rpcViews.Remove(b));
+        rpcViews.Keys.Where(k => k == null).ToList().Do(b => rpcViews.Remove(b));
         rpcInstances.Remove(actorNumber);
     }
 
     internal void WriteAdditionalData(PhotonStream stream)
     {
         // Just don't send anything if we have nothing to say
-        if (scheduledFrames.Count == 0)
+        if (rpcBuffer.Count == 0)
             return;
 
         stream.SendNext(REPOXR_MAGIC);
         stream.SendNext(PROTOCOL_VERSION);
 
-        stream.SendNext(scheduledFrames.Count);
+        stream.SendNext(rpcBuffer.Count);
 
-        foreach (var frame in scheduledFrames)
+        foreach (var rpc in rpcBuffer)
         {
-            stream.SendNext(frame.FrameID);
-            frame.Serialize(stream);
+            stream.SendNext(unchecked((long)rpc.typeHash));
+            stream.SendNext(unchecked((long)rpc.methodHash));
+            stream.SendNext(rpc.arguments.Length);
+
+            foreach (var arg in rpc.arguments)
+                stream.SendNext(arg);
         }
 
-        scheduledFrames.Clear();
+        rpcBuffer.Clear();
     }
 
     internal void ReadAdditionalData(PlayerAvatar playerAvatar, PhotonStream stream)
     {
         try
         {
+            if (stream.currentItem >= stream.Count)
+                return;
+
             if ((long)stream.PeekNext() != REPOXR_MAGIC)
                 return;
 
@@ -376,14 +282,27 @@ public class NetworkSystem : MonoBehaviour
             if ((int)stream.ReceiveNext() != PROTOCOL_VERSION)
                 return;
 
-            var frameCount = (int)stream.ReceiveNext();
-            for (var i = 0; i < frameCount; i++)
-            {
-                var frameId = (int)stream.ReceiveNext();
-                var frame = FrameHelper.CreateFrame(frameId);
+            var rpcCount = (int)stream.ReceiveNext();
+            if (rpcCount > 32)
+                throw new InvalidOperationException("Too many RPCs during a single read");
 
-                frame.Deserialize(stream);
-                HandleFrame(playerAvatar, frame);
+            for (var i = 0; i < rpcCount; i++)
+            {
+                var typeHash = unchecked((ulong)(long)stream.ReceiveNext());
+                var methodHash = unchecked((ulong)(long)stream.ReceiveNext());
+                var args = new object[(int)stream.ReceiveNext()];
+
+                for (var j = 0; j < args.Length; j++)
+                    args[j] = stream.ReceiveNext();
+
+                try
+                {
+                    HandleRPC(playerAvatar, typeHash, methodHash, args);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning($"Exception during handling of RPC frame: {ex}");
+                }
             }
         }
         catch

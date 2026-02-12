@@ -86,15 +86,15 @@ internal static class Entrypoint
         loadingCanvas.transform.SetParent(Camera.main!.transform.parent, false);
         loadingCanvas.gameObject.AddComponent<UI.LoadingUI>();
         loadingCanvas.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 400); // For masking
-        
+
         loading.SetParent(loadingCanvas.transform, false);
-        
+
         // Moon UI stuff
         var moonMask = new GameObject("Moon Mask")
         {
             transform =
             {
-                parent = loadingCanvas.transform, 
+                parent = loadingCanvas.transform,
                 localScale = Vector3.one,
                 localPosition = Vector3.zero,
                 localRotation = Quaternion.identity
@@ -104,10 +104,10 @@ internal static class Entrypoint
 
         moon.SetParent(moonMask.transform, false);
         moon.localScale = Vector3.one * 0.8f;
-        
+
         splash.SetParent(loadingCanvas.transform, false);
         splash.SetAsFirstSibling(); // Prevent obscuring the loading UI
-        
+
         // Create custom camera (if enabled)
         if (Plugin.Config.CustomCamera.Value)
             Object.Instantiate(AssetCollection.CustomCamera, Camera.main.transform.parent);
@@ -131,7 +131,7 @@ internal static class Entrypoint
         if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu ||
             RunManager.instance.levelCurrent == RunManager.instance.levelSplashScreen)
             OnStartupMainMenu();
-        
+
         // We have to do some magic for the Lobby Menu level because of ✨late join✨
     }
 
@@ -154,9 +154,10 @@ internal static class Entrypoint
     private static void OnStartTruck(StartRoom __instance)
     {
         // The menu levels also have the truck so we should just ignore them
-        if (__instance.name is "Start Room - Main Menu(Clone)" or "Start Room - Lobby Menu(Clone)")
+        if (__instance.name is "Start Room - Main Menu(Clone)" or "Start Room - Lobby Menu(Clone)"
+            or "Start Room - Splash Screen(Clone)")
             return;
-        
+
         OnStartupInGame();
     }
 
@@ -214,7 +215,7 @@ internal static class UniversalEntrypoint
 
         hasShownErrorMessage = true;
         MenuManager.instance.PagePopUpScheduled("VR Startup Failed", Color.red,
-            "RepoXR tried to launch the game in VR, however an error occured during initialization.\n\nYou can disable VR in the settings if you are not planning to play in VR.",
+            "RepoXR tried to launch the game in VR, however an error occured during initialization.\n\nYou will still be able to play the game and make use of this mod's features, however you will not be in VR.\n\nYou can disable VR in the settings if you want to suppress this error in the future.",
             "Alright fam",
             true);
     }

@@ -1,8 +1,10 @@
-﻿using HarmonyLib;
-using Photon.Pun;
+﻿using System.Collections.Generic;
+using System.Reflection.Emit;
+using HarmonyLib;
 using RepoXR.Managers;
 using RepoXR.Player.Camera;
 using UnityEngine;
+using static HarmonyLib.AccessTools;
 
 namespace RepoXR.Patches;
 
@@ -105,21 +107,13 @@ internal static class CameraPatches
     /// Make sure to synchronize the VR camera transforms instead of only the aim transforms
     /// </summary>
     [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.OnPhotonSerializeView))]
-    [HarmonyPrefix]
-    private static bool CameraSerializeVRParams(PlayerLocalCamera __instance, PhotonStream stream,
-        PhotonMessageInfo info)
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> CameraSerializeVRParams(IEnumerable<CodeInstruction> instructions)
     {
-        if (!SemiFunc.MasterAndOwnerOnlyRPC(info, __instance.photonView))
-            return false;
-
-        if (!stream.IsWriting)
-            return true;
-
-        stream.SendNext(__instance.transform.position);
-        stream.SendNext(__instance.transform.rotation);
-        stream.SendNext(__instance.teleported);
-
-        return false;
+        return new CodeMatcher(instructions)
+            .MatchForward(false, new CodeMatch(OpCodes.Ldsfld, Field(typeof(CameraAim), nameof(CameraAim.Instance))))
+            .Repeat(matcher => matcher.SetOpcodeAndAdvance(OpCodes.Ldarg_0))
+            .InstructionEnumeration();
     }
 
     /// <summary>
