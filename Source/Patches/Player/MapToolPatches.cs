@@ -123,20 +123,6 @@ internal static class MapToolPatches
             )
             .InstructionEnumeration();
     }
-
-    /// <summary>
-    /// Because the map tool is always loaded in VR, we have to constantly call the
-    /// <see cref="DirtFinderCounter.OnEnable"/> method to properly handle the player map upgrade
-    /// </summary>
-    [HarmonyPatch(typeof(DirtFinderCounter), nameof(DirtFinderCounter.Update))]
-    [HarmonyPostfix]
-    private static void OnPlayerMapCountUpdate(DirtFinderCounter __instance)
-    {
-        // if (!SemiFunc.FPSImpulse5() || !__instance.isActiveAndEnabled)
-        //     return;
-        //
-        // __instance.OnEnable();
-    }
 }
 
 [RepoXRPatch(RepoXRPatchTarget.Universal)]

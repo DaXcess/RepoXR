@@ -282,7 +282,7 @@ public class VRRig : MonoBehaviour
         mapHeld = mapTool.Active;
 
         // Check for states that don't allow the map to be used
-        if (playerAvatar.isDisabled || playerAvatar.isTumbling || VRCameraAim.instance.IsActive || SemiFunc.MenuLevel())
+        if (playerAvatar.isDisabled || VRCameraAim.instance.IsActive || SemiFunc.MenuLevel())
         {
             mapTool.Active = false;
             return;
