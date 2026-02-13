@@ -150,14 +150,52 @@ public class NetworkPlayer : MonoBehaviour
         rightHandTarget.rotation =
             Quaternion.Slerp(rightHandTarget.rotation, rightHandRotation, 15 * Time.deltaTime);
 
-        if (!playerAvatar.isTumbling)
-        {
-            playerRightArm.rightArmTransform.LookAt(rightHandTarget.position);
-            playerLeftArm.leftArmTransform.LookAt(leftHandTarget.position);
-        }
+        UpdateArmFixed(playerRightArm.rightArmTransform, rightHandTarget, true);
+        UpdateArmFixed(playerLeftArm.leftArmTransform, leftHandTarget, false);
 
         leftHandAnchor.rotation = leftHandTarget.rotation;
         rightHandAnchor.rotation = rightHandTarget.rotation;
+    }
+
+    private void UpdateArmFixed(Transform armRoot, Transform target, bool isRight)
+    {
+        if (playerAvatar.isTumbling)
+        {
+            armRoot.localPosition = Vector3.Lerp(armRoot.localPosition, Vector3.zero, 15 * Time.deltaTime);
+            return;
+        }
+
+        var torso = playerAvatarVisuals.bodyTopUpTransform;
+        var center = torso.position;
+        var toTarget = target.position - center;
+        toTarget.y = 0f;
+
+        if (toTarget.sqrMagnitude < 0.0001f)
+            return;
+
+        toTarget.Normalize();
+
+        var localDir = torso.InverseTransformDirection(toTarget);
+        var targetAngle = Mathf.Atan2(localDir.x, localDir.z) * Mathf.Rad2Deg;
+
+        var baseAngle = isRight ? 90f : -90f;
+        var angleDelta = Mathf.DeltaAngle(baseAngle, targetAngle);
+        var inwardDelta = isRight ? -angleDelta : angleDelta;
+        var slideFactor = inwardDelta > 60 ? Mathf.Clamp01((inwardDelta - 60) / 30) : 0f;
+
+        var finalAngle = Mathf.Clamp(Mathf.LerpAngle(baseAngle, targetAngle, slideFactor), -140, 140);
+        var localShoulderDir = Quaternion.Euler(0f, finalAngle, 0f) * Vector3.forward;
+        var worldDir = torso.TransformDirection(localShoulderDir);
+
+        var desiredPos = center + worldDir * 0.275f;
+
+        armRoot.position = Vector3.Lerp(
+            armRoot.position,
+            desiredPos + 0.255f * Vector3.up,
+            Time.deltaTime * 15f
+        );
+
+        armRoot.LookAt(target);
     }
 
     private void LateUpdate()

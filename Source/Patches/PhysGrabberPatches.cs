@@ -145,7 +145,7 @@ internal static class PhysGrabberPatches
             .InstructionEnumeration();
     }
 
-    private static void GetRotationInput(ref float x, ref float y)
+    private static void GetRotationInput(out float x, out float y)
     {
         var input = Actions.Instance["Rotation"].ReadValue<Vector2>();
 

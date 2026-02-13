@@ -10,6 +10,7 @@
 - Left-handed mode now also swaps your controller bindings around
 - Left- and right-handed mode now both have separated controller binding overrides
 - Restructured mouse input patching so testing with UnityExplorer is easier
+- Made some changes to the arms in multiplayer
 - Reworked networking internals, should not affect gameplay
 
 **Removals**:
