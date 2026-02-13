@@ -142,13 +142,14 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<string> ControllerBindingsOverride { get; } = file.Create("Internal",
         nameof(ControllerBindingsOverride), "", "FOR INTERNAL USE ONLY, DO NOT EDIT");
 
+    public ConfigEntry<string> ControllerBindingsOverrideLeft { get; } = file.Create("Internal",
+        nameof(ControllerBindingsOverrideLeft), "", "FOR INTERNAL USE ONLY, DO NOT EDIT");
+
     public ConfigEntry<string> InputToggleBindings { get; } = file.Create("Internal", nameof(InputToggleBindings), "",
         "FOR INTERNAL USE ONLY, DO NOT EDIT");
 
     public ConfigEntry<string> OpenXRRuntimeFile { get; } = file.Create("Internal", nameof(OpenXRRuntimeFile), "",
         "FOR INTERNAL USE ONLY, DO NOT EDIT");
-
-    private static bool leftHandedWarningShown;
 
     /// <summary>
     /// Create persistent callbacks that persist for the entire duration of the application
@@ -169,18 +170,6 @@ public class Config(string assemblyPath, ConfigFile file)
                 Object.Instantiate(AssetCollection.CustomCamera, Camera.main!.transform.parent);
             else
                 Object.Destroy(VRCustomCamera.instance.gameObject);
-        };
-
-        LeftHandDominant.SettingChanged += (_, _) =>
-        {
-            if (!LeftHandDominant.Value || leftHandedWarningShown)
-                return;
-
-            leftHandedWarningShown = true;
-            MenuManager.instance.PagePopUpScheduled("Left Handed Notice", Color.yellow,
-                "Left handed mode does not change your default bindings. To set up proper bindings for left handed mode, change your bindings by going to\nSettings -> Controls",
-                "Will do", false);
-            MenuManager.instance.PagePopUpScheduledShow();
         };
     }
 
