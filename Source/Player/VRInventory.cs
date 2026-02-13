@@ -176,6 +176,11 @@ public class VRInventory : MonoBehaviour
         item.GetComponentsInChildren<MeshRenderer>().Do(mesh => mesh.shadowCastingMode = ShadowCastingMode.On);
     }
 
+    public void PingSlot(int index, float amount, float frequency, float time)
+    {
+        slots[index].Ping(amount, frequency, time);
+    }
+
     private static bool IsHoldingItem()
     {
         if (SemiFunc.RunIsArena() || PlayerController.instance.InputDisableTimer > 0)

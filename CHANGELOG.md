@@ -2,7 +2,7 @@
 
 **Additions**:
 - Added support for new valuable interactions
-- Added support for new level UI
+- Added support for new level UI in the map tool
 - Added support for the new walkie-talkie item
 - Added support for the new scooters
 
@@ -14,6 +14,7 @@
 
 **Removals**:
 - Removed F8 hotswapping completely
+- Removed support for v0.3.x
 
 # 1.1.2
 

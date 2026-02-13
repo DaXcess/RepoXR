@@ -220,6 +220,21 @@ internal static class InventoryPatches
         
         return __instance.itemEquippable.currentState != ItemEquippable.ItemState.Equipped;
     }
+
+    /// <summary>
+    /// Play an inventory animation if one of our items got pinged
+    /// </summary>
+    [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.RPC_SendPing))]
+    [HarmonyPostfix]
+    private static void OnInventoryPing(ItemEquippable __instance, float amount, float frequency, float time)
+    {
+        var isOwner = !SemiFunc.IsMultiplayer() || PhysGrabber.instance.photonView.ViewID == __instance.ownerPlayerId;
+        if (!isOwner || __instance.inventorySpotIndex == -1)
+            return;
+
+        VRSession.Instance.Player.Rig.inventoryController.PingSlot(__instance.inventorySpotIndex, amount, frequency,
+            time);
+    }
 }
 
 [RepoXRPatch(RepoXRPatchTarget.Universal)]
