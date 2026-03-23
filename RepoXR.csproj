@@ -7,7 +7,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Title>RepoXR</Title>
-        <Copyright>Copyright (c) DaXcess 2025</Copyright>
+        <Copyright>Copyright (c) DaXcess 2026</Copyright>
         <PackageProjectUrl>https://github.com/DaXcess/RepoXR</PackageProjectUrl>
         <RepositoryUrl>https://github.com/DaXcess/RepoXR</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
