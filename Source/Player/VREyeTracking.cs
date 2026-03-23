@@ -75,7 +75,7 @@ public class VREyeTracking : MonoBehaviour
     private static void OnEyeTrackingSettingChanged(object sender, EventArgs e)
     {
         if (!Plugin.Config.EnableEyeTracking.Value)
-            VRSession.Instance.Player.NetworkPlayer.DisableEyeTracking();
+            VRSession.Instance.Player.NetworkPlayer.DisableEyeTrackingRPC();
     }
 
     private void Update()
@@ -87,7 +87,7 @@ public class VREyeTracking : MonoBehaviour
         if (Time.realtimeSinceStartup - lastHardwareInput > 5)
         {
             supported = false;
-            VRSession.Instance.Player.NetworkPlayer.DisableEyeTracking();
+            VRSession.Instance.Player.NetworkPlayer.DisableEyeTrackingRPC();
             return;
         }
 

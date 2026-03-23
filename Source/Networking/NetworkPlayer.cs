@@ -229,11 +229,6 @@ public class NetworkPlayer : MonoBehaviour
         UpdateVehicleHeadForwardRPC(Plugin.Config.VehicleHeadForward.Value);
     }
 
-    public void DisableEyeTracking()
-    {
-        UpdateEyeTrackingRPC(Vector3.down * 1000);
-    }
-
     [XRRpc]
     public void UpdateRigRPC(Vector3 leftPosition, Quaternion leftRotation, Vector3 rightPosition,
         Quaternion rightRotation)
@@ -294,15 +289,14 @@ public class NetworkPlayer : MonoBehaviour
     [XRRpc]
     public void UpdateEyeTrackingRPC(Vector3 gazePoint)
     {
-        // (0, -1000, 0) is sent whenever eye tracking is disabled (or stopped working) during a session
-        if (gazePoint == Vector3.down * 1000)
-        {
-            EyeTracking = false;
-            return;
-        }
-
         EyeTracking = true;
         EyeGazePoint = gazePoint;
+    }
+
+    [XRRpc]
+    public void DisableEyeTrackingRPC()
+    {
+        EyeTracking = false;
     }
 
     [XRRpc(true)]
