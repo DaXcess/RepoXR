@@ -15,15 +15,6 @@ public class NetworkSystem : MonoBehaviour
     private const long REPOXR_MAGIC = 0x5245504F5852;
     private const int PROTOCOL_VERSION = 2;
 
-    private enum ControlCode : byte
-    {
-        Announce,
-        Rpc,
-
-        // ReSharper disable once InconsistentNaming
-        __max
-    }
-
     public static NetworkSystem instance;
 
     private readonly Dictionary<int, NetworkPlayer> networkPlayers = [];
