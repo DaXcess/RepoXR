@@ -76,7 +76,9 @@ internal static class ItemVehiclePatches
             .InstructionEnumeration();
     }
 
-    [HarmonyPatch(typeof(ItemVehicle), nameof(ItemVehicle.LateUpdate))]
+    // TODO: Should we override GetOverrideTransform in LocalMeshUpdate?
+    // Looks like LocalMeshUpdate does whatever LateUpdate did before, so we can maybe keep this code as-is
+    [HarmonyPatch(typeof(ItemVehicle), nameof(ItemVehicle.LocalMeshUpdate))]
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> LateUpdatePatch(IEnumerable<CodeInstruction> instructions)
     {
