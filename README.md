@@ -145,9 +145,6 @@ R.E.P.O. allows you to make your Semibot display a certain expression (or a comb
 
 RepoXR allows you to change your dominant hand, so you can swap your primary (grabbing) hand using a simple configuration setting. You can change this option at any time, whether you're in the main menu, or being chased by a Headman (hypothetically).
 
-> [!WARNING]
-> Changing your dominant hand **will not** update your bindings. You will have to manually rebind the controls in the settings menu to your preferred controls if you decide to change your dominant hand.
-
 # Eye Tracking
 
 If your headset supports it, you can make use of eye tracking when using the VR mod. Eye tracking alters mechanics in both singleplayer and multiplayer, so nobody is left out!
