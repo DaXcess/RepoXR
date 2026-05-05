@@ -145,7 +145,11 @@ public class VRPlayer : MonoBehaviour
     private void Update()
     {
         HandleTurning();
-        
+
+        cameraPosition.additionalOffset = -(mainCamera.transform.parent.rotation *
+                                            new Vector3(mainCamera.localPosition.x, 0,
+                                                mainCamera.localPosition.z)); // Will make the game run like 3-DoF
+
         // Timers
         if (disableRotateTimer > 0)
             disableRotateTimer -= Time.deltaTime;
@@ -173,15 +177,6 @@ public class VRPlayer : MonoBehaviour
     public void DisableGrabRotate(float time)
     {
         disableRotateTimer = time;
-    }
-    
-    public void SetColor(int colorIndex, Color color = default)
-    {
-        var customColor = colorIndex == -1;
-        if (!customColor)
-            color = AssetManager.instance.playerColors[colorIndex];
-
-        localRig.SetColor(color);
     }
 
     private void ResetHeight()
@@ -218,9 +213,6 @@ public class VRPlayer : MonoBehaviour
         var headPosition = mainCamera.transform.localPosition;
         var movement = new Vector3(headPosition.x - lastPosition.x, 0, headPosition.z - lastPosition.z);
 
-        cameraPosition.additionalOffset = -(mainCamera.transform.parent.rotation *
-                                            new Vector3(mainCamera.localPosition.x, 0,
-                                                mainCamera.localPosition.z)); // Will make the game run like 3-DoF
         PlayerController.instance.rb.MovePosition(PlayerController.instance.rb.transform.position +
                                                   mainCamera.transform.parent.rotation *
                                                   movement); // Will make the game run like 6-DoF again

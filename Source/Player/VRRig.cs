@@ -18,11 +18,11 @@ namespace RepoXR.Player;
 
 public class VRRig : MonoBehaviour
 {
-    private static readonly int AlbedoColor = Shader.PropertyToID("_AlbedoColor");
     private static readonly int HurtColor = Shader.PropertyToID("_ColorOverlayAmount");
     private static readonly int HurtAmount = Shader.PropertyToID("_ColorOverlayAmount");
-    
-    public MeshRenderer[] meshes;
+
+    public MeshRenderer leftArmMesh;
+    public MeshRenderer rightArmMesh;
 
     public Transform head;
     public Transform leftArm;
@@ -58,8 +58,8 @@ public class VRRig : MonoBehaviour
 
     private bool armsDetached;
 
-    private Transform leftArmMesh;
-    private Transform rightArmMesh;
+    private Transform leftArmMeshTransform;
+    private Transform rightArmMeshTransform;
 
     private VRPlayer player;
     private PlayerAvatar playerAvatar;
@@ -78,8 +78,8 @@ public class VRRig : MonoBehaviour
     
     private void Awake()
     {
-        leftArmMesh = leftArm.GetComponentInChildren<MeshRenderer>().transform;
-        rightArmMesh = rightArm.GetComponentInChildren<MeshRenderer>().transform;
+        leftArmMeshTransform = leftArmMesh.transform.parent;
+        rightArmMeshTransform = rightArmMesh.transform.parent;
         
         // Load persisted data
         headlampEnabled = DataManager.instance.headlampEnabled;
@@ -217,11 +217,11 @@ public class VRRig : MonoBehaviour
             rightArm.LookAt(rightArmTarget.position);
         }
         
-        leftArmMesh.localEulerAngles = Vector3.up * 90;
-        rightArmMesh.localEulerAngles = Vector3.down * 90;
+        leftArmMeshTransform.localEulerAngles = Vector3.up * 90;
+        rightArmMeshTransform.localEulerAngles = Vector3.down * 90;
         
-        leftArmMesh.Rotate(Vector3.left, leftArmTarget.localEulerAngles.z);
-        rightArmMesh.Rotate(Vector3.right, rightArmTarget.localEulerAngles.z);
+        leftArmMeshTransform.Rotate(Vector3.left, leftArmTarget.localEulerAngles.z);
+        rightArmMeshTransform.Rotate(Vector3.right, rightArmTarget.localEulerAngles.z);
 
         leftHandTip.rotation = leftArmTarget.rotation;
         rightHandTip.rotation = rightArmTarget.rotation;
@@ -465,30 +465,34 @@ public class VRRig : MonoBehaviour
     
     public void SetVisible(bool visible)
     {
-        foreach (var mesh in meshes)
-            mesh.enabled = visible;
+        leftArmMeshTransform.gameObject.SetActive(visible);
+        rightArmMeshTransform.gameObject.SetActive(visible);
 
         infoHud.gameObject.SetActive(visible);
         map.gameObject.SetActive(visible);
         inventory.gameObject.SetActive(visible);
     }
-    
-    public void SetColor(Color color)
+
+    public void SetLeftArmColor(int nameId, Color color)
     {
-        foreach (var mesh in meshes)
-            mesh.sharedMaterial.SetColor(AlbedoColor, color);
+        leftArmMesh.material.SetColor(nameId, color);
+    }
+
+    public void SetRightArmColor(int nameId, Color color)
+    {
+        rightArmMesh.material.SetColor(nameId, color);
     }
 
     public void SetHurtColor(Color color)
     {
-        foreach (var mesh in meshes)
-            mesh.sharedMaterial.SetColor(HurtColor, color);
+        leftArmMesh.material.SetColor(HurtColor, color);
+        rightArmMesh.material.SetColor(HurtColor, color);
     }
 
     public void SetHurtAmount(float amount)
     {
-        foreach (var mesh in meshes)
-            mesh.sharedMaterial.SetFloat(HurtAmount, amount);
+        leftArmMesh.material.SetFloat(HurtAmount, amount);
+        rightArmMesh.material.SetFloat(HurtAmount, amount);
     }
     
     // Event handlers

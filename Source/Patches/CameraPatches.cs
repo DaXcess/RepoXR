@@ -18,11 +18,8 @@ internal static class CameraPatches
     [HarmonyPrefix]
     private static void DisableTargetTextureOverride(Camera __instance, ref RenderTexture? value)
     {
-        // We make an exception for our manually rendered custom camera
-        if (__instance.name.StartsWith("Custom Camera"))
-            return;
-
-        value = null;
+        if (__instance.name is "Camera Overlay" or "Camera Main")
+            value = null;
     }
 
     /// <summary>
@@ -127,5 +124,16 @@ internal static class CameraPatches
                    (__instance.playerAvatar.isLocal && VRCameraPosition.instance.overridePositionActive);
 
         return false;
+    }
+
+    /// <summary>
+    /// Force disable preview camera when the menu avatar is destroyed as the game thinks the preview camera is the
+    /// main camera, causing a brief flicker between the preview camera and the main camera
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerAvatarMenuHover), nameof(PlayerAvatarMenuHover.OnDestroy))]
+    [HarmonyPostfix]
+    private static void DisableMenuPlayerCamera(PlayerAvatarMenuHover __instance)
+    {
+        if (__instance.renderTextureInstance && __instance.previewCamera) __instance.previewCamera.enabled = false;
     }
 }

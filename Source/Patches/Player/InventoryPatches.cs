@@ -34,7 +34,7 @@ internal static class InventoryPatches
             [
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldfld,
-                    Field(Inner(typeof(ItemEquippable), "<AnimateEquip>d__54"), "<>4__this"))
+                    Field(Inner(typeof(ItemEquippable), "<AnimateEquip>d__55"), "<>4__this"))
             ]
             : [new CodeInstruction(OpCodes.Ldloc_1)];
 
@@ -69,7 +69,7 @@ internal static class InventoryPatches
             [
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldfld,
-                    Field(Inner(typeof(ItemEquippable), "<AnimateUnequip>d__52"), "<>4__this"))
+                    Field(Inner(typeof(ItemEquippable), "<AnimateUnequip>d__53"), "<>4__this"))
             ]
             : [new CodeInstruction(OpCodes.Ldloc_1)];
 

@@ -65,7 +65,7 @@ internal static class TutorialPatches
             [
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldfld,
-                    Field(Inner(typeof(TutorialUI), "<SwitchPage>d__30"), "<>4__this"))
+                    Field(Inner(typeof(TutorialUI), "<SwitchPage>d__34"), "<>4__this"))
             ]
             : [new CodeInstruction(OpCodes.Ldloc_1)];
 
@@ -97,21 +97,16 @@ internal static class TutorialPatches
         var map = __instance.tutorialPages[12];
         var expressions = __instance.tutorialPages[25];
 
-        inventoryFill.text =
-            "Grab an Item and deposit it in one of the slots in front of you to put it in your inventory.";
-        inventoryFill.dummyText =
-            "Grab ([grab]) an item, hold it and deposit it in one of the three slots in front of you. Fill all spots in your inventory to complete the progress bar!";
+        inventoryFill.localizedText = Utils.L("TUTORIAL.INVENTORY_FILL.TEXT");
+        inventoryFill.localizedDummyText = Utils.L("TUTORIAL.INVENTORY_FILL.DUMMY_TEXT");
 
-        inventoryEmpty.text = "Use [grab] with your right hand to take an item out of your inventory.";
-        inventoryEmpty.dummyText =
-            "Use [grab] while holding your right hand over an item in your inventory, and empty all spots to fill the progress bar!";
+        inventoryEmpty.localizedText = Utils.L("TUTORIAL.INVENTORY_EMPTY.TEXT");
+        inventoryEmpty.localizedDummyText = Utils.L("TUTORIAL.INVENTORY_EMPTY.DUMMY_TEXT");
 
-        map.text =
-            "Use [MapGrabLeft] or [MapGrabRight] to grab and view the map. The map is <b><u>important</b></u> for navigation.";
-        map.dummyText =
-            "Use your left ([MapGrabLeft]) or right ([MapGrabRight]) hand and press the respective button to pick up and view the map until you have filled the progress bar!";
+        map.localizedText = Utils.L("TUTORIAL.MAP.TEXT");
+        map.localizedDummyText = Utils.L("TUTORIAL.MAP.DUMMY_TEXT");
 
-        expressions.text = "Press and hold the [chat] button open the expressions wheel. You can even mix!";
+        expressions.localizedText = Utils.L("TUTORIAL.EXPRESSIONS.TEXT");
     }
 
     /// <summary>

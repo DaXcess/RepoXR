@@ -14,9 +14,17 @@ internal static class Experiments
     private static void InfiniteSprintPatch(PlayerController __instance)
     {
         __instance.EnergyCurrent = __instance.EnergyStart;
+    }
 
-        var script = PlayerController.instance?.playerAvatarScript;
-        if (script != null) script.upgradeTumbleClimb = 100;
+    [HarmonyPatch(typeof(ResultScreenUI), nameof(ResultScreenUI.StateFadeIn))]
+    [HarmonyPrefix]
+    private static void HmmYesCosmetics(ResultScreenUI __instance)
+    {
+        if (!__instance.stateImpulse) return;
+
+        RoundDirector.instance.cosmeticWorldObjectsExtracted.AddRange([
+            SemiFunc.Rarity.Common, SemiFunc.Rarity.Common, SemiFunc.Rarity.Uncommon
+        ]);
     }
 
     [HarmonyPatch(typeof(SpectateCamera), nameof(SpectateCamera.HeadEnergyLogic))]

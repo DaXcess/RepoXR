@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RepoXR.Input;
@@ -98,7 +99,27 @@ internal static class UIPatches
             .MatchForward(false,
                 new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(Transform), nameof(Transform.position))))
             .SetOperandAndAdvance(PropertyGetter(typeof(Transform), nameof(Transform.localPosition)))
+            // Fix scrollrect masking
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Call,
+                    Method(typeof(RectTransformUtility), nameof(RectTransformUtility.RectangleContainsScreenPoint),
+                        [typeof(RectTransform), typeof(Vector2), typeof(Camera)])))
+            .SetOperandAndAdvance(((Func<RectTransform, Vector2, Camera, bool>)RectangleContainsCanvasPoint).Method)
+            // Prevent some world check from failing when rotated by 180 degrees
+            .SearchBack(instr => instr.opcode == OpCodes.Brfalse)
+            .SetOpcodeAndAdvance(OpCodes.Br)
+            .Advance(-1) // pop bool from stack before branch
+            .Insert(new CodeInstruction(OpCodes.Pop))
             .InstructionEnumeration();
+
+        static bool RectangleContainsCanvasPoint(RectTransform viewport, Vector2 localPos, Camera _unused)
+        {
+            var canvasTransform = viewport.GetComponentInParent<Canvas>().transform;
+            var worldPoint = canvasTransform.TransformPoint(new Vector3(localPos.x, localPos.y, 0));
+            var viewportLocal = viewport.InverseTransformPoint(worldPoint);
+
+            return viewport.rect.Contains(new Vector2(viewportLocal.x, viewportLocal.y));
+        }
     }
 
     /// <summary>
@@ -285,6 +306,17 @@ internal static class UIPatches
     private static void HideCustomCameraTumble()
     {
         CustomTumbleUI.instance?.Hide();
+    }
+
+    /// <summary>
+    /// Also forward tumble disable override to the custom tumble UI (if used)
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerTumble), nameof(PlayerTumble.OverrideTumbleUIDisable))]
+    [HarmonyPostfix]
+    private static void OverrideCustomTumbleUI(PlayerTumble __instance, float _time)
+    {
+        if (__instance.playerAvatar.isLocal)
+            CustomTumbleUI.instance?.HideOverride(_time);
     }
 
     /// <summary>

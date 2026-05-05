@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using HarmonyLib;
+using RepoXR.Assets;
 using RepoXR.Managers;
 using RepoXR.Networking;
 using Steamworks;
@@ -192,6 +193,11 @@ internal static class Utils
         baseColor.a = alpha;
         return baseColor;
     }
+
+    /// <summary>
+    /// Resolve a translation key to it's localized value
+    /// </summary>
+    public static LocalizedAsset L(string name) => AssetCollection.GetLocalizedAsset(name).WaitForCompletion();
 
     public class WaitUntilTimeout(Func<bool> predicate, float timeout) : CustomYieldInstruction
     {

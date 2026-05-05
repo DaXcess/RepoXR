@@ -97,6 +97,10 @@ internal static class PhysGrabberPatches
         if (!__instance.isLocal)
             return;
 
+        // Do not provide haptic feedback if we're being forced to hold something
+        if (__instance.overrideGrabTimer > 0)
+            return;
+
         var grabbed = __instance.grabbed
             ? AssetCollection.GrabberHapticCurve.EvaluateTimed(__instance.loopSound.Source.pitch * 1.12667f) * 0.1f
             : 0;
@@ -249,8 +253,8 @@ internal static class PhysGrabberUniversalPatches
     {
         return new CodeMatcher(instructions)
             .MatchForward(false,
-                new CodeMatch(OpCodes.Stloc_2))
-            .Advance(-2)
+                new CodeMatch(OpCodes.Call, Method(typeof(Quaternion), nameof(Quaternion.Angle))))
+            .Advance(-5)
             .SetAndAdvance(OpCodes.Call, ((Func<PhysGrabber, Quaternion>)GetRotation).Method)
             .RemoveInstruction()
             .InstructionEnumeration();

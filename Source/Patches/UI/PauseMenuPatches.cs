@@ -63,19 +63,6 @@ internal static class PauseMenuPatches
         
         session.HUD.ResumeGame();
     }
-
-    /// <summary>
-    /// In the pause menu, the color menu closes the entire pause menu when done, so we detect this as well
-    /// </summary>
-    [HarmonyPatch(typeof(MenuPageColor), nameof(MenuPageColor.ConfirmButton))]
-    [HarmonyPrefix]
-    private static void OnColorMenuClose()
-    {
-        if (VRSession.Instance is not { } session)
-            return;
-        
-        session.HUD.ResumeGame();
-    }
     
     /// <summary>
     /// Close the main menu if the outro is starting (meaning we're leaving the game)

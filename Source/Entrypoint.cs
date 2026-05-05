@@ -32,6 +32,7 @@ internal static class Entrypoint
         var loading = canvas.Find("Loading");
         var moon = canvas.Find("Moon UI");
         var splash = canvas.Find("Splash Screen");
+        var result = canvas.Find("Result Screen");
 
         // The overlay camera is always in the same position in the hierarchy, in every scene
         var overlayCamera = canvas.parent.Find("Camera Overlay").GetComponent<Camera>();
@@ -104,6 +105,21 @@ internal static class Entrypoint
 
         moon.SetParent(moonMask.transform, false);
         moon.localScale = Vector3.one * 0.8f;
+
+        // Result screen stuff (Cosmetic tokens)
+        var resultMask = new GameObject("Result Mask")
+        {
+            transform =
+            {
+                parent = loadingCanvas.transform,
+                localScale = Vector3.one,
+                localPosition = Vector3.zero,
+                localRotation = Quaternion.identity
+            }
+        }.AddComponent<RectMask2D>().GetComponent<RectTransform>();
+        resultMask.sizeDelta = new Vector2(720, 405);
+
+        result.SetParent(resultMask.transform, false);
 
         splash.SetParent(loadingCanvas.transform, false);
         splash.SetAsFirstSibling(); // Prevent obscuring the loading UI

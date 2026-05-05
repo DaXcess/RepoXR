@@ -119,6 +119,10 @@ internal static class CameraZoomPatches
     [HarmonyPostfix]
     private static void OnCameraZoomCreated(CameraZoom __instance)
     {
+        // CameraZoom may be used on menu avatar cameras
+        if (__instance.name != "Camera Controller")
+            return;
+
         __instance.enabled = false;
         __instance.gameObject.AddComponent<VRCameraZoom>();
     }
