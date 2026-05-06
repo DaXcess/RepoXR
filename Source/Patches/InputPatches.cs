@@ -404,9 +404,4 @@ internal static class InputPatches
     }
 
     #endregion
-
-    // TODO: Old Unity UI hooks have been removed, find patches for (if needed):
-    //  - Button.OnPointerClick
-    //  - Input.GetMouseButtonDown
-    //  - Input.GetMouseButton
 }

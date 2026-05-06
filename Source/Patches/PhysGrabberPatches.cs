@@ -141,7 +141,7 @@ internal static class PhysGrabberPatches
             .MatchForward(false, new CodeMatch(OpCodes.Ldstr, "Mouse X"))
             .RemoveInstructions(10)
             .Insert(
-                // TODO: Check these operands in Debug vs Release builds
+                // TESTER: Check these operands in Debug vs Release builds
                 new CodeInstruction(OpCodes.Ldloca_S, Debug.isDebugBuild ? 13 : 5), // Mouse X
                 new CodeInstruction(OpCodes.Ldloca_S, Debug.isDebugBuild ? 14 : 6), // Mouse Y
                 new CodeInstruction(OpCodes.Call, Method(typeof(PhysGrabberPatches), nameof(GetRotationInput)))

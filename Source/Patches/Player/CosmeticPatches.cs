@@ -61,30 +61,21 @@ internal static class CosmeticPatches
     private static IEnumerable<CodeInstruction> InstantiateCosmeticVRPatch(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
-            .MatchForward(true, new CodeMatch(OpCodes.Call, Method(typeof(PlayerCosmetics), nameof(PlayerCosmetics.InstantiateCosmetic))))
+            .MatchForward(true,
+                new CodeMatch(OpCodes.Call,
+                    Method(typeof(PlayerCosmetics), nameof(PlayerCosmetics.InstantiateCosmetic))))
             .Advance(1)
-            .InsertAndAdvance(Emit())
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_0), // this
+                new CodeInstruction(OpCodes.Ldloc_S, Debug.isDebugBuild ? 24 : 14), // locals0
+                new CodeInstruction(OpCodes.Ldfld,
+                    Field(Inner(typeof(PlayerCosmetics), "<>c__DisplayClass57_0"),
+                        "_cosmeticAsset")), // _cosmeticAsset,
+                new CodeInstruction(OpCodes.Ldloc_1), // _newEquipped
+                new CodeInstruction(OpCodes.Call,
+                    ((Action<PlayerCosmetics, CosmeticAsset, List<Cosmetic>>)InstantiateCosmeticVR).Method)
+            )
             .InstructionEnumeration();
-
-        static IEnumerable<CodeInstruction> Emit()
-        {
-            yield return new CodeInstruction(OpCodes.Ldarg_0); // this
-
-            if (Debug.isDebugBuild)
-            {
-                yield return new CodeInstruction(OpCodes.Ldloc_S, (byte)24); // locals0
-                yield return new CodeInstruction(OpCodes.Ldfld,
-                    Field(Inner(typeof(PlayerCosmetics), "<>c__DisplayClass57_0"), "_cosmeticAsset")); // _cosmeticAsset
-                yield return new CodeInstruction(OpCodes.Ldloc_1); // _newEquipped
-            }
-            else
-            {
-                throw new NotImplementedException("Find correct instructions for release build");
-            }
-
-            yield return new CodeInstruction(OpCodes.Call,
-                ((Action<PlayerCosmetics, CosmeticAsset, List<Cosmetic>>)InstantiateCosmeticVR).Method);
-        }
     }
 
     private static void InstantiateCosmeticVR(PlayerCosmetics cosmetics, CosmeticAsset cosmeticAsset, List<Cosmetic> newEquipped)
