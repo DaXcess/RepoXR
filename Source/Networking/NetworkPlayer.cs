@@ -1,5 +1,6 @@
-﻿using RepoXR.Networking.Frames;
+﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace RepoXR.Networking;
 
@@ -7,23 +8,23 @@ namespace RepoXR.Networking;
 public class NetworkPlayer : MonoBehaviour
 {
     internal PlayerAvatar playerAvatar;
-    
+
     private PlayerAvatarVisuals playerAvatarVisuals;
     private PlayerAvatarLeftArm playerLeftArm;
     private PlayerAvatarRightArm playerRightArm;
 
     private FlashlightController flashlight;
     private MapToolController mapTool;
-    
+
     private Transform rigContainer;
     private Transform leftHandTarget;
     private Transform rightHandTarget;
-    
+
     private Transform leftHandAnchor;
     private Transform rightHandAnchor;
 
     private Transform headlampTransform;
-    
+
     private Vector3 leftHandPosition;
     private Vector3 rightHandPosition;
 
@@ -33,7 +34,7 @@ public class NetworkPlayer : MonoBehaviour
     public Transform PrimaryHand => isLeftHanded ? leftHandTarget : rightHandTarget;
 
     private bool networkReady;
-    
+
     private bool isLeftHanded;
     private bool isMapLeftHanded;
     private bool isHeadlampEnabled;
@@ -41,9 +42,23 @@ public class NetworkPlayer : MonoBehaviour
     // Eye tracking
     public bool EyeTracking { get; private set; }
     public Vector3 EyeGazePoint { get; private set; }
-    
+
+    // Other properties
+    public bool VehicleHeadForward { get; private set; }
+
     private void Start()
     {
+        NetworkSystem.instance.RegisterRPCBehaviour(this, playerAvatar.photonView);
+
+        if (playerAvatar.isLocal)
+        {
+            Plugin.Config.VehicleHeadForward.SettingChanged += OnVehicleHeadForwardChanged;
+
+            // Can still call RPCs, but we disable this component locally
+            enabled = false;
+            return;
+        }
+
         playerAvatarVisuals = playerAvatar.playerAvatarVisuals;
         playerLeftArm = playerAvatarVisuals.GetComponent<PlayerAvatarLeftArm>();
         playerRightArm = playerAvatarVisuals.GetComponent<PlayerAvatarRightArm>();
@@ -80,21 +95,25 @@ public class NetworkPlayer : MonoBehaviour
             {
                 transform =
                 {
-                    parent = playerAvatarVisuals.attachPointTopHeadMiddle, 
+                    parent = playerAvatarVisuals.attachPointTopHeadMiddle,
                     localPosition = new Vector3(isLeftHanded ? 0.21f : -0.21f, 0.1f, 0)
                 }
             }
             .transform;
-        
+
         // Re-parent tools and grabber
 
         var playerRoot = playerAvatar.transform.parent;
-        
+
         flashlight = playerRoot.GetComponentInChildren<FlashlightController>(true);
         flashlight.transform.parent = transform;
         flashlight.transform.localScale = Vector3.one * flashlight.hiddenScale;
         flashlight.transform.localPosition = Vector3.zero;
         flashlight.transform.localRotation = Quaternion.identity;
+
+        // Fix flashlight shadows
+        flashlight.meshShadows.gameObject.SetActive(false);
+        flashlight.mesh.shadowCastingMode = ShadowCastingMode.On;
 
         mapTool = playerRoot.GetComponentInChildren<MapToolController>(true);
         mapTool.transform.parent.parent = transform;
@@ -118,7 +137,7 @@ public class NetworkPlayer : MonoBehaviour
             enabled = false;
             return;
         }
-        
+
         transform.position = playerAvatarVisuals.transform.position;
 
         leftHandTarget.position =
@@ -131,21 +150,59 @@ public class NetworkPlayer : MonoBehaviour
         rightHandTarget.rotation =
             Quaternion.Slerp(rightHandTarget.rotation, rightHandRotation, 15 * Time.deltaTime);
 
-        if (!playerAvatar.isTumbling)
-        {
-            playerRightArm.rightArmTransform.LookAt(rightHandTarget.position);
-            playerLeftArm.leftArmTransform.LookAt(leftHandTarget.position);
-        }
+        UpdateArmFixed(playerRightArm.rightArmTransform, rightHandTarget, true);
+        UpdateArmFixed(playerLeftArm.leftArmTransform, leftHandTarget, false);
 
         leftHandAnchor.rotation = leftHandTarget.rotation;
         rightHandAnchor.rotation = rightHandTarget.rotation;
+    }
+
+    private void UpdateArmFixed(Transform armRoot, Transform target, bool isRight)
+    {
+        if (playerAvatar.isTumbling)
+        {
+            armRoot.localPosition = Vector3.Lerp(armRoot.localPosition, Vector3.zero, 15 * Time.deltaTime);
+            return;
+        }
+
+        var torso = playerAvatarVisuals.bodyTopUpTransform;
+        var center = torso.position;
+        var toTarget = target.position - center;
+        toTarget.y = 0f;
+
+        if (toTarget.sqrMagnitude < 0.0001f)
+            return;
+
+        toTarget.Normalize();
+
+        var localDir = torso.InverseTransformDirection(toTarget);
+        var targetAngle = Mathf.Atan2(localDir.x, localDir.z) * Mathf.Rad2Deg;
+
+        var baseAngle = isRight ? 90f : -90f;
+        var angleDelta = Mathf.DeltaAngle(baseAngle, targetAngle);
+        var inwardDelta = isRight ? -angleDelta : angleDelta;
+        var slideFactor = inwardDelta > 60 ? Mathf.Clamp01((inwardDelta - 60) / 30) : 0f;
+
+        var finalAngle = Mathf.Clamp(Mathf.LerpAngle(baseAngle, targetAngle, slideFactor), -140, 140);
+        var localShoulderDir = Quaternion.Euler(0f, finalAngle, 0f) * Vector3.forward;
+        var worldDir = torso.TransformDirection(localShoulderDir);
+
+        var desiredPos = center + worldDir * 0.275f;
+
+        armRoot.position = Vector3.Lerp(
+            armRoot.position,
+            desiredPos + 0.255f * Vector3.up,
+            Time.deltaTime * 15f
+        );
+
+        armRoot.LookAt(target);
     }
 
     private void LateUpdate()
     {
         // Update flashlight transform (only if headlamp is disabled)
         var anchor = isLeftHanded ? rightHandAnchor : leftHandAnchor;
-     
+
         if (!isHeadlampEnabled)
         {
             flashlight.transform.position = anchor.position;
@@ -159,44 +216,62 @@ public class NetworkPlayer : MonoBehaviour
         mapTool.transform.parent.rotation = anchor.rotation;
     }
 
-    public void HandleRigFrame(Rig rigFrame)
+    private void OnDestroy()
     {
-        leftHandPosition = rigFrame.LeftPosition;
-        leftHandRotation = rigFrame.LeftRotation;
+        if (!playerAvatar.isLocal)
+            return;
 
-        rightHandPosition = rigFrame.RightPosition;
-        rightHandRotation = rigFrame.RightRotation;
+        Plugin.Config.VehicleHeadForward.SettingChanged -= OnVehicleHeadForwardChanged;
     }
 
-    public void HandleMapFrame(MapTool mapFrame)
+    private void OnVehicleHeadForwardChanged(object sender, EventArgs e)
     {
-        isMapLeftHanded = mapFrame.LeftHanded;
-        
+        UpdateVehicleHeadForwardRPC(Plugin.Config.VehicleHeadForward.Value);
+    }
+
+    [XRRpc]
+    public void UpdateRigRPC(Vector3 leftPosition, Quaternion leftRotation, Vector3 rightPosition,
+        Quaternion rightRotation)
+    {
+        leftHandPosition = leftPosition;
+        leftHandRotation = leftRotation;
+
+        rightHandPosition = rightPosition;
+        rightHandRotation = rightRotation;
+    }
+
+    [XRRpc]
+    public void UpdateMapRPC(bool leftHanded, bool hideFlashlight)
+    {
+        isMapLeftHanded = leftHanded;
+
         if (!networkReady)
             return;
-        
-        flashlight.hideFlashlight = mapFrame.HideFlashlight;
+
+        flashlight.hideFlashlight = hideFlashlight;
     }
 
-    public void HandleHeadlamp(bool headlampEnabled)
+    [XRRpc]
+    public void UpdateHeadlampRPC(bool headlampEnabled)
     {
         isHeadlampEnabled = headlampEnabled;
 
         if (!networkReady)
             return;
-        
+
         flashlight.transform.SetParent(headlampEnabled ? headlampTransform : transform);
         flashlight.transform.localPosition = Vector3.zero;
         flashlight.transform.localRotation = Quaternion.identity;
     }
 
-    public void UpdateDominantHand(bool leftHanded)
+    [XRRpc]
+    public void UpdateDominantHandRPC(bool leftHanded)
     {
         isLeftHanded = leftHanded;
 
         if (!networkReady)
             return;
-        
+
         flashlight.transform.parent = isHeadlampEnabled ? headlampTransform : transform;
         flashlight.transform.localScale = Vector3.one * flashlight.hiddenScale;
         flashlight.transform.localPosition = Vector3.zero;
@@ -211,16 +286,22 @@ public class NetworkPlayer : MonoBehaviour
         playerRightArm.physGrabBeam.PhysGrabPointOrigin.localPosition = Vector3.zero;
     }
 
-    public void UpdateEyeTracking(Vector3 gazePoint)
+    [XRRpc]
+    public void UpdateEyeTrackingRPC(Vector3 gazePoint)
     {
-        // (0, -1000, 0) is sent whenever eye tracking is disabled (or stopped working) during a session
-        if (gazePoint == Vector3.down * 1000)
-        {
-            EyeTracking = false;
-            return;
-        }
-
         EyeTracking = true;
         EyeGazePoint = gazePoint;
+    }
+
+    [XRRpc]
+    public void DisableEyeTrackingRPC()
+    {
+        EyeTracking = false;
+    }
+
+    [XRRpc(true)]
+    public void UpdateVehicleHeadForwardRPC(bool headForward)
+    {
+        VehicleHeadForward = headForward;
     }
 }

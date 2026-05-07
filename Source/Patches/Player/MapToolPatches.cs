@@ -33,7 +33,8 @@ internal static class MapToolPatches
     {
         return new CodeMatcher(instructions)
             .Start()
-            .RemoveInstructions(Debug.isDebugBuild ? 147 : 89)
+            .MatchForward(false, new CodeMatch(OpCodes.Ldloc_0))
+            .Set(OpCodes.Ldc_I4_0, null)
             .InstructionEnumeration();
     }
 
@@ -121,20 +122,6 @@ internal static class MapToolPatches
             )
             .InstructionEnumeration();
     }
-
-    /// <summary>
-    /// Because the map tool is always loaded in VR, we have to constantly call the
-    /// <see cref="DirtFinderCounter.OnEnable"/> method to properly handle the player map upgrade
-    /// </summary>
-    [HarmonyPatch(typeof(DirtFinderCounter), nameof(DirtFinderCounter.Update))]
-    [HarmonyPostfix]
-    private static void OnPlayerMapCountUpdate(DirtFinderCounter __instance)
-    {
-        if (!SemiFunc.FPSImpulse5() || !__instance.isActiveAndEnabled)
-            return;
-        
-        __instance.OnEnable();
-    }
 }
 
 [RepoXRPatch(RepoXRPatchTarget.Universal)]
@@ -147,48 +134,66 @@ internal static class UniversalMapToolPatches
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> MapToolTransformPatch(IEnumerable<CodeInstruction> instructions)
     {
-        var shouldMutate = new CodeInstruction(OpCodes.Call, ((Func<PhotonView, bool>)ShouldMutateTransforms).Method);
+        var isLocalOrVRPlayerInstr =
+            new CodeInstruction(OpCodes.Call, ((Func<bool, PhotonView, bool>)IsLocalOrVRPlayer).Method);
+        var isLocalPlayerMatch = new CodeMatch(OpCodes.Ldloc_0);
 
-        return Debug.isDebugBuild
-            ? new CodeMatcher(instructions)
-                .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 90f))
-                .SetAndAdvance(OpCodes.Ldarg_0, null)
-                .Insert(new CodeInstruction(OpCodes.Call, ((Func<MapToolController, float>)GetHoldAngle).Method))
-                .MatchForward(false,
-                    new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
-                .SetInstructionAndAdvance(shouldMutate)
-                .MatchForward(false,
-                    new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
-                .SetInstructionAndAdvance(shouldMutate)
-                .MatchForward(false,
-                    new CodeMatch(OpCodes.Ldfld,
-                        Field(typeof(MapToolController), nameof(MapToolController.FollowTransformClient))))
-                .Advance(-13)
-                .SetInstructionAndAdvance(shouldMutate)
-                .InstructionEnumeration()
-            : new CodeMatcher(instructions)
-                .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 90f))
-                .SetAndAdvance(OpCodes.Ldarg_0, null)
-                .Insert(new CodeInstruction(OpCodes.Call, ((Func<MapToolController, float>)GetHoldAngle).Method))
-                .MatchForward(false,
-                    new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
-                .SetInstructionAndAdvance(shouldMutate)
-                .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
-                .MatchForward(false,
-                    new CodeMatch(OpCodes.Callvirt, PropertyGetter(typeof(PhotonView), nameof(PhotonView.IsMine))))
-                .SetInstructionAndAdvance(shouldMutate)
-                .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
-                .MatchForward(false,
-                    new CodeMatch(OpCodes.Ldfld,
-                        Field(typeof(MapToolController), nameof(MapToolController.FollowTransformClient))))
-                .Advance(-6)
-                .SetInstructionAndAdvance(shouldMutate)
-                .SetOpcodeAndAdvance(OpCodes.Brfalse_S)
-                .InstructionEnumeration();
+        return new CodeMatcher(instructions)
+            // Patch hardcoded 90-degree angle to account for VR usage
+            .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 90f))
+            .SetAndAdvance(OpCodes.Ldarg_0, null)
+            .Insert(new CodeInstruction(OpCodes.Call, ((Func<MapToolController, float>)GetHoldAngle).Method))
+            // Do not reset _hideAmount if target player is in VR
+            .MatchForward(false, isLocalPlayerMatch)
+            .SetAndAdvance(OpCodes.Ldloc_0, null) // Check if is local player
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld,
+                    Field(typeof(MapToolController), nameof(MapToolController.photonView))),
+                isLocalOrVRPlayerInstr
+            )
+            // Do not reset _speedMult if target player is in VR
+            .MatchForward(false, isLocalPlayerMatch)
+            .SetAndAdvance(OpCodes.Ldloc_0, null)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld,
+                    Field(typeof(MapToolController), nameof(MapToolController.photonView))),
+                isLocalOrVRPlayerInstr
+            )
+            // Do not apply FollowTransformClient transforms if target player is in VR
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Ldfld,
+                    Field(typeof(MapToolController), nameof(MapToolController.FollowTransformClient))))
+            .MatchBack(false, isLocalPlayerMatch)
+            .SetAndAdvance(OpCodes.Ldloc_0, null)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld,
+                    Field(typeof(MapToolController), nameof(MapToolController.photonView))),
+                isLocalOrVRPlayerInstr
+            )
+            // Only reset transforms conditionally (when local player is not in VR)
+            .MatchForward(false, new CodeMatch(OpCodes.Call, PropertyGetter(typeof(Vector3), nameof(Vector3.zero))))
+            .Advance(-2)
+            .SetAndAdvance(OpCodes.Call, ((Action<MapToolController>)ConditionalResetTransform).Method)
+            .RemoveInstructions(Debug.isDebugBuild ? 14 : 12)
+            .InstructionEnumeration();
 
-        static bool ShouldMutateTransforms(PhotonView view)
+        static bool IsLocalOrVRPlayer(bool isLocal, PhotonView view)
         {
-            return !view.IsMine && !NetworkSystem.instance.IsVRView(view);
+            return isLocal || NetworkSystem.instance.IsVRView(view);
+        }
+
+        // Only reset transforms if current player is not in VR
+        static void ConditionalResetTransform(MapToolController controller)
+        {
+            if (VRSession.InVR)
+                return;
+
+            controller.transform.parent.localPosition = Vector3.zero;
+            controller.transform.parent.localRotation = Quaternion.identity;
+            controller.mainSpringTransform.localRotation = Quaternion.identity;
         }
 
         static float GetHoldAngle(MapToolController mapTool)

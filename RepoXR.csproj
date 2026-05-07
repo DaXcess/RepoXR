@@ -2,12 +2,12 @@
 
     <PropertyGroup>
         <Description>Collecting Valuables in VR</Description>
-        <Version>1.1.2</Version>
+        <Version>1.2.0</Version>
         <Authors>DaXcess</Authors>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Title>RepoXR</Title>
-        <Copyright>Copyright (c) DaXcess 2025</Copyright>
+        <Copyright>Copyright (c) DaXcess 2026</Copyright>
         <PackageProjectUrl>https://github.com/DaXcess/RepoXR</PackageProjectUrl>
         <RepositoryUrl>https://github.com/DaXcess/RepoXR</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -38,7 +38,9 @@
         <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="PhotonUnityNetworking" Version="0.1.2" />
+        <PackageReference Include="Unity.Addressables" Version="1.27.0" />
         <PackageReference Include="Unity.InputSystem" Version="1.14.2" />
+        <PackageReference Include="Unity.Localization" Version="1.5.9" />
         <PackageReference Include="Unity.Rendering.PostProcessing" Version="3.4.0" />
         <PackageReference Include="Unity.RenderPipelines.Core" Version="14.0.11" />
         <PackageReference Include="Unity.TextMeshPro" Version="3.0.6" />
@@ -53,7 +55,7 @@
     
     <!-- R.E.P.O. main game assembly for normal users -->
     <ItemGroup Condition="'$(USE_TESTER)' == 'false'">
-        <PackageReference Include="REPO" Version="0.3.2" />
+        <PackageReference Include="REPO" Version="0.4.0" />
     </ItemGroup>
     
     <!-- R.E.P.O. tester game assemblies for testers -->

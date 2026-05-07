@@ -1,7 +1,10 @@
-﻿using HarmonyLib;
-using Photon.Pun;
+﻿using System.Collections.Generic;
+using System.Reflection.Emit;
+using HarmonyLib;
 using RepoXR.Managers;
+using RepoXR.Player.Camera;
 using UnityEngine;
+using static HarmonyLib.AccessTools;
 
 namespace RepoXR.Patches;
 
@@ -15,11 +18,8 @@ internal static class CameraPatches
     [HarmonyPrefix]
     private static void DisableTargetTextureOverride(Camera __instance, ref RenderTexture? value)
     {
-        // We make an exception for our manually rendered custom camera
-        if (__instance.name.StartsWith("Custom Camera"))
-            return;
-
-        value = null;
+        if (__instance.name is "Camera Overlay" or "Camera Main")
+            value = null;
     }
 
     /// <summary>
@@ -104,20 +104,36 @@ internal static class CameraPatches
     /// Make sure to synchronize the VR camera transforms instead of only the aim transforms
     /// </summary>
     [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.OnPhotonSerializeView))]
-    [HarmonyPrefix]
-    private static bool CameraSerializeVRParams(PlayerLocalCamera __instance, PhotonStream stream,
-        PhotonMessageInfo info)
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> CameraSerializeVRParams(IEnumerable<CodeInstruction> instructions)
     {
-        if (!SemiFunc.MasterAndOwnerOnlyRPC(info, __instance.photonView))
-            return false;
+        return new CodeMatcher(instructions)
+            .MatchForward(false, new CodeMatch(OpCodes.Ldsfld, Field(typeof(CameraAim), nameof(CameraAim.Instance))))
+            .Repeat(matcher => matcher.SetOpcodeAndAdvance(OpCodes.Ldarg_0))
+            .InstructionEnumeration();
+    }
 
-        if (!stream.IsWriting)
-            return true;
-
-        stream.SendNext(__instance.transform.position);
-        stream.SendNext(__instance.transform.rotation);
-        stream.SendNext(__instance.teleported);
+    /// <summary>
+    /// Make sure the local camera override actually knows about VR position overrides as well
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideActive))]
+    [HarmonyPrefix]
+    private static bool GetOverrideActivePatch(PlayerLocalCamera __instance, ref bool __result)
+    {
+        __result = __instance.clientPositionOverride ||
+                   (__instance.playerAvatar.isLocal && VRCameraPosition.instance.overridePositionActive);
 
         return false;
+    }
+
+    /// <summary>
+    /// Force disable preview camera when the menu avatar is destroyed as the game thinks the preview camera is the
+    /// main camera, causing a brief flicker between the preview camera and the main camera
+    /// </summary>
+    [HarmonyPatch(typeof(PlayerAvatarMenuHover), nameof(PlayerAvatarMenuHover.OnDestroy))]
+    [HarmonyPostfix]
+    private static void DisableMenuPlayerCamera(PlayerAvatarMenuHover __instance)
+    {
+        if (__instance.renderTextureInstance && __instance.previewCamera) __instance.previewCamera.enabled = false;
     }
 }

@@ -67,6 +67,7 @@ jobs:
           
           # Move assets
           mv ./package/repoxrassets ./package/BepInEx/plugins/RepoXR/repoxrassets
+          mv ./package/Addressables ./package/BepInEx/plugins/RepoXR/Addressables
           
           # Copy docs and license
           cp CHANGELOG.md ./package/CHANGELOG.md

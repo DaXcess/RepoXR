@@ -9,6 +9,8 @@ namespace RepoXR.Player;
 
 public class VRInventory : MonoBehaviour
 {
+    private const int MASK_INVENTORY = 1 << 29;
+
     public Transform visualsTransform;
     
     [SerializeField] protected VRInventorySlot[] slots;
@@ -69,7 +71,7 @@ public class VRInventory : MonoBehaviour
                 var b = positions[i + 1];
                 var distance = Vector3.Distance(a, b) + (isOverridden ? 1 : 0);
 
-                if (Physics.Raycast(new Ray(a, b - a), out hit, distance, 1 << 27))
+                if (Physics.Raycast(new Ray(a, b - a), out hit, distance, MASK_INVENTORY))
                     return true;
             }
 
@@ -172,6 +174,11 @@ public class VRInventory : MonoBehaviour
 
         // Re-enable shadows
         item.GetComponentsInChildren<MeshRenderer>().Do(mesh => mesh.shadowCastingMode = ShadowCastingMode.On);
+    }
+
+    public void PingSlot(int index, float amount, float frequency, float time)
+    {
+        slots[index].Ping(amount, frequency, time);
     }
 
     private static bool IsHoldingItem()

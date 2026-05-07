@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using RepoXR.Assets;
+using RepoXR.Managers;
 using RepoXR.UI.Controls;
 using TMPro;
 using UnityEngine;
@@ -166,7 +167,10 @@ public class RebindManager : MonoBehaviour
     /// </summary>
     public void SaveBindings()
     {
-        Plugin.Config.ControllerBindingsOverride.Value = playerInput.actions.SaveBindingOverridesAsJson();
+        if (VRSession.IsLeftHanded)
+            Plugin.Config.ControllerBindingsOverrideLeft.Value = playerInput.actions.SaveBindingOverridesAsJson();
+        else
+            Plugin.Config.ControllerBindingsOverride.Value = playerInput.actions.SaveBindingOverridesAsJson();
     }
 
     /// <summary>

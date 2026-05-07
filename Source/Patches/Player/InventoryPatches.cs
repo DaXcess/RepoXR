@@ -34,7 +34,7 @@ internal static class InventoryPatches
             [
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldfld,
-                    Field(Inner(typeof(ItemEquippable), "<AnimateEquip>d__46"), "<>4__this"))
+                    Field(Inner(typeof(ItemEquippable), "<AnimateEquip>d__55"), "<>4__this"))
             ]
             : [new CodeInstruction(OpCodes.Ldloc_1)];
 
@@ -69,7 +69,7 @@ internal static class InventoryPatches
             [
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldfld,
-                    Field(Inner(typeof(ItemEquippable), "<AnimateUnequip>d__44"), "<>4__this"))
+                    Field(Inner(typeof(ItemEquippable), "<AnimateUnequip>d__53"), "<>4__this"))
             ]
             : [new CodeInstruction(OpCodes.Ldloc_1)];
 
@@ -141,26 +141,22 @@ internal static class InventoryPatches
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> DisableItemHiding(IEnumerable<CodeInstruction> instructions)
     {
-        var matcher = new CodeMatcher(instructions)
-            .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, 3000f))
-            .Advance(-4);
+        return new CodeMatcher(instructions)
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Ldfld, Field(typeof(AssetManager), nameof(AssetManager.physDisabledPosition))))
+            .Advance(-1)
+            .SetOpcodeAndAdvance(OpCodes.Ldarg_0)
+            .SetAndAdvance(OpCodes.Call, ((Func<PhysGrabObject, Vector3>)GetTeleportLocation).Method)
+            .InstructionEnumeration();
 
-        var jmp = matcher.Instruction;
-
-        matcher.Advance(1).Insert(
-            new CodeInstruction(OpCodes.Ldarg_0),
-            new CodeInstruction(OpCodes.Call, ((Func<PhysGrabObject, bool>)ShouldTeleport).Method),
-            jmp
-        );
-
-        return matcher.InstructionEnumeration();
-
-        static bool ShouldTeleport(PhysGrabObject @object)
+        static Vector3 GetTeleportLocation(PhysGrabObject @object)
         {
-            if (!@object.TryGetComponent<ItemEquippable>(out var item))
-                return true;
+            // If this is not a valid item or the item is not ours, use the default disabled position
+            if (!@object.TryGetComponent<ItemEquippable>(out var item) || !ItemIsMine(item))
+                return AssetManager.instance.physDisabledPosition;
 
-            return !ItemIsMine(item);
+            // Otherwise, teleport to current position (no-op)
+            return @object.transform.position;
         }
     }
 
@@ -223,6 +219,21 @@ internal static class InventoryPatches
             return true;
         
         return __instance.itemEquippable.currentState != ItemEquippable.ItemState.Equipped;
+    }
+
+    /// <summary>
+    /// Play an inventory animation if one of our items got pinged
+    /// </summary>
+    [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.RPC_SendPing))]
+    [HarmonyPostfix]
+    private static void OnInventoryPing(ItemEquippable __instance, float amount, float frequency, float time)
+    {
+        var isOwner = !SemiFunc.IsMultiplayer() || PhysGrabber.instance.photonView.ViewID == __instance.ownerPlayerId;
+        if (!isOwner || __instance.inventorySpotIndex == -1)
+            return;
+
+        VRSession.Instance.Player.Rig.inventoryController.PingSlot(__instance.inventorySpotIndex, amount, frequency,
+            time);
     }
 }
 

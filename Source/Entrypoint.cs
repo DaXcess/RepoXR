@@ -32,6 +32,7 @@ internal static class Entrypoint
         var loading = canvas.Find("Loading");
         var moon = canvas.Find("Moon UI");
         var splash = canvas.Find("Splash Screen");
+        var result = canvas.Find("Result Screen");
 
         // The overlay camera is always in the same position in the hierarchy, in every scene
         var overlayCamera = canvas.parent.Find("Camera Overlay").GetComponent<Camera>();
@@ -86,15 +87,15 @@ internal static class Entrypoint
         loadingCanvas.transform.SetParent(Camera.main!.transform.parent, false);
         loadingCanvas.gameObject.AddComponent<UI.LoadingUI>();
         loadingCanvas.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 400); // For masking
-        
+
         loading.SetParent(loadingCanvas.transform, false);
-        
+
         // Moon UI stuff
         var moonMask = new GameObject("Moon Mask")
         {
             transform =
             {
-                parent = loadingCanvas.transform, 
+                parent = loadingCanvas.transform,
                 localScale = Vector3.one,
                 localPosition = Vector3.zero,
                 localRotation = Quaternion.identity
@@ -104,10 +105,25 @@ internal static class Entrypoint
 
         moon.SetParent(moonMask.transform, false);
         moon.localScale = Vector3.one * 0.8f;
-        
+
+        // Result screen stuff (Cosmetic tokens)
+        var resultMask = new GameObject("Result Mask")
+        {
+            transform =
+            {
+                parent = loadingCanvas.transform,
+                localScale = Vector3.one,
+                localPosition = Vector3.zero,
+                localRotation = Quaternion.identity
+            }
+        }.AddComponent<RectMask2D>().GetComponent<RectTransform>();
+        resultMask.sizeDelta = new Vector2(720, 405);
+
+        result.SetParent(resultMask.transform, false);
+
         splash.SetParent(loadingCanvas.transform, false);
         splash.SetAsFirstSibling(); // Prevent obscuring the loading UI
-        
+
         // Create custom camera (if enabled)
         if (Plugin.Config.CustomCamera.Value)
             Object.Instantiate(AssetCollection.CustomCamera, Camera.main.transform.parent);
@@ -131,7 +147,7 @@ internal static class Entrypoint
         if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu ||
             RunManager.instance.levelCurrent == RunManager.instance.levelSplashScreen)
             OnStartupMainMenu();
-        
+
         // We have to do some magic for the Lobby Menu level because of ✨late join✨
     }
 
@@ -154,9 +170,10 @@ internal static class Entrypoint
     private static void OnStartTruck(StartRoom __instance)
     {
         // The menu levels also have the truck so we should just ignore them
-        if (__instance.name is "Start Room - Main Menu(Clone)" or "Start Room - Lobby Menu(Clone)")
+        if (__instance.name is "Start Room - Main Menu(Clone)" or "Start Room - Lobby Menu(Clone)"
+            or "Start Room - Splash Screen(Clone)")
             return;
-        
+
         OnStartupInGame();
     }
 
@@ -193,19 +210,6 @@ internal static class UniversalEntrypoint
     }
 
     /// <summary>
-    /// Enable hotswapping while in the main menu
-    /// </summary>
-    [HarmonyPatch(typeof(GameDirector), nameof(GameDirector.Start))]
-    [HarmonyPostfix]
-    private static void OnStartup(GameDirector __instance)
-    {
-        if (RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu)
-            return;
-
-        new GameObject("VR Hotswapper").AddComponent<HotswapManager>();
-    }
-
-    /// <summary>
     /// The default setup for every scene (including for non-vr players)
     /// </summary>
     private static void SetupDefaultSceneUniversal()
@@ -227,7 +231,7 @@ internal static class UniversalEntrypoint
 
         hasShownErrorMessage = true;
         MenuManager.instance.PagePopUpScheduled("VR Startup Failed", Color.red,
-            "RepoXR tried to launch the game in VR, however an error occured during initialization.\n\nYou can disable VR in the settings if you are not planning to play in VR.",
+            "RepoXR tried to launch the game in VR, however an error occured during initialization.\n\nYou will still be able to play the game and make use of this mod's features, however you will not be in VR.\n\nYou can disable VR in the settings if you want to suppress this error in the future.",
             "Alright fam",
             true);
     }

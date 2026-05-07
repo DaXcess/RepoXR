@@ -7,7 +7,7 @@ using RepoXR.Player.Camera;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
-using Vector3 = UnityEngine.Vector3;
+using NetworkPlayer = RepoXR.Networking.NetworkPlayer;
 
 namespace RepoXR.Player;
 
@@ -27,13 +27,24 @@ public class VRPlayer : MonoBehaviour
     private PlayerController localController;
     private VRRig localRig;
     private VREyeTracking eyeTracking;
+
+    // Player shadow visuals
+    private PlayerAvatarVisuals playerAvatarVisuals;
+    private PlayerAvatarLeftArm playerLeftArm;
+    private PlayerAvatarRightArm playerRightArm;
+    private Transform leftHandAnchor;
+    private Transform rightHandAnchor;
     
+    // Network
+    private NetworkPlayer networkPlayer;
+
     // Public accessors
     public Transform MainHand => VRSession.IsLeftHanded ? localRig.leftHandTip : localRig.rightHandTip;
     public Transform SecondaryHand => VRSession.IsLeftHanded ? localRig.rightHandTip : localRig.leftHandTip;
     public Transform MapParent => localRig.map;
     public VRRig Rig => localRig;
     public VREyeTracking EyeTracking => eyeTracking;
+    public NetworkPlayer NetworkPlayer => networkPlayer;
     
     // Public state
     public float disableRotateTimer;
@@ -86,6 +97,29 @@ public class VRPlayer : MonoBehaviour
 
         eyeTracking = mainCamera.gameObject.AddComponent<VREyeTracking>();
 
+        // Set up shadow visuals
+
+        playerAvatarVisuals = localController.playerAvatarScript.playerAvatarVisuals;
+        playerLeftArm = playerAvatarVisuals.GetComponent<PlayerAvatarLeftArm>();
+        playerRightArm = playerAvatarVisuals.playerAvatarRightArm;
+
+        leftHandAnchor = new GameObject("Left Hand Anchor")
+                { transform = { parent = playerLeftArm.leftArmTransform, localPosition = Vector3.forward * 0.513f } }
+            .transform;
+        rightHandAnchor = new GameObject("Right Hand Anchor")
+        {
+            transform =
+            {
+                // ANIM ARM R SCALE is the one that scales, not rightArmTransform
+                parent = playerRightArm.rightArmTransform.Find("ANIM ARM R SCALE"),
+                localPosition = Vector3.forward * 0.513f
+            }
+        }.transform;
+        
+        // Create local network player
+        networkPlayer = gameObject.AddComponent<NetworkPlayer>();
+        networkPlayer.playerAvatar = localController.playerAvatarScript;
+
         Actions.Instance["ResetHeight"].performed += OnResetHeight;
     }
 
@@ -99,6 +133,7 @@ public class VRPlayer : MonoBehaviour
         yield return null;
         
         ResetHeight();
+        SyncNetworkVariables();
     }
 
     private void FixedUpdate()
@@ -110,24 +145,38 @@ public class VRPlayer : MonoBehaviour
     private void Update()
     {
         HandleTurning();
-        
+
+        cameraPosition.additionalOffset = -(mainCamera.transform.parent.rotation *
+                                            new Vector3(mainCamera.localPosition.x, 0,
+                                                mainCamera.localPosition.z)); // Will make the game run like 3-DoF
+
         // Timers
         if (disableRotateTimer > 0)
             disableRotateTimer -= Time.deltaTime;
     }
 
+    private void LateUpdate()
+    {
+        // Shadow visuals (let game handle these if override is active)
+        if (!localController.playerAvatarScript.isTumbling &&
+            !localController.playerAvatarScript.localCamera.GetOverrideActive())
+        {
+            playerRightArm.rightArmTransform.LookAt(rightHand.position);
+            playerLeftArm.leftArmTransform.LookAt(leftHand.position);
+        }
+
+        // Update flashlight transform (only if headlamp is disabled)
+        var anchor = VRSession.IsLeftHanded ? rightHandAnchor : leftHandAnchor;
+        var shadowTransform = FlashlightController.Instance.meshShadows.transform;
+        var mainTransform = FlashlightController.Instance.mesh.transform;
+
+        shadowTransform.position = localRig.HeadLampEnabled() ? mainTransform.position : anchor.position;
+        shadowTransform.rotation = mainTransform.rotation;
+    }
+
     public void DisableGrabRotate(float time)
     {
         disableRotateTimer = time;
-    }
-    
-    public void SetColor(int colorIndex, Color color = default)
-    {
-        var customColor = colorIndex == -1;
-        if (!customColor)
-            color = AssetManager.instance.playerColors[colorIndex];
-
-        localRig.SetColor(color);
     }
 
     private void ResetHeight()
@@ -138,10 +187,23 @@ public class VRPlayer : MonoBehaviour
         cameraPosition.original.playerOffset = new Vector3(0, targetHeight - mainCamera.transform.localPosition.y, 0);
     }
 
+    private void SyncNetworkVariables()
+    {
+        // Make sure some settings are synced with all other players
+
+        NetworkPlayer.UpdateVehicleHeadForwardRPC(Plugin.Config.VehicleHeadForward.Value);
+        NetworkPlayer.UpdateDominantHandRPC(VRSession.IsLeftHanded);
+        NetworkPlayer.UpdateHeadlampRPC(Rig.HeadLampEnabled());
+    }
+
     private void HandleMovement()
     {
         // No tracking data yet
         if (mainCamera.transform.localPosition == Vector3.zero)
+            return;
+
+        // Check for disabled input
+        if (InputManager.instance.disableControlsExceptTimer > 0)
             return;
 
         // If this is our first frame with position data, just reset the position immediately
@@ -151,9 +213,6 @@ public class VRPlayer : MonoBehaviour
         var headPosition = mainCamera.transform.localPosition;
         var movement = new Vector3(headPosition.x - lastPosition.x, 0, headPosition.z - lastPosition.z);
 
-        cameraPosition.additionalOffset = -(mainCamera.transform.parent.rotation *
-                                            new Vector3(mainCamera.localPosition.x, 0,
-                                                mainCamera.localPosition.z)); // Will make the game run like 3-DoF
         PlayerController.instance.rb.MovePosition(PlayerController.instance.rb.transform.position +
                                                   mainCamera.transform.parent.rotation *
                                                   movement); // Will make the game run like 6-DoF again

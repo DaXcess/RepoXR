@@ -27,7 +27,7 @@ internal static class EnemyHeartHuggerPatches
             .InsertAndAdvance(
                 new CodeInstruction(OpCodes.Callvirt, PropertyGetter(typeof(Config), nameof(Config.ReducedAimImpact))),
                 new CodeInstruction(OpCodes.Callvirt,
-                    PropertyGetter(typeof(ConfigEntry<bool>), nameof(ConfigEntry<bool>.Value))),
+                    PropertyGetter(typeof(ConfigEntry<bool>), nameof(ConfigEntry<>.Value))),
                 new CodeInstruction(OpCodes.Callvirt, Method(typeof(VRCameraAim), nameof(VRCameraAim.SetAimTargetSoft)))
             )
             .InstructionEnumeration();

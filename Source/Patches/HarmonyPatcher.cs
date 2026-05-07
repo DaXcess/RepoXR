@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Mono.Cecil.Cil;
 using MonoMod.Utils.Cil;
+using RepoXR.Networking;
 using SRE = System.Reflection.Emit;
 using MethodBody = Mono.Cecil.Cil.MethodBody;
 
@@ -26,11 +28,6 @@ internal static class HarmonyPatcher
     public static void PatchVR()
     {
         Patch(VRPatcher, RepoXRPatchTarget.VROnly);
-    }
-
-    public static void UnpatchVR()
-    {
-        VRPatcher.UnpatchSelf();
     }
 
     public static void PatchClass(Type type)
@@ -54,7 +51,7 @@ internal static class HarmonyPatcher
 
                 if (attribute.Target != target)
                     return;
-                
+
                 Logger.LogDebug($"Applying patches from: {type.FullName}");
 
                 patcher.CreateClassProcessor(type, true).Patch();
@@ -64,6 +61,31 @@ internal static class HarmonyPatcher
                 Logger.LogError($"Failed to apply patches from {type}: {e.Message}, {e.InnerException}");
             }
         });
+    }
+
+    internal static void PatchNetworkRPCs()
+    {
+        foreach (var type in GetTypesFromAssembly(Assembly.GetCallingAssembly()))
+            ApplyNetworkRPCsForType(type);
+    }
+
+    private static void ApplyNetworkRPCsForType(Type type)
+    {
+        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            .Where(m => m.GetCustomAttribute<XRRpcAttribute>() != null);
+
+        foreach (var method in methods)
+        {
+            var attr = method.GetCustomAttribute<XRRpcAttribute>();
+            var processor = UniversalPatcher.CreateProcessor(method);
+
+            // Apply RPC prefix patch
+            processor.AddPrefix(new HarmonyMethod(Method(typeof(NetworkingPatches),
+                attr.Self
+                    ? nameof(NetworkingPatches.ExecuteRPCPrefixSelf)
+                    : nameof(NetworkingPatches.ExecuteRPCPrefix))));
+            processor.Patch();
+        }
     }
 }
 
@@ -175,36 +197,39 @@ internal static class LeaveMyLeaveAlonePatch
             .Invoke(instance, [il, original, getLocal, defineLabel]);
     }
 
-    private static SRE.LocalBuilder GetLocal(this CecilILGenerator il, VariableDefinition varDef)
+    extension(CecilILGenerator il)
     {
-        var type = TypeByName("HarmonyLib.Internal.Util.EmitterExtensions");
-        var method = Method(type, "GetLocal");
+        private SRE.LocalBuilder GetLocal(VariableDefinition varDef)
+        {
+            var type = TypeByName("HarmonyLib.Internal.Util.EmitterExtensions");
+            var method = Method(type, "GetLocal");
 
-        return (SRE.LocalBuilder)method.Invoke(null, [il, varDef]);
-    }
-    
-    private static void MarkBlockBefore(this CecilILGenerator il, ExceptionBlock block)
-    {
-        var type = TypeByName("HarmonyLib.Internal.Util.EmitterExtensions");
-        var method = Method(type, "MarkBlockBefore");
+            return (SRE.LocalBuilder)method.Invoke(null, [il, varDef]);
+        }
 
-        method.Invoke(null, [il, block]);
-    }
-    
-    private static void MarkBlockAfter(this CecilILGenerator il, ExceptionBlock block)
-    {
-        var type = TypeByName("HarmonyLib.Internal.Util.EmitterExtensions");
-        var method = Method(type, "MarkBlockAfter");
+        private void MarkBlockBefore(ExceptionBlock block)
+        {
+            var type = TypeByName("HarmonyLib.Internal.Util.EmitterExtensions");
+            var method = Method(type, "MarkBlockBefore");
 
-        method.Invoke(null, [il, block]);
-    }
+            method.Invoke(null, [il, block]);
+        }
 
-    private static void Emit(this CecilILGenerator il, SRE.OpCode opcode, object operand)
-    {
-        var type = TypeByName("HarmonyLib.Internal.Util.EmitterExtensions");
-        var method = Method(type, "Emit");
+        private void MarkBlockAfter(ExceptionBlock block)
+        {
+            var type = TypeByName("HarmonyLib.Internal.Util.EmitterExtensions");
+            var method = Method(type, "MarkBlockAfter");
 
-        method.Invoke(null, [il, opcode, operand]);
+            method.Invoke(null, [il, block]);
+        }
+
+        private void Emit(SRE.OpCode opcode, object operand)
+        {
+            var type = TypeByName("HarmonyLib.Internal.Util.EmitterExtensions");
+            var method = Method(type, "Emit");
+
+            method.Invoke(null, [il, opcode, operand]);
+        }
     }
 }
 

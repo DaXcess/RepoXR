@@ -216,23 +216,27 @@ public class GameHud : MonoBehaviour
         var health = HealthUI.instance.GetComponent<SemiUI>();
         var energy = EnergyUI.instance.GetComponent<SemiUI>();
         var upgrades = StatsUI.instance.GetComponent<SemiUI>();
+        var level = LevelUI.instance.GetComponent<SemiUI>();
 
         goal.transform.SetParent(VRSession.Instance.Player.Rig.infoHud, false);
         haul.transform.SetParent(VRSession.Instance.Player.Rig.infoHud, false);
         health.transform.SetParent(VRSession.Instance.Player.Rig.infoHud, false);
         energy.transform.SetParent(VRSession.Instance.Player.Rig.infoHud, false);
         upgrades.transform.SetParent(VRSession.Instance.Player.Rig.infoHud, false);
-        
+        level.transform.SetParent(VRSession.Instance.Player.Rig.infoHud, false);
+
         goal.DisableScanlines();
         haul.DisableScanlines();
         health.DisableScanlines();
         energy.DisableScanlines();
         upgrades.DisableScanlines();
+        level.DisableScanlines();
         
         goal.SetUIAnchoredPosition(new Vector2(0, -30));
         haul.SetUIAnchoredPosition(Vector2.zero);
         health.SetUIAnchoredPosition(new Vector2(30, 0));
         energy.SetUIAnchoredPosition(new Vector2(30, -30));
         upgrades.SetUIAnchoredPosition(new Vector2(50, 50));
+        level.SetUIAnchoredPosition(new Vector2(50, 50));
     }
 }

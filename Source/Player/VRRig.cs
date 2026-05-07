@@ -5,7 +5,6 @@ using HarmonyLib;
 using RepoXR.Assets;
 using RepoXR.Input;
 using RepoXR.Managers;
-using RepoXR.Networking;
 using RepoXR.Player.Camera;
 using RepoXR.UI;
 using RepoXR.UI.Expressions;
@@ -19,11 +18,11 @@ namespace RepoXR.Player;
 
 public class VRRig : MonoBehaviour
 {
-    private static readonly int AlbedoColor = Shader.PropertyToID("_AlbedoColor");
     private static readonly int HurtColor = Shader.PropertyToID("_ColorOverlayAmount");
     private static readonly int HurtAmount = Shader.PropertyToID("_ColorOverlayAmount");
-    
-    public MeshRenderer[] meshes;
+
+    public MeshRenderer leftArmMesh;
+    public MeshRenderer rightArmMesh;
 
     public Transform head;
     public Transform leftArm;
@@ -59,9 +58,10 @@ public class VRRig : MonoBehaviour
 
     private bool armsDetached;
 
-    private Transform leftArmMesh;
-    private Transform rightArmMesh;
+    private Transform leftArmMeshTransform;
+    private Transform rightArmMeshTransform;
 
+    private VRPlayer player;
     private PlayerAvatar playerAvatar;
     private PlayerAvatarVisuals playerAvatarVisuals;
     private PlayerAvatarRightArm playerAvatarRightArm;
@@ -78,8 +78,8 @@ public class VRRig : MonoBehaviour
     
     private void Awake()
     {
-        leftArmMesh = leftArm.GetComponentInChildren<MeshRenderer>().transform;
-        rightArmMesh = rightArm.GetComponentInChildren<MeshRenderer>().transform;
+        leftArmMeshTransform = leftArmMesh.transform.parent;
+        rightArmMeshTransform = rightArmMesh.transform.parent;
         
         // Load persisted data
         headlampEnabled = DataManager.instance.headlampEnabled;
@@ -99,6 +99,7 @@ public class VRRig : MonoBehaviour
 
     private IEnumerator Start()
     {
+        player = VRSession.Instance.Player;
         playerAvatar = PlayerController.instance.playerAvatarScript;
         playerAvatarVisuals = playerAvatar.playerAvatarVisuals;
         playerAvatarRightArm = playerAvatarVisuals.GetComponentInChildren<PlayerAvatarRightArm>(true);
@@ -134,9 +135,13 @@ public class VRRig : MonoBehaviour
             Quaternion.Euler(transform.eulerAngles.x, head.eulerAngles.y, transform.eulerAngles.z),
             10 * Time.deltaTime);
 
+        // Hide rig if camera is overridden
+        if (playerAvatar.localCamera.GetOverrideActive())
+            transform.position += Vector3.down * 3000;
+
         headAnchor.position = head.position;
         headAnchor.rotation = head.rotation;
-        
+
         UpdateArms();
         UpdateClaw();
         MapToolLogic();
@@ -148,15 +153,18 @@ public class VRRig : MonoBehaviour
     /// <summary>
     /// Update transform parents and positions based on the current dominant hand
     /// </summary>
-    private void UpdateDominantTransforms()
+    internal void UpdateDominantTransforms()
     {
+        // Prevent messing with transforms while override is active
+        // When the override disengages this function will be called anyway
+        if (playerAvatar.localCamera.GetOverrideActive())
+            return;
+
         playerAvatarRightArm.grabberClawParent.SetParent(VRSession.Instance.Player.MainHand);
         playerAvatarRightArm.grabberClawParent.localPosition = Vector3.zero;
 
-        var beamOrigin = PhysGrabber.instance.physGrabBeamComponent.PhysGrabPointOrigin;
-        beamOrigin.SetParent(VRSession.Instance.Player.MainHand);
-        beamOrigin.localPosition = Vector3.zero;
-        
+        PhysGrabber.instance.physGrabBeamComponent.PhysGrabPointOrigin = VRSession.Instance.Player.MainHand;
+
         flashlight.transform.parent = headlampEnabled ? headLamp : VRSession.Instance.Player.SecondaryHand;
         flashlight.transform.localPosition = Vector3.zero;
         flashlight.transform.localRotation = Quaternion.identity;
@@ -164,22 +172,25 @@ public class VRRig : MonoBehaviour
         lampTriggerCollider.transform.localPosition = new Vector3(VRSession.IsLeftHanded ? 0.2f : -0.2f,
             lampTriggerCollider.transform.localPosition.y, lampTriggerCollider.transform.localPosition.z);
         
-        NetworkSystem.instance.UpdateDominantHand(Plugin.Config.LeftHandDominant.Value);
+        player.NetworkPlayer.UpdateDominantHandRPC(Plugin.Config.LeftHandDominant.Value);
     }
 
     private void UpdateArms()
     {
+        // Do not update arms if we've been overridden
+        if (playerAvatar.localCamera.GetOverrideActive())
+            return;
+
         if (armsDetached)
             UpdateArmsDetached();
         else
             UpdateArmsAttached();
 
         // Synchronize multiplayer rig
-        if (SemiFunc.IsMultiplayer())
-            NetworkSystem.instance.SendRigData(leftHandTip.position, rightHandTip.position, leftHandTip.rotation,
-                rightHandTip.rotation);
+        player.NetworkPlayer.UpdateRigRPC(leftHandTip.position, leftHandTip.rotation, rightHandTip.position,
+            rightHandTip.rotation);
     }
-    
+
     private void UpdateArmsAttached()
     {
         leftArm.localPosition = new Vector3(leftArm.localPosition.x, leftArm.localPosition.y, 0);
@@ -206,11 +217,11 @@ public class VRRig : MonoBehaviour
             rightArm.LookAt(rightArmTarget.position);
         }
         
-        leftArmMesh.localEulerAngles = Vector3.up * 90;
-        rightArmMesh.localEulerAngles = Vector3.down * 90;
+        leftArmMeshTransform.localEulerAngles = Vector3.up * 90;
+        rightArmMeshTransform.localEulerAngles = Vector3.down * 90;
         
-        leftArmMesh.Rotate(Vector3.left, leftArmTarget.localEulerAngles.z);
-        rightArmMesh.Rotate(Vector3.right, rightArmTarget.localEulerAngles.z);
+        leftArmMeshTransform.Rotate(Vector3.left, leftArmTarget.localEulerAngles.z);
+        rightArmMeshTransform.Rotate(Vector3.right, rightArmTarget.localEulerAngles.z);
 
         leftHandTip.rotation = leftArmTarget.rotation;
         rightHandTip.rotation = rightArmTarget.rotation;
@@ -218,7 +229,7 @@ public class VRRig : MonoBehaviour
 
     private void UpdateArmsDetached()
     {
-        leftArm.position =  leftArmTarget.position - (leftArmCenter.position - leftArm.position);
+        leftArm.position = leftArmTarget.position - (leftArmCenter.position - leftArm.position);
         leftArm.rotation = leftArmTarget.rotation;
 
         rightArm.position = rightArmTarget.position - (rightArmCenter.position - rightArm.position);
@@ -230,9 +241,10 @@ public class VRRig : MonoBehaviour
         // We most likely are changing scenes
         if (!playerAvatarVisuals || !playerAvatar || !playerAvatarRightArm)
             return;
-        
+
         if (playerAvatarVisuals.isMenuAvatar || (playerAvatar.isActiveAndEnabled &&
-                                                 playerAvatarRightArm.playerAvatar.playerHealth.hurtFreeze))
+                                                 playerAvatarRightArm.playerAvatar.playerHealth.hurtFreeze) ||
+            playerAvatar.localCamera.GetOverrideActive())
             return;
         
         playerAvatarRightArm.deltaTime = playerAvatarVisuals.deltaTime;
@@ -270,7 +282,7 @@ public class VRRig : MonoBehaviour
         mapHeld = mapTool.Active;
 
         // Check for states that don't allow the map to be used
-        if (playerAvatar.isDisabled || playerAvatar.isTumbling || VRCameraAim.instance.IsActive || SemiFunc.MenuLevel())
+        if (playerAvatar.isDisabled || VRCameraAim.instance.IsActive || SemiFunc.MenuLevel())
         {
             mapTool.Active = false;
             return;
@@ -355,7 +367,7 @@ public class VRRig : MonoBehaviour
         if (mapTool.Active && !Actions.Instance["MapGrabLeft"].IsPressed() && mapHeldLeftHand && mapTool.HideLerp <= 0)
             mapTool.Active = false;
 
-        NetworkSystem.instance.UpdateMapToolState(flashlight.hideFlashlight, mapHeldLeftHand);
+        player.NetworkPlayer.UpdateMapRPC(mapHeldLeftHand, flashlight.hideFlashlight);
     }
 
     /// <summary>
@@ -404,8 +416,7 @@ public class VRRig : MonoBehaviour
     private void HeadLampLogic()
     {
         // Disable in shop and lobby
-        if (RunManager.instance.levelCurrent == RunManager.instance.levelLobby ||
-            RunManager.instance.levelCurrent == RunManager.instance.levelShop)
+        if (RunManager.instance.levelCurrent == RunManager.instance.levelLobby || RunManager.instance.levelIsShop)
             return;
         
         var collided = Utils.Collide(VRSession.IsLeftHanded ? rightHandCollider : leftHandCollider, lampTriggerCollider);
@@ -424,11 +435,13 @@ public class VRRig : MonoBehaviour
             headlampEnabled = !headlampEnabled;
 
             DataManager.instance.headlampEnabled = headlampEnabled;
-            NetworkSystem.instance.UpdateHeadlamp(headlampEnabled);
+            player.NetworkPlayer.UpdateHeadlampRPC(headlampEnabled);
         }
 
         headlampHovered = collided;
     }
+
+    public bool HeadLampEnabled() => headlampEnabled;
 
     private void DetachArms()
     {
@@ -452,30 +465,34 @@ public class VRRig : MonoBehaviour
     
     public void SetVisible(bool visible)
     {
-        foreach (var mesh in meshes)
-            mesh.enabled = visible;
+        leftArmMeshTransform.gameObject.SetActive(visible);
+        rightArmMeshTransform.gameObject.SetActive(visible);
 
         infoHud.gameObject.SetActive(visible);
         map.gameObject.SetActive(visible);
         inventory.gameObject.SetActive(visible);
     }
-    
-    public void SetColor(Color color)
+
+    public void SetLeftArmColor(int nameId, Color color)
     {
-        foreach (var mesh in meshes)
-            mesh.sharedMaterial.SetColor(AlbedoColor, color);
+        leftArmMesh.material.SetColor(nameId, color);
+    }
+
+    public void SetRightArmColor(int nameId, Color color)
+    {
+        rightArmMesh.material.SetColor(nameId, color);
     }
 
     public void SetHurtColor(Color color)
     {
-        foreach (var mesh in meshes)
-            mesh.sharedMaterial.SetColor(HurtColor, color);
+        leftArmMesh.material.SetColor(HurtColor, color);
+        rightArmMesh.material.SetColor(HurtColor, color);
     }
 
     public void SetHurtAmount(float amount)
     {
-        foreach (var mesh in meshes)
-            mesh.sharedMaterial.SetFloat(HurtAmount, amount);
+        leftArmMesh.material.SetFloat(HurtAmount, amount);
+        rightArmMesh.material.SetFloat(HurtAmount, amount);
     }
     
     // Event handlers

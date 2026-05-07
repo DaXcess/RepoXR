@@ -12,7 +12,7 @@ internal static class MenuButtonPatches
     /// <summary>
     /// Fix for the middle align code using the wrong positioning logic
     /// </summary>
-    [HarmonyPatch(typeof(MenuButton), nameof(MenuButton.Awake))]
+    [HarmonyPatch(typeof(MenuButton), nameof(MenuButton.ResizeToText))]
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> MiddleAlignFixPatch(IEnumerable<CodeInstruction> instructions)
     {

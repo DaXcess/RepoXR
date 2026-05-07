@@ -101,7 +101,7 @@ public class ExpressionRadial : MonoBehaviour
         // Hide the background if no expressions are active
         var activeExpressions = DataManager.instance.activeExpressions.Count > 0 ||
                                 playerExpression.overrideExpressions.Count > 0;
-        var playerColor = PlayerAvatar.instance.playerAvatarVisuals.color;
+        var playerColor = SemiFunc.PlayerGetColorMain(PlayerAvatar.instance);
         previewBackground.color = Color.Lerp(previewBackground.color,
             new Color(playerColor.r, playerColor.g, playerColor.b, 1f / 255 * (activeExpressions ? 50 : 0)),
             8 * Time.deltaTime);
@@ -119,7 +119,7 @@ public class ExpressionRadial : MonoBehaviour
 
     private void ResetPosition(bool overrideOnly = false)
     {
-        var camera = CameraUtils.Instance.MainCamera.transform;
+        var cam = CameraUtils.Instance.MainCamera.transform;
 
         if (isActive)
         {
@@ -127,7 +127,7 @@ public class ExpressionRadial : MonoBehaviour
                 return;
 
             transform.position = handTransform.position;
-            transform.LookAt(camera.position);
+            transform.LookAt(cam.position);
         }
 
         if (!overrideOnly)
@@ -135,11 +135,11 @@ public class ExpressionRadial : MonoBehaviour
 
         var ui = PlayerExpressionsUI.instance;
 
-        var forward = camera.forward;
+        var forward = cam.forward;
         var shrink = !ui.shrinkActive ? ui.shrinkCurve.Evaluate(ui.shrinkLerp) * -0.15f : 0;
 
-        transform.position = camera.position + forward * .5f + camera.up * (-0.15f + shrink);
-        transform.LookAt(camera.position);
+        transform.position = cam.position + forward * .5f + cam.up * (-0.15f + shrink);
+        transform.LookAt(cam.position);
     }
 
     private void ReloadParts()
@@ -251,7 +251,7 @@ public class ExpressionPart : MonoBehaviour
 
     private void Update()
     {
-        var playerColor = PlayerAvatar.instance.playerAvatarVisuals.color;
+        var playerColor = SemiFunc.PlayerGetColorMain(PlayerAvatar.instance);
         var activeOrOverride =
             isActive || playerExpression.overrideExpressions.Any(expr => expr.index - 1 == (int)expression);
 

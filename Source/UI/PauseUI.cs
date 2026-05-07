@@ -73,6 +73,8 @@ public class PauseUI : MonoBehaviour
 
     public void Show()
     {
+        if (isOpen) return;
+
         isOpen = true;
         ResetPosition(true);
 

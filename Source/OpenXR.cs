@@ -58,7 +58,7 @@ internal static class OpenXR
 
         var defaultPath = GetDefaultRuntimePath();
 
-        if (Native.RegOpenKeyEx(Native.HKEY_LOCAL_MACHINE, "SOFTWARE\\Khronos\\OpenXR\\1", 0, 0x20019, out var hKey) !=
+        if (Native.RegOpenKeyEx(Native.HKEY_LOCAL_MACHINE, @"SOFTWARE\Khronos\OpenXR\1", 0, 0x20019, out var hKey) !=
             0)
             return new Runtimes(runtimes.ToArray());
 
@@ -369,12 +369,6 @@ internal static class OpenXR
 
             Logger.LogError("All available runtimes were attempted, but none worked. Aborting...");
             return false;
-        }
-
-        public static void DeinitializeXR()
-        {
-            xrManagerSettings?.DeinitializeLoader();
-            xrGeneralSettings?.StopXRSDK();
         }
 
         private static bool InitializeXR(Runtime? runtime)

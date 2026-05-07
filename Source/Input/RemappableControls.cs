@@ -8,6 +8,7 @@ public class RemappableControls : MonoBehaviour
 {
     public RemappableControl[] controls;
     public InputActionReference[] additionalBindings;
+    public string defaultLeftHandedBindings;
 }
 
 [Serializable]

@@ -1,3 +1,27 @@
+# tester branch
+
+**Additions**:
+- Added support for new valuable interactions
+- Added support for new level UI in the map tool
+- Added support for the new walkie-talkie item
+- Added support for the new scooters
+- Added support for the new cosmetics system
+
+**Changes**:
+- Left-handed mode now also swaps your controller bindings around
+- Left- and right-handed mode now both have separated controller binding overrides
+- Restructured mouse input patching so testing with UnityExplorer is easier
+- Made some changes to the arms in multiplayer
+- Reworked networking internals, should not affect gameplay
+
+**Removals**:
+- Removed F8 hotswapping completely
+- Removed support for v0.3.x
+
+**Fixes**:
+- Smooth turn should feel a bit smoother now when not in the center of your play area
+- Fixed opening the VR settings menu causing the screen to reset position
+
 # 1.1.2
 
 **Changes**:

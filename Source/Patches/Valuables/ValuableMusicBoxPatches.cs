@@ -2,7 +2,7 @@
 using RepoXR.Player.Camera;
 using UnityEngine;
 
-namespace RepoXR.Patches.Item;
+namespace RepoXR.Patches.Valuables;
 
 [RepoXRPatch]
 internal static class MusicBoxTrapPatches

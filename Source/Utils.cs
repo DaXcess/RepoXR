@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using HarmonyLib;
+using RepoXR.Assets;
 using RepoXR.Managers;
+using RepoXR.Networking;
 using Steamworks;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 
 namespace RepoXR;
@@ -189,10 +194,88 @@ internal static class Utils
         return baseColor;
     }
 
+    /// <summary>
+    /// Resolve a translation key to it's localized value
+    /// </summary>
+    public static LocalizedAsset L(string name) => AssetCollection.GetLocalizedAsset(name).WaitForCompletion();
+
     public class WaitUntilTimeout(Func<bool> predicate, float timeout) : CustomYieldInstruction
     {
         private readonly float timeStarted = Time.realtimeSinceStartup;
 
         public override bool keepWaiting => !predicate() && Time.realtimeSinceStartup - timeStarted < timeout;
+    }
+}
+
+public static class PlayerLocalCameraExtensions
+{
+    public static MethodInfo GetHandOverrideTransformMethod =>
+        AccessTools.Method(typeof(PlayerLocalCameraExtensions), nameof(GetHandOverrideTransform));
+
+    public static Transform GetHandOverrideTransform(this PlayerLocalCamera camera)
+    {
+        // If overriden, always return the override transform
+        if (camera.GetOverrideActive())
+            return camera.playerAvatar.PlayerVisionTarget.VisionTransform;
+
+        // If we are in VR and the camera is local, return our VR hand transform
+        if (VRSession.Instance is { } instance && camera.playerAvatar.isLocal)
+            return instance.Player.MainHand;
+
+        // If the player is a VR player, return their VR hand transform
+        if (NetworkSystem.instance && NetworkSystem.instance.GetNetworkPlayer(camera.playerAvatar, out var player))
+            return player.PrimaryHand;
+
+        // Fallback, return the camera transform
+        return camera.transform;
+    }
+}
+
+public static class HashExtensions
+{
+    private const ulong FNV_OFFSET_BASIS = 0xA953453332BAB083;
+    private const ulong FNV_PRIME = 0x1B2534321;
+    
+    private static Dictionary<Type, ulong> typeHashCache = [];
+    private static Dictionary<MethodBase, ulong> methodHashCache = [];
+    
+    public static ulong GetNetworkHash(this Type type)
+    {
+        if (typeHashCache.TryGetValue(type, out var hash))
+            return hash;
+        
+        hash = ComputeHash(Encoding.UTF8.GetBytes(type.GetFullNameWithGenericArguments()));
+        typeHashCache[type] = hash;
+        
+        return hash;
+    }
+
+    public static ulong GetNetworkHash(this MethodBase method)
+    {
+        if (methodHashCache.TryGetValue(method, out var hash))
+            return hash;
+        
+        var typeName = method.DeclaringType.GetFullNameWithGenericArguments();
+        var methodName =
+            $"{method.Name}<{string.Join(", ", method.GetGenericArguments().Select(a => a.DeclaringType.GetFullNameWithGenericArguments()))}>({string.Join(",", method.GetParameters().Select(p => p.ParameterType.GetFullNameWithGenericArguments()))})";
+        var fullName = $"{typeName}::{methodName}";
+        
+        hash = ComputeHash(Encoding.UTF8.GetBytes(fullName));
+        methodHashCache[method] = hash;
+
+        return hash;
+    }
+
+    private static ulong ComputeHash(byte[] input)
+    {
+        var hash = FNV_OFFSET_BASIS;
+        
+        foreach (var b in input)
+        {
+            hash ^= b;
+            hash *= FNV_PRIME;
+        }
+
+        return hash;
     }
 }

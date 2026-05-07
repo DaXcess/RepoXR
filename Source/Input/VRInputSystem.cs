@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using RepoXR.Assets;
+using RepoXR.Managers;
 using RepoXR.UI.Expressions;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,19 +21,26 @@ public class VRInputSystem : MonoBehaviour
     public string CurrentControlScheme => playerInput.currentControlScheme;
 
     private Dictionary<string, bool> inputToggle = [];
-    
+
     private void Awake()
     {
         _instance = this;
-        
+
         playerInput = gameObject.AddComponent<PlayerInput>();
         playerInput.actions = AssetCollection.VRInputs;
         playerInput.defaultActionMap = "VR Actions";
         playerInput.defaultControlScheme = "Oculus";
         playerInput.neverAutoSwitchControlSchemes = false;
         playerInput.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
-        
-        playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverride.Value);
+
+        if (VRSession.IsLeftHanded)
+        {
+            playerInput.actions.LoadBindingOverridesFromJson(AssetCollection.RemappableControls.defaultLeftHandedBindings);
+            playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverrideLeft.Value, false);
+        }
+        else
+            playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverride.Value);
+
         playerInput.ActivateInput();
 
         inputToggle =
@@ -42,12 +51,16 @@ public class VRInputSystem : MonoBehaviour
     {
         playerInput.actions["Chat"].performed += ChatPerformed;
         playerInput.actions["Chat"].canceled += ChatCanceled;
+
+        Plugin.Config.LeftHandDominant.SettingChanged += DominantHandChanged;
     }
 
     private void OnDisable()
     {
         playerInput.actions["Chat"].performed -= ChatPerformed;
         playerInput.actions["Chat"].canceled -= ChatCanceled;
+
+        Plugin.Config.LeftHandDominant.SettingChanged -= DominantHandChanged;
     }
 
     // Special chat input section
@@ -174,5 +187,19 @@ public class VRInputSystem : MonoBehaviour
     private void SaveInputToggles()
     {
         Plugin.Config.InputToggleBindings.Value = JsonConvert.SerializeObject(inputToggle);
+    }
+
+    /// <summary>
+    /// Reload bindings on dominant hand change
+    /// </summary>
+    private void DominantHandChanged(object sender, EventArgs e)
+    {
+        if (VRSession.IsLeftHanded)
+        {
+            playerInput.actions.LoadBindingOverridesFromJson(AssetCollection.RemappableControls.defaultLeftHandedBindings);
+            playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverrideLeft.Value, false);
+        }
+        else
+            playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverride.Value);
     }
 }

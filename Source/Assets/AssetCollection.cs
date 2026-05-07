@@ -1,9 +1,12 @@
 ﻿using System.IO;
+using JetBrains.Annotations;
 using RepoXR.Data;
 using RepoXR.Input;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RepoXR.Assets;
 
@@ -53,6 +56,10 @@ internal static class AssetCollection
     public static AnimationCurveData KeyboardAnimation;
 
     public static GameObject Cube;
+
+    [PublicAPI]
+    public static string AddressablesPath =>
+        Path.Combine(Path.GetDirectoryName(Plugin.Config.AssemblyPath)!, "Addressables");
     
     public static bool LoadAssets()
     {
@@ -64,6 +71,10 @@ internal static class AssetCollection
             Logger.LogError("Failed to load asset bundle!");
             return false;
         }
+
+        // Load translations
+        Addressables.LoadContentCatalogAsync(Path.Combine(AddressablesPath, "catalog_0.1.json"), true)
+            .WaitForCompletion();
 
         OpenXRFeatures = assetBundle.LoadAsset<OpenXRFeaturePack>("OpenXRFeatures");
 
@@ -119,5 +130,10 @@ internal static class AssetCollection
         }
 
         return true;
+    }
+
+    public static AsyncOperationHandle<LocalizedAsset> GetLocalizedAsset(string name)
+    {
+        return Addressables.LoadAssetAsync<LocalizedAsset>($"LocalizedAsset XR - {name}");
     }
 }

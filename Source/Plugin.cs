@@ -21,7 +21,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PLUGIN_GUID = "io.daxcess.repoxr";
     public const string PLUGIN_NAME = "RepoXR";
-    public const string PLUGIN_VERSION = "1.1.2";
+    public const string PLUGIN_VERSION = "1.2.0";
 
 #if DEBUG
     private const string SKIP_CHECKSUM_VAR = $"--repoxr-skip-checksum={PLUGIN_VERSION}-dev";
@@ -34,9 +34,7 @@ public class Plugin : BaseUnityPlugin
 
     private readonly string[] GAME_ASSEMBLY_HASHES =
     [
-        "137D6E8475DEA976831CC95D7F56F4B7DA311E52A57B4C420591A5122F25589F", // v0.3.0
-        "90F31BB66FB6FFA4793A1FE996312B5018AC4AF2E57D0037A98F36DFA201AF45", // v0.3.1
-        "C4C1FCA809009DBFA0E72311D36332031DDA5BFAE91DF5C2124F18B5AC151CE6"  // v0.3.2
+        "57E631840687760C8DE930F0C5774CF387D6A2E6B8D6B3EB3D67436CF999D372" // v0.4.0
     ];
 
     public new static Config Config { get; private set; } = null!;
@@ -74,8 +72,8 @@ public class Plugin : BaseUnityPlugin
             else
             {
                 Logger.LogError("Error: Unsupported game version, or corrupted game detected!");
-                Logger.LogError("RepoXR only supports legitimate Steam copies of R.E.P.O.");
                 Logger.LogError("R.E.P.O. might have been updated recently, and RepoXR does not yet support this version.");
+                Logger.LogError("It's also worth mentioning that RepoXR only supports legitimate Steam copies of R.E.P.O.");
                 Logger.LogDebug(
                     $"To bypass this check, add the following flag to your launch options in Steam: {SKIP_CHECKSUM_VAR}");
 
@@ -99,6 +97,7 @@ public class Plugin : BaseUnityPlugin
             Flags |= Flags.VR;
 
         HarmonyPatcher.PatchUniversal();
+        HarmonyPatcher.PatchNetworkRPCs();
 
         Logger.LogDebug("Inserted universal patches using Harmony");
 
@@ -226,24 +225,6 @@ public class Plugin : BaseUnityPlugin
         }
 
         return true;
-    }
-
-    public static void ToggleVR()
-    {
-        if (Flags.HasFlag(Flags.VR))
-        {
-            OpenXR.Loader.DeinitializeXR();
-            HarmonyPatcher.UnpatchVR();
-
-            Flags &= ~Flags.VR;
-        }
-        else
-        {
-            if (!InitializeVR())
-                return;
-
-            Flags |= Flags.VR;
-        }
     }
 
     private static bool InitializeVR()
