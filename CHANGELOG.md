@@ -20,6 +20,7 @@
 
 **Fixes**:
 - Smooth turn should feel a bit smoother now when not in the center of your play area
+- Fixed opening the VR settings menu causing the screen to reset position
 
 # 1.1.2
 
