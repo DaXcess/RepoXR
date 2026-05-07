@@ -55,7 +55,7 @@
     
     <!-- R.E.P.O. main game assembly for normal users -->
     <ItemGroup Condition="'$(USE_TESTER)' == 'false'">
-        <PackageReference Include="REPO" Version="0.3.2" />
+        <PackageReference Include="REPO" Version="0.4.0" />
     </ItemGroup>
     
     <!-- R.E.P.O. tester game assemblies for testers -->
