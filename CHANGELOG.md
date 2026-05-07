@@ -1,4 +1,4 @@
-# tester branch
+# 1.2.0
 
 **Additions**:
 - Added support for new valuable interactions

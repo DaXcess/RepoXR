@@ -63,7 +63,7 @@ internal static class PlayerAvatarVisualsPatches
     private static void InsertGrabberPatch(PlayerCosmetics __instance)
     {
         if (!__instance.playerAvatarVisuals || !__instance.playerAvatarVisuals.playerAvatar ||
-            !__instance.playerAvatarVisuals.playerAvatar.isLocal)
+            !__instance.playerAvatarVisuals.playerAvatar.isLocal || __instance.playerAvatarVisuals.isMenuAvatar)
             return;
 
         if (VRSession.Instance is not { } instance)
