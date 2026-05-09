@@ -47,10 +47,6 @@ RepoXR comes pre-packaged with a digital signature. You can use tools like GPG t
 
 The public key which can be used to verify the file is [9422426F6125277B82CC477DCF78CC72F0FD5EAD (OpenPGP Key Server)](https://keys.openpgp.org/vks/v1/by-fingerprint/9422426F6125277B82CC477DCF78CC72F0FD5EAD).
 
-### Bypassing integrity checks
-
-To prevent completely destroying the game, this mod scans the game assembly and tries to detect whether it's using a supported version or not. If this check fails, the mod will assume that either the game was updated, or the game files have been corrupted, and will refuse to start the mod. You can disable this behaviour by passing `--repoxr-skip-checksum=<version>` to the game's launch options in Steam, where `<version>` is the RepoXR version being used.
-
 ### Discord Server
 
 Facing issues, have some mod (in)compatibility to report or just want to hang out?
