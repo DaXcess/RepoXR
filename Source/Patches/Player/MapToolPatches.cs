@@ -175,7 +175,7 @@ internal static class UniversalMapToolPatches
             )
             // Only reset transforms conditionally (when local player is not in VR)
             .MatchForward(false, new CodeMatch(OpCodes.Call, PropertyGetter(typeof(Vector3), nameof(Vector3.zero))))
-            .Advance(-3)
+            .Advance(-2)
             .SetAndAdvance(OpCodes.Call, ((Action<MapToolController>)ConditionalResetTransform).Method)
             .RemoveInstructions(Debug.isDebugBuild ? 14 : 12)
             .InstructionEnumeration();
