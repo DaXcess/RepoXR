@@ -32,9 +32,6 @@ internal static class Native
     private static extern bool BringWindowToTop(IntPtr hWnd);
 
     [DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-    [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto)]

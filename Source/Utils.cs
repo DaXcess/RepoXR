@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using HarmonyLib;
@@ -17,13 +16,6 @@ namespace RepoXR;
 
 internal static class Utils
 {
-    public static byte[] ComputeHash(byte[] input)
-    {
-        using var sha = SHA256.Create();
-
-        return sha.ComputeHash(input);
-    }
-
     public static string ToHumanReadable(string input)
     {
         var builder = new StringBuilder(input[0].ToString());
@@ -51,19 +43,6 @@ internal static class Utils
         }
 
         return builder.ToString();
-    }
-
-    public static string[] ParseConfig(string content)
-    {
-        var lines = content.Split("\n", StringSplitOptions.RemoveEmptyEntries);
-
-        return (from line in lines
-            where !line.TrimStart().StartsWith("#")
-            let commentIndex = line.IndexOf('#')
-            select commentIndex >= 0 ? line[..commentIndex].Trim() : line.Trim()
-            into parsedLine
-            where !string.IsNullOrEmpty(parsedLine)
-            select parsedLine).ToArray();
     }
 
     public static string GetControlSpriteString(string controlPath)

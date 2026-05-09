@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using BepInEx;
 using BepInEx.Logging;
 using Mono.Cecil;
@@ -31,10 +32,9 @@ public static class Preload
 
     public static void Initialize()
     {
-        Logger.LogInfo("Setting up VR runtime assets");
-
         SetupRuntimeAssets();
-        
+        DiscoverGameVersion();
+
         Logger.LogInfo("We're done here. Goodbye!");
     }
 
@@ -43,6 +43,8 @@ public static class Preload
     /// </summary>
     private static void SetupRuntimeAssets()
     {
+        Logger.LogInfo("Setting up VR runtime assets");
+
         var root = Path.Combine(Paths.GameRootPath, "REPO_Data");
         var subsystems = Path.Combine(root, "UnitySubsystems");
         if (!Directory.Exists(subsystems))
@@ -67,7 +69,111 @@ public static class Preload
         File.Copy(oxrPlugin, oxrPluginTarget, true);
         File.Copy(oxrLoader, oxrLoaderTarget, true);
     }
-    
+
+    /// <summary>
+    /// Load the current version of R.E.P.O. into environment variables
+    /// </summary>
+    private static void DiscoverGameVersion()
+    {
+        const int chunkSize = 4096;
+        const string searchString = "Version - ";
+
+        using var stream = File.OpenRead(Path.Combine(Paths.GameRootPath, "REPO_Data/sharedassets0.assets"));
+
+        var offset = FindOffset(stream) - 4;
+        if (offset < 0)
+            throw new ApplicationException("Unknown application version");
+
+        stream.Seek(offset, SeekOrigin.Begin);
+
+        using var reader = new BinaryReader(stream, Encoding.ASCII);
+
+        var stringLength = reader.ReadInt32();
+        var name = Encoding.ASCII.GetString(reader.ReadBytes(stringLength));
+
+        if (!name.StartsWith("Version - "))
+            throw new ApplicationException("Unknown application version");
+
+        // Align
+        stream.Position = checked(stream.Position + 3L) & -4L;
+
+        stringLength = reader.ReadInt32();
+
+        var version = Encoding.ASCII.GetString(reader.ReadBytes(stringLength));
+        var branch = name.Split(" - ")[1]!;
+
+        Logger.LogInfo($"Version: {branch} {version}");
+
+        Environment.SetEnvironmentVariable("REPO_VERSION", version);
+        Environment.SetEnvironmentVariable("REPO_BRANCH", branch);
+
+        return;
+
+        static int FindOffset(FileStream stream)
+        {
+            var pattern = Encoding.ASCII.GetBytes(searchString);
+            var length = stream.Length;
+            var position = length;
+
+            Span<byte> buffer = stackalloc byte[chunkSize + 64];
+            Span<byte> overlap = stackalloc byte[64];
+
+            var overlapBytes = 0;
+
+            while (position > 0)
+            {
+                var readSize = (int)Math.Min(chunkSize, position);
+                position -= readSize;
+
+                stream.Seek(position, SeekOrigin.Begin);
+
+                var chunk = buffer[..readSize];
+                _ = stream.Read(chunk);
+
+                if (overlapBytes > 0)
+                {
+                    overlap[..overlapBytes].CopyTo(buffer[readSize..]);
+                    chunk = buffer[..(readSize + overlapBytes)];
+                }
+
+                var index = LastIndexOf(chunk, pattern);
+                if (index >= 0)
+                    return (int)position + index;
+
+                overlapBytes = Math.Min(pattern.Length - 1, readSize);
+                chunk[..overlapBytes].CopyTo(overlap);
+            }
+
+            return -1;
+        }
+
+        static int LastIndexOf(ReadOnlySpan<byte> haystack, ReadOnlySpan<byte> needle)
+        {
+            if (needle.Length == 0)
+                return 0;
+
+            for (var i = haystack.Length - needle.Length;
+                 i >= 0;)
+            {
+                while (i >= 0 && haystack[i + needle.Length - 1] != needle[^1])
+                    i--;
+
+                if (i < 0)
+                    break;
+
+                if (haystack.Slice(i, needle.Length)
+                    .SequenceEqual(needle))
+                {
+                    return i;
+                }
+
+                i--;
+            }
+
+            return -1;
+        }
+    }
+
     public static void Patch(AssemblyDefinition assembly)
     {
         // No-op

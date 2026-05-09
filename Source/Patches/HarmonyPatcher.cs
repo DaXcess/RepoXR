@@ -20,6 +20,8 @@ internal static class HarmonyPatcher
     private static readonly Harmony VRPatcher = new("io.daxcess.repoxr");
     private static readonly Harmony UniversalPatcher = new("io.daxcess.repoxr-universal");
 
+    private static bool ignoreErrors;
+
     public static void PatchUniversal()
     {
         Patch(UniversalPatcher, RepoXRPatchTarget.Universal);
@@ -41,7 +43,8 @@ internal static class HarmonyPatcher
         {
             try
             {
-                var attribute = (RepoXRPatchAttribute)Attribute.GetCustomAttribute(type, typeof(RepoXRPatchAttribute));
+                var attribute =
+                    (RepoXRPatchAttribute)Attribute.GetCustomAttribute(type, typeof(RepoXRPatchAttribute));
 
                 if (attribute == null)
                     return;
@@ -59,6 +62,25 @@ internal static class HarmonyPatcher
             catch (Exception e)
             {
                 Logger.LogError($"Failed to apply patches from {type}: {e.Message}, {e.InnerException}");
+
+                if (ignoreErrors)
+                    return;
+
+                var result = Native.ShellMessageBox(IntPtr.Zero, IntPtr.Zero,
+                    $"One or more patches failed to apply correctly.\n\nThis version of RepoXR may not be compatible with this version of the game ({Plugin.GameVersion}),\n or other installed mods may be interfering with RepoXR.\n\nDo you want to continue loading the mod anyways? (NOT RECOMMENDED!)\n\nPressing 'No' will close the game.",
+                    "RepoXR Startup Error", 16 | 4 | 0x00010000);
+
+                switch (result)
+                {
+                    // Yes
+                    case 6:
+                        ignoreErrors = true;
+                        break;
+                    // No
+                    case 7:
+                        Process.GetCurrentProcess().Kill();
+                        break;
+                }
             }
         });
     }
@@ -230,20 +252,5 @@ internal static class LeaveMyLeaveAlonePatch
 
             method.Invoke(null, [il, opcode, operand]);
         }
-    }
-}
-
-[RepoXRPatch(RepoXRPatchTarget.Universal)]
-internal static class HarmonyLibPatches
-{
-    /// <summary>
-    /// Ironically, patching Harmony like this fixes some issues with *un*patching
-    /// </summary>
-    [HarmonyPatch(typeof(MethodBaseExtensions), nameof(MethodBaseExtensions.HasMethodBody))]
-    [HarmonyPostfix]
-    private static void OnUnpatch(MethodBase member, ref bool __result)
-    {
-        if (new StackTrace().GetFrame(2)?.GetMethod().Name == "UnpatchConditional")
-            __result = true;
     }
 }
