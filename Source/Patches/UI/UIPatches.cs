@@ -355,4 +355,14 @@ internal static class UIPatches
     {
         __instance.GetComponentInChildren<RawImage>().raycastTarget = false;
     }
+
+    /// <summary>
+    /// Prevent OnDestroy from running and erroring whenever certain references aren't set up yet
+    /// </summary>
+    [HarmonyPatch(typeof(MenuKeybind), nameof(MenuKeybind.OnDestroy))]
+    [HarmonyPrefix]
+    private static bool KeybindSuppressError(MenuKeybind __instance)
+    {
+        return __instance.menuBigButton != null;
+    }
 }

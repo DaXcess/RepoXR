@@ -29,7 +29,7 @@ internal static class InventoryPatches
         // In release: instance is `ldloc.1`
         // In debug: instance is `this.<>4__this`
 
-        CodeInstruction[] ldThis = Debug.isDebugBuild
+        CodeInstruction[] ldThis = Plugin.DebugBuild
             ?
             [
                 new CodeInstruction(OpCodes.Ldarg_0),
@@ -64,7 +64,7 @@ internal static class InventoryPatches
         // In release: instance is `ldloc.1`
         // In debug: instance is `this.<>4__this`
 
-        CodeInstruction[] ldThis = Debug.isDebugBuild
+        CodeInstruction[] ldThis = Plugin.DebugBuild
             ?
             [
                 new CodeInstruction(OpCodes.Ldarg_0),

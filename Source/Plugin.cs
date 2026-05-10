@@ -7,6 +7,7 @@ using BepInEx;
 using JetBrains.Annotations;
 using RepoXR.Assets;
 using RepoXR.Patches;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
@@ -23,7 +24,9 @@ public class Plugin : BaseUnityPlugin
 
     public new static Config Config { get; private set; } = null!;
     public static Flags Flags { get; private set; } = 0;
+
     public static string GameVersion => Environment.GetEnvironmentVariable("REPO_VERSION") ?? "v?";
+    public static bool DebugBuild => false; //Debug.isDebugBuild;
 
     private void Awake()
     {

@@ -122,10 +122,34 @@ internal static class PhysGrabberPatches
     private static IEnumerable<CodeInstruction> RayCheckPatches(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
+            // Replace grabber checks from camera with checks from hand
             .MatchForward(false,
                 new CodeMatch(OpCodes.Callvirt,
                     Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform))))
             .Set(OpCodes.Call, PlayerLocalCameraExtensions.GetHandOverrideTransformMethod)
+            // However this affects the discovery logic, we need to (painfully) fix that portion of the code
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Call,
+                    Method(typeof(Physics), nameof(Physics.SphereCastAll),
+                    [
+                        typeof(Vector3), typeof(float), typeof(Vector3), typeof(float), typeof(int),
+                        typeof(QueryTriggerInteraction)
+                    ])))
+            .MatchBack(false, new CodeMatch(OpCodes.Ldloc_1)) // Our VR hand transform
+            .SetOpcodeAndAdvance(OpCodes.Ldarg_0)
+            .InsertAndAdvance( // Replace with camera transform
+                new CodeInstruction(OpCodes.Ldfld, Field(typeof(PhysGrabber), nameof(PhysGrabber.playerAvatar))),
+                new CodeInstruction(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))),
+                new CodeInstruction(OpCodes.Call, Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform)))
+            )
+            .MatchForward(false, new CodeMatch(OpCodes.Ldloc_2)) // Our VR hand forward vector
+            .SetOpcodeAndAdvance(OpCodes.Ldarg_0)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldfld, Field(typeof(PhysGrabber), nameof(PhysGrabber.playerAvatar))),
+                new CodeInstruction(OpCodes.Ldfld, Field(typeof(PlayerAvatar), nameof(PlayerAvatar.localCamera))),
+                new CodeInstruction(OpCodes.Callvirt, Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform))),
+                new CodeInstruction(OpCodes.Callvirt, PropertyGetter(typeof(Transform), nameof(Transform.forward)))
+            )
             .InstructionEnumeration();
     }
 
@@ -142,8 +166,8 @@ internal static class PhysGrabberPatches
             .RemoveInstructions(10)
             .Insert(
                 // TESTER: Check these operands in Debug vs Release builds
-                new CodeInstruction(OpCodes.Ldloca_S, Debug.isDebugBuild ? 13 : 5), // Mouse X
-                new CodeInstruction(OpCodes.Ldloca_S, Debug.isDebugBuild ? 14 : 6), // Mouse Y
+                new CodeInstruction(OpCodes.Ldloca_S, Plugin.DebugBuild ? 13 : 5), // Mouse X
+                new CodeInstruction(OpCodes.Ldloca_S, Plugin.DebugBuild ? 14 : 6), // Mouse Y
                 new CodeInstruction(OpCodes.Call, Method(typeof(PhysGrabberPatches), nameof(GetRotationInput)))
             )
             .InstructionEnumeration();

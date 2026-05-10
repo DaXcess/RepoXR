@@ -16,17 +16,6 @@ internal static class Experiments
         __instance.EnergyCurrent = __instance.EnergyStart;
     }
 
-    [HarmonyPatch(typeof(ResultScreenUI), nameof(ResultScreenUI.StateFadeIn))]
-    [HarmonyPrefix]
-    private static void HmmYesCosmetics(ResultScreenUI __instance)
-    {
-        if (!__instance.stateImpulse) return;
-
-        RoundDirector.instance.cosmeticWorldObjectsExtracted.AddRange([
-            SemiFunc.Rarity.Common, SemiFunc.Rarity.Common, SemiFunc.Rarity.Uncommon
-        ]);
-    }
-
     [HarmonyPatch(typeof(SpectateCamera), nameof(SpectateCamera.HeadEnergyLogic))]
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> FastRechargeHead(IEnumerable<CodeInstruction> instructions)

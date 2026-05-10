@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
+using HarmonyLib;
 using JetBrains.Annotations;
 using RepoXR.Data;
 using RepoXR.Input;
@@ -63,6 +66,14 @@ internal static class AssetCollection
     
     public static bool LoadAssets()
     {
+        if (!ValidateFPTSVersion())
+        {
+            Logger.LogError("Failed to validate FixPluginTypesSerialization version. Make sure that this mod is installed and up-to-date before launching RepoXR.");
+            Logger.LogError("In the case that the mod already appears to be up-to-date: uninstall it, clear your mod manager cache, and reinstall it.");
+
+            return false;
+        }
+
         assetBundle =
             AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Plugin.Config.AssemblyPath)!, "repoxrassets"));
 
@@ -119,21 +130,30 @@ internal static class AssetCollection
 
         Cube = assetBundle.LoadAsset<GameObject>("JustACube");
 
-        if (RemappableControls?.controls == null)
-        {
-            Logger.LogError(
-                "Unity failed to deserialize some assets. Are you missing the FixPluginTypesSerialization mod?");
-            Logger.LogWarning(
-                "I swear to god if you screenshot this and ask \"what is wrong?!\" without acknowledging the above error message I'm going to flip (IRL, and break my neck probably).");
-
-            return false;
-        }
-
         return true;
     }
 
     public static AsyncOperationHandle<LocalizedAsset> GetLocalizedAsset(string name)
     {
         return Addressables.LoadAssetAsync<LocalizedAsset>($"LocalizedAsset XR - {name}");
+    }
+
+    private static bool ValidateFPTSVersion()
+    {
+        var fpts = AppDomain.CurrentDomain.GetAssemblies()
+            .FirstOrDefault(asm => asm.GetName().Name == "FixPluginTypesSerialization");
+        if (fpts == null)
+        {
+            Logger.LogError("FPTS check failed: Assembly missing from AppDomain");
+            return false;
+        }
+
+        // Interface was added with the switch to Unity 2022.3.67f3
+        var hasInterface = fpts.DefinedTypes.Any(type =>
+            type.FullName == "FixPluginTypesSerialization.UnityPlayer.Structs.Default.IIsFileCreatedParam");
+        if (hasInterface) return true;
+
+        Logger.LogError("FPTS check failed: Missing required interface (mod is outdated)");
+        return false;
     }
 }
