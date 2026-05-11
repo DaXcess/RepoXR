@@ -67,8 +67,8 @@ internal static class HarmonyPatcher
                     return;
 
                 var result = Native.ShellMessageBox(IntPtr.Zero, IntPtr.Zero,
-                    $"One or more patches failed to apply correctly.\n\nThis version of RepoXR may not be compatible with this version of the game ({Plugin.GameVersion}),\n or other installed mods may be interfering with RepoXR.\n\nDo you want to continue loading the mod anyways? (NOT RECOMMENDED!)\n\nPressing 'No' will close the game.",
-                    "RepoXR Startup Error", 16 | 4 | 0x00010000);
+                    $"One or more patches failed to apply correctly.\n\nThis version of RepoXR may not be compatible with this version of the game ({Plugin.GameVersion}),\nor other installed mods may be interfering with RepoXR.\n\nDo you want to continue loading the mod anyway? (NOT RECOMMENDED!)\n\nPressing 'No' will close the game.",
+                    $"RepoXR v{Plugin.PLUGIN_VERSION} for R.E.P.O. {Plugin.GameVersion}", 16 | 4 | 0x00010000);
 
                 switch (result)
                 {

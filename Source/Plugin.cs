@@ -7,7 +7,6 @@ using BepInEx;
 using JetBrains.Annotations;
 using RepoXR.Assets;
 using RepoXR.Patches;
-using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
@@ -21,6 +20,8 @@ public class Plugin : BaseUnityPlugin
     public const string PLUGIN_GUID = "io.daxcess.repoxr";
     public const string PLUGIN_NAME = "RepoXR";
     public const string PLUGIN_VERSION = "1.2.0";
+
+    public const string SUPPORTED_GAME_VERSION = "0.4.1";
 
     public new static Config Config { get; private set; } = null!;
     public static Flags Flags { get; private set; } = 0;

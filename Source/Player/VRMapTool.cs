@@ -58,6 +58,7 @@ public class VRMapTool : MonoBehaviour
         display.transform.localPosition = Vector3.back * 0.006f;
 
         statsUI = StatsUI.instance;
+        statsUI.animateTheEntireObject = false;
         statsRect = statsUI.GetComponent<RectTransform>();
 
         levelUI = LevelUI.instance;
