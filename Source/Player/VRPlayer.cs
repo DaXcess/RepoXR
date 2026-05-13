@@ -278,6 +278,10 @@ public class VRPlayer : MonoBehaviour
         // Block turning if we are rotating an object or being blocked by a menu
         if (PlayerAvatar.instance.physGrabber.isRotating || PlayerController.instance.InputDisableTimer > 0)
             return;
+
+        // Block turning if we are force-looking
+        if (VRCameraAim.instance.IsActive)
+            return;
         
         var value = Actions.Instance["Turn"].ReadValue<float>();
 

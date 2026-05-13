@@ -87,7 +87,10 @@ public class VRCustomCamera : MonoBehaviour
 
         // Some weird fog thing, I don't know why but this is needed
         RenderSettings.fogDensity =
-            SemiFunc.MenuLevel() || SemiFunc.RunIsShop() || SemiFunc.RunIsLobby() || SemiFunc.RunIsArena() ? 0.015f : 0.15f;
+            SemiFunc.RunIsRecording() || SemiFunc.MenuLevel() || SemiFunc.RunIsShop() || SemiFunc.RunIsLobby() ||
+            SemiFunc.RunIsArena()
+                ? 0.015f
+                : 0.15f;
     }
 
     private void LateUpdate()

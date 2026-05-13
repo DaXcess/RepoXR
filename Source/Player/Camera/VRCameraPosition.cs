@@ -88,7 +88,6 @@ public class VRCameraPosition : MonoBehaviour
 
     private void PositionOverrideToggled(Vector3 pos, bool state)
     {
-
         if (state)
         {
             SemiFunc.LightManagerSetCullTargetTransform(transform);
