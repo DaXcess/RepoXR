@@ -24,6 +24,10 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<bool> VerboseLogging { get; } = file.Create("General", nameof(VerboseLogging), false,
         "Enables verbose debug logging during OpenXR initialization");
 
+    [ConfigDescriptor(customName: "VR Prescence", falseText: "Shown", trueText: "Hidden")]
+    public ConfigEntry<bool> DisableVRPresence { get; } = file.Create("General", nameof(DisableVRPresence), false,
+        "Disable the addition of VR status to Discord and Steam prescence.");
+
     // Gameplay configuration
 
     [ConfigDescriptor]
@@ -170,6 +174,15 @@ public class Config(string assemblyPath, ConfigFile file)
                 Object.Instantiate(AssetCollection.CustomCamera, Camera.main!.transform.parent);
             else
                 Object.Destroy(VRCustomCamera.instance.gameObject);
+        };
+
+        DisableVRPresence.SettingChanged += (_, _) =>
+        {
+            if (!VRSession.InVR)
+                return;
+
+            if (RunManager.instance is {} runManager)
+                runManager.UpdateSteamRichPresence();
         };
     }
 

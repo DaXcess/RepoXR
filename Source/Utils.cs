@@ -173,6 +173,11 @@ internal static class Utils
         return baseColor;
     }
 
+    public static string StripSuffix(this string @string, string suffix)
+    {
+        return @string.EndsWith(suffix) ? @string[..^suffix.Length] : @string;
+    }
+
     /// <summary>
     /// Resolve a translation key to it's localized value
     /// </summary>
