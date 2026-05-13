@@ -203,7 +203,7 @@ public class VRPlayer : MonoBehaviour
             return;
 
         // Check for disabled input
-        if (InputManager.instance.disableControlsExceptTimer > 0)
+        if (InputManager.instance.disableControlsExceptTimer > 0 || VRCameraPosition.instance.overridePositionActive)
             return;
 
         // If this is our first frame with position data, just reset the position immediately

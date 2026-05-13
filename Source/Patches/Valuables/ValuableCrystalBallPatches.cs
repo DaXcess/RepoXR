@@ -60,7 +60,7 @@ internal static class ValuableCrystalBallPatches
         if (!Plugin.Config.AnalogSmoothTurn.Value)
             value = value == 0 ? 0 : Math.Sign(value);
 
-        crystalBallPlayerRotation -= 180 * Time.deltaTime * value * 0.5f;
+        crystalBallPlayerRotation += 180 * Time.deltaTime * value * 0.5f;
 
         if (crystalBallPlayerRotation > 360f)
             crystalBallPlayerRotation -= 360f;
