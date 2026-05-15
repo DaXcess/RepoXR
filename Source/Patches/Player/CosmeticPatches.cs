@@ -67,7 +67,7 @@ internal static class CosmeticPatches
             .Advance(1)
             .InsertAndAdvance(
                 new CodeInstruction(OpCodes.Ldarg_0), // this
-                new CodeInstruction(OpCodes.Ldloc_S, Plugin.DebugBuild ? 24 : 14), // locals0
+                new CodeInstruction(OpCodes.Ldloc_S, Plugin.GameDebugBuild ? 24 : 14), // locals0
                 new CodeInstruction(OpCodes.Ldfld,
                     Field(Inner(typeof(PlayerCosmetics), "<>c__DisplayClass57_0"),
                         "_cosmeticAsset")), // _cosmeticAsset,

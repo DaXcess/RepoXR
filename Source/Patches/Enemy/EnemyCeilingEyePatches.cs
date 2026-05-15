@@ -31,7 +31,7 @@ internal static class EnemyCeilingEyePatches
             .InsertAndAdvance(new CodeInstruction(OpCodes.Callvirt,
                 PropertyGetter(typeof(Config), nameof(Config.ReducedAimImpact))))
             .InsertAndAdvance(new CodeInstruction(OpCodes.Callvirt,
-                PropertyGetter(typeof(ConfigEntry<bool>), nameof(ConfigEntry<bool>.Value))))
+                PropertyGetter(typeof(ConfigEntry<bool>), nameof(ConfigEntry<>.Value))))
             .SetOperandAndAdvance(Method(typeof(VRCameraAim), nameof(VRCameraAim.SetAimTargetSoft)))
             // Set focus sphere target to look at the ceiling eye
             .Insert(

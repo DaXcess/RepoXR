@@ -177,7 +177,7 @@ internal static class UniversalMapToolPatches
             .MatchForward(false, new CodeMatch(OpCodes.Call, PropertyGetter(typeof(Vector3), nameof(Vector3.zero))))
             .Advance(-2)
             .SetAndAdvance(OpCodes.Call, ((Action<MapToolController>)ConditionalResetTransform).Method)
-            .RemoveInstructions(Plugin.DebugBuild ? 14 : 12)
+            .RemoveInstructions(Plugin.GameDebugBuild ? 14 : 12)
             .InstructionEnumeration();
 
         static bool IsLocalOrVRPlayer(bool isLocal, PhotonView view)

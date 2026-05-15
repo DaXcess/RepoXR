@@ -60,7 +60,7 @@ internal static class TutorialPatches
         // In release: instance is `ldloc.1`
         // In debug: instance is `this.<>4__this`
 
-        CodeInstruction[] ldThis = Plugin.DebugBuild
+        CodeInstruction[] ldThis = Plugin.GameDebugBuild
             ?
             [
                 new CodeInstruction(OpCodes.Ldarg_0),

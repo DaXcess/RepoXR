@@ -6,6 +6,7 @@
 - Added support for the new walkie-talkie item
 - Added support for the new scooters
 - Added support for the new cosmetics system
+- Added VR presence to Steam and Discord (configurable)
 
 **Changes**:
 - Left-handed mode now also swaps your controller bindings around

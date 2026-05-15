@@ -22,13 +22,15 @@ public class Plugin : BaseUnityPlugin
     public const string PLUGIN_NAME = "RepoXR";
     public const string PLUGIN_VERSION = "1.2.0";
 
-    public const string SUPPORTED_GAME_VERSION = "v0.4.2";
+    public const string SUPPORTED_GAME_VERSION = "v0.4.3";
 
     public new static Config Config { get; private set; } = null!;
     public static Flags Flags { get; private set; } = 0;
 
     public static string GameVersion => Environment.GetEnvironmentVariable("REPO_VERSION") ?? "v?";
-    public static bool DebugBuild => Debug.isDebugBuild;
+
+    public static bool GameDebugBuild => !Environment.GetCommandLineArgs().Contains("--repoxr-force-release-build") &&
+                                         Debug.isDebugBuild;
 
     private void Awake()
     {

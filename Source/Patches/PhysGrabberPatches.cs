@@ -143,8 +143,8 @@ internal static class PhysGrabberPatches
             .RemoveInstructions(10)
             .Insert(
                 // TESTER: Check these operands in Debug vs Release builds
-                new CodeInstruction(OpCodes.Ldloca_S, Plugin.DebugBuild ? 13 : 5), // Mouse X
-                new CodeInstruction(OpCodes.Ldloca_S, Plugin.DebugBuild ? 14 : 6), // Mouse Y
+                new CodeInstruction(OpCodes.Ldloca_S, Plugin.GameDebugBuild ? 13 : 5), // Mouse X
+                new CodeInstruction(OpCodes.Ldloca_S, Plugin.GameDebugBuild ? 14 : 6), // Mouse Y
                 new CodeInstruction(OpCodes.Call, Method(typeof(PhysGrabberPatches), nameof(GetRotationInput)))
             )
             .InstructionEnumeration();
