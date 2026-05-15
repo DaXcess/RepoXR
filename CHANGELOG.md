@@ -3,6 +3,7 @@
 **Fixes**:
 - Fixed the grabber not properly grabbing items at their current position
 - Fixed the map player count upgrade not being visible in VR
+- Fixed some issues with the on-screen keyboard when renaming a save
 
 # 1.2.0
 
