@@ -53,7 +53,7 @@ Facing issues, have some mod (in)compatibility to report or just want to hang ou
 
 You can join the [Discord Server](https://discord.gg/2DxNgpPZUF)!
 
-# Versions
+## Versions
 
 Here is a list of RepoXR versions and which version(s) of R.E.P.O. it supports
 
@@ -70,23 +70,23 @@ Here is a list of RepoXR versions and which version(s) of R.E.P.O. it supports
 
 > RepoXR is also able to check hashes remotely, meaning newer R.E.P.O. versions might be supported even though they aren't listed here.
 
-# Multiplayer Support
+## Multiplayer Support
 
 Like my other VR mods, RepoXR is fully compatible with both VR players and non-VR players, whether they have the mod installed or not. Having the mod installed as a non-VR player is still beneficial, since it allows you to see the arm movements of VR players (and it includes some other features).
 
 There's one small catch though: If the **host** does **not** have the VR mod installed, physics calculations will be different for VR players, which can be somewhat disruptive for the VR players. It is therefor recommended for the host to have the VR mod installed (even if the host does not use VR themselves), to make physics calculations behave normal for VR players.
 
-# Compatibility
+## Compatibility
 
 Most mods should work fine with RepoXR, like new levels, new items, etc. However, there are also mods that may impact some core functionality of the game, which might not support RepoXR. You will have to manually verify if certain mods work with RepoXR or not.
 
-# Configuring the mod
+## Configuring the mod
 
 You can change the mod configuration from within the game itself (even when playing without VR enabled). Just launch the game with the mod installed, get to the main menu, go to the settings, and press `VR Settings`. This will open a settings menu that looks like the one from the base game, however it only contains settings dedicated to the VR mod.
 
 > _When creating a modpack or profile code, it is recommended to **NOT** ship your config file, so that other people can configure it on their own using the default settings. To quickly reset the settings, delete the config file named `io.daxcess.repoxr.cfg` in the `BepInEx/config` directory._
 
-# Controls
+## Controls
 
 RepoXR attempts to automatically detect which type of controller you are using, and will automatically apply the correct controller profile once they have been detected.
 
@@ -99,7 +99,7 @@ The current list of built-in controller profiles are:
 - HP Reverb G2
 - Windows Mixed Reality (deprecated)
 
-# How to change controls
+## How to change controls
 
 You can change controller bindings the same way you would when playing R.E.P.O. normally.
 
@@ -108,41 +108,41 @@ Go to the settings menu, and click `Controls`. All the controls have been replac
 > You must be in VR to change VR controller bindings. <br/>
 > Resetting the bindings will only reset the VR bindings, and will not touch keyboard bindings.
 
-# Grabbing stuff
+## Grabbing stuff
 
 Instead of grabbing items with your "face", you can actually grab items with your hand. You have full control over the items while you're holding them, you can even rotate the items by rotating your hand (and of course using the rotate feature in R.E.P.O. itself). To pull and push items, use right stick up/down, which will adjust the distance the item is held from.
 
 If for any reason your hand becomes obscured by solid geometry (e.g. you put your hand in a wall), item grabbing will be disabled, preventing you from picking up items through walls.
 
-# The map
+## The map
 
 RepoXR changes the way how you open up your map. Instead of having a keybind to open the map, you have a sort of toolbelt in front of you. On the right side of the toolbelt is the map. You can grab the map by hovering over it with _either_ hand (yes, you can use both hands!) and grabbing it using the grip button. To put the map back, release the grip button. If your player has any upgrades, they will show up when holding the map on the left or right side (depending on which hand is used to pick up the map). If you're holding an item in your hand, the map scoots to the left side of the toolbelt, giving easier access to the map for your left hand.
 
 Additionally, for ease of access, you can also grab the map by grabbing it from over your shoulder.
 
-# The inventory
+## The inventory
 
 Just like the map, the inventory has been placed on your toolbelt. When picking up an item that can be stored, three yellow rectangles will show up. To put an item in one of the slots, point your hand towards any of the three slots, and the item will be put inside the corresponding slot. If the slot was already occupied, the held item will be dropped, and you will pick up the item that was previously in the slot (same behavior as the base game).
 
 To grab an item out of your inventory, hover over it with your right hand, and press the Grab button (trigger by default). Which will immediately pick up the item for it to be used.
 
-# Headlamp
+## Headlamp
 
 In R.E.P.O. VR, by default you will hold your flashlight in your left hand (not unlike the flashlight in lethal or content warning). To make life easier though, you can hold your hand to the side of your head, press the grip key, and the flashlight will be attached to your head, making the flashlight point to wherever you are looking. You can perform the same action to put the flashlight back onto your hand.
 
-# The chat
+## The chat
 
 Contrary to my Lethal Company VR mod, the R.E.P.O. VR mod actually does allow you to access the chat. It has a default binding of `Left Joystick Pressed`, and it will pop up the chat window with a virtual keyboard underneath it. You can use this keyboard like you would with a normal keyboard (though it has a limited character set). Using the chat in VR is a lot more clunky than it is on PC, so it's more of a gimmick, but at least you can use it if you would like to.
 
-# Expressions
+## Expressions
 
 R.E.P.O. allows you to make your Semibot display a certain expression (or a combination of multiple expressions). In VR, you can access expressions by holding down the chat button, which will pop up a radial menu on the hand that was used to trigger the menu. With the wheel opened, you can position your hand on one of the expressions, and use the trigger button to toggle that expression. Even if the menu is closed, your expressions will stay active. When loading a new scene (e.g. after completing a level), the expressions will be remembered, so you do not have to re-enable expressions (not until you start a new game that is).
 
-# Left handed support
+## Left handed support
 
 RepoXR allows you to change your dominant hand, so you can swap your primary (grabbing) hand using a simple configuration setting. You can change this option at any time, whether you're in the main menu, or being chased by a Headman (hypothetically).
 
-# Eye Tracking
+## Eye Tracking
 
 If your headset supports it, you can make use of eye tracking when using the VR mod. Eye tracking alters mechanics in both singleplayer and multiplayer, so nobody is left out!
 
@@ -150,6 +150,6 @@ When eye tracking is enabled, certain features within the game that require you 
 
 Other people can also enjoy the use of eye tracking! When used in multiplayer, the eyes of the semibot will look wherever you are looking in real life, so you can roll your eyes, or stare into the soul of that one friend that keeps destroying all the fragile valuables.
 
-# Other misc features
+## Other misc features
 
 - While inside of a lobby, you can press "CTRL + C" on your keyboard to copy a Steam join link (steam://joinlobby/...) to allow you to invite people outside your friends list (make sure your game is focussed while you do this). The monster update (v0.3.0) also added an invite through Discord feature. To use this, make sure you share which game you're playing on Discord, and then you can send invites while you are in a lobby.
