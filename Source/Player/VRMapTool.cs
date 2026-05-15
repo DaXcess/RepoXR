@@ -11,6 +11,7 @@ public class VRMapTool : MonoBehaviour
     public static VRMapTool instance;
     
     private MapToolController controller;
+    private DirtFinderCounter playerCounter;
 
     private RenderTexture displayTexture;
     private new Light light;
@@ -48,6 +49,7 @@ public class VRMapTool : MonoBehaviour
     {
         instance = this;
         controller = GetComponent<MapToolController>();
+        playerCounter = transform.parent.GetComponentInChildren<DirtFinderCounter>(true);
         displaySpring = controller.HideTransform.Find("Main Spring/Base Offset/Bob/Main Unit/Display Spring");
         
         var display = displaySpring.Find("display_1x1");
@@ -80,6 +82,11 @@ public class VRMapTool : MonoBehaviour
 
     private void Update()
     {
+        // In vanilla, the map object is disabled when not shown, and enabled when shown (TAB pressed).
+        // In VR, the map is always shown, so OnEnable is only called once during scene load.
+        // We force call OnEnable every frame to make sure the upgrade is visible immediately after unlocking.
+        playerCounter.OnEnable();
+
         if (controller.Active)
         {
             if (!shadowVisible)

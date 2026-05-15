@@ -59,35 +59,6 @@ internal static class PhysGrabberPatches
     }
 
     /// <summary>
-    /// Make sure the <see cref="PhysGrabber.physGrabPointPlane"/> and <see cref="PhysGrabber.physGrabPointPuller"/> are
-    /// manually updated if we are holding something.
-    ///
-    /// <para>
-    /// This is normally done by having these be a child of the camera, however this doesn't work in VR since
-    /// we use our hand to move items, not the main camera.
-    /// </para>
-    ///
-    /// <para>
-    /// We do not touch the transforms if a camera override is active (walkie-talkie)
-    /// </para>
-    /// </summary>
-    [HarmonyPatch(typeof(PhysGrabber), nameof(PhysGrabber.Update))]
-    [HarmonyPostfix]
-    private static void UpdatePhysGrabPlane(PhysGrabber __instance)
-    {
-        if (!__instance.isLocal || !__instance.grabbedObjectTransform ||
-            __instance.playerAvatar.localCamera.GetOverrideActive())
-            return;
-
-        var hand = __instance.playerAvatar.localCamera.GetHandOverrideTransform();
-        var distancePlane = Vector3.Distance(hand.position, __instance.physGrabPointPlane.position);
-        var distancePuller = Vector3.Distance(hand.position, __instance.physGrabPointPuller.position);
-
-        __instance.physGrabPointPlane.position = hand.position + hand.forward * distancePlane;
-        __instance.physGrabPointPuller.position = hand.position + hand.forward * distancePuller;
-    }
-
-    /// <summary>
     /// Provide haptic feedback while something is grabbed
     /// </summary>
     [HarmonyPatch(typeof(PhysGrabber), nameof(PhysGrabber.Update))]
@@ -238,6 +209,22 @@ internal static class PhysGrabberUniversalPatches
                     Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform))))
             .Set(OpCodes.Call, PlayerLocalCameraExtensions.GetHandOverrideTransformMethod)
             // Replace camera transform with hand transform (remote player)
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Callvirt,
+                    Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform))))
+            .Set(OpCodes.Call, PlayerLocalCameraExtensions.GetHandOverrideTransformMethod)
+            .InstructionEnumeration();
+    }
+
+    /// <summary>
+    /// Force the grabbing of objects to start from the hand
+    /// </summary>
+    [HarmonyPatch(typeof(PhysGrabber), nameof(PhysGrabber.StartGrabbingPhysObject))]
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> GrabFromHandPatch(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            // Replace camera transform with hand transform
             .MatchForward(false,
                 new CodeMatch(OpCodes.Callvirt,
                     Method(typeof(PlayerLocalCamera), nameof(PlayerLocalCamera.GetOverrideTransform))))

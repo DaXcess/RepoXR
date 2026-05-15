@@ -1,3 +1,9 @@
+# 1.2.1
+
+**Fixes**:
+- Fixed the grabber not properly grabbing items at their current position
+- Fixed the map player count upgrade not being visible in VR
+
 # 1.2.0
 
 **Additions**:
