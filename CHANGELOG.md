@@ -1,5 +1,8 @@
 # 1.2.1
 
+**Changes:**
+- Made clipping through the floor more difficult
+
 **Fixes**:
 - Fixed the grabber not properly grabbing items at their current position
 - Fixed the map player count upgrade not being visible in VR

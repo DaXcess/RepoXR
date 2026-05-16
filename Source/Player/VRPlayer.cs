@@ -237,7 +237,8 @@ public class VRPlayer : MonoBehaviour
         
         if (diff > 0.5f) // Check if we're getting too tall
             ResetHeight();
-        else if (diff < -offset + 0.05f) // Check if going through floor (with 5cm offset)
+        // Check if going through floor (with 10cm offset)
+        else if (mainCamera.transform.position.y < PlayerAvatar.instance.transform.position.y + 0.1f)
             ResetHeight();
 
         if (diff <= -0.6f)
