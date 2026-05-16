@@ -59,6 +59,7 @@ Here is a list of RepoXR versions and which version(s) of R.E.P.O. it supports
 
 | RepoXR | R.E.P.O. Version |
 | ------ | ---------------- |
+| v1.2.1 | v0.4.3           |
 | v1.2.0 | v0.4.3           |
 | v1.1.2 | v0.3.0 - v0.3.2  |
 | v1.1.1 | v0.3.0 - v0.3.1  |
@@ -68,7 +69,7 @@ Here is a list of RepoXR versions and which version(s) of R.E.P.O. it supports
 | v1.0.1 | v0.2.1           |
 | v1.0.0 | v0.2.0           |
 
-> RepoXR still attempts to load on other versions, but will bail with an error message if it encounters errors during statup
+> RepoXR dynamically measures compatibility with the game during startup, meaning newer R.E.P.O. versions might be supported even though they aren't listed here.
 
 ## Multiplayer Support
 
