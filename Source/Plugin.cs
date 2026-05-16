@@ -20,7 +20,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PLUGIN_GUID = "io.daxcess.repoxr";
     public const string PLUGIN_NAME = "RepoXR";
-    public const string PLUGIN_VERSION = "1.2.1";
+    public const string PLUGIN_VERSION = "1.2.2";
 
     public const string SUPPORTED_GAME_VERSION = "v0.4.3";
 
@@ -138,6 +138,7 @@ public class Plugin : BaseUnityPlugin
         if (!OpenXR.Loader.InitializeXR())
         {
             RepoXR.Logger.LogError("Failed to start in VR Mode! Only Non-VR features are available!");
+            RepoXR.Logger.LogError("Make sure your headset is turned on and connected before starting the game.");
             RepoXR.Logger.LogWarning("You may ignore the previous error if you meant to play without VR");
 
             Flags |= Flags.StartupFailed;

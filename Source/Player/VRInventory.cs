@@ -150,7 +150,7 @@ public class VRInventory : MonoBehaviour
         item.gameObject.SetLayerRecursively(6);
 
         // Prevent getting hurt by item in inventory
-        if (item.TryGetComponent<ItemMelee>(out var melee))
+        if (item.TryGetComponent<ItemMelee>(out var melee) && melee.hurtCollider)
             melee.hurtCollider.gameObject.SetActive(false);
         
         // Disable shadows

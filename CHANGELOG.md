@@ -1,3 +1,8 @@
+# 1.2.2
+
+**Hotfix**:
+- Fixed not being able to unequip melee items without hurt colliders
+
 # 1.2.1
 
 **Changes:**
