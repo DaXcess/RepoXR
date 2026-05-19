@@ -57,6 +57,7 @@ public class VRRig : MonoBehaviour
     public Vector3 mapLeftPosition;
 
     private bool armsDetached;
+    private bool visible = true;
 
     private Transform leftArmMeshTransform;
     private Transform rightArmMeshTransform;
@@ -65,7 +66,7 @@ public class VRRig : MonoBehaviour
     private PlayerAvatar playerAvatar;
     private PlayerAvatarVisuals playerAvatarVisuals;
     private PlayerAvatarRightArm playerAvatarRightArm;
-    
+
     // Flashlight
 
     private FlashlightController flashlight;
@@ -135,9 +136,8 @@ public class VRRig : MonoBehaviour
             Quaternion.Euler(transform.eulerAngles.x, head.eulerAngles.y, transform.eulerAngles.z),
             10 * Time.deltaTime);
 
-        // Hide rig if camera is overridden
-        if (playerAvatar.localCamera.GetOverrideActive())
-            transform.position += Vector3.down * 3000;
+        if (!visible)
+            inventoryController.HideSlots();
 
         headAnchor.position = head.position;
         headAnchor.rotation = head.rotation;
@@ -375,11 +375,11 @@ public class VRRig : MonoBehaviour
     /// </summary>
     private void WallClipLogic()
     {
-        var camera = CameraUtils.Instance.MainCamera.transform;
-        var direction = VRSession.Instance.Player.MainHand.position - camera.position;
+        var mainCamera = CameraUtils.Instance.MainCamera.transform;
+        var direction = VRSession.Instance.Player.MainHand.position - mainCamera.position;
 
-        if (Physics.Raycast(new Ray(camera.position, direction), out _,
-                Vector3.Distance(camera.position, VRSession.Instance.Player.MainHand.position), Crosshair.LayerMask))
+        if (Physics.Raycast(new Ray(mainCamera.position, direction), out _,
+                Vector3.Distance(mainCamera.position, VRSession.Instance.Player.MainHand.position), Crosshair.LayerMask))
         {
             // HIT!
             Crosshair.instance.gameObject.SetActive(false);
@@ -464,14 +464,16 @@ public class VRRig : MonoBehaviour
         leftArm.localPosition = rightArm.localPosition = Vector3.zero;
     }
     
-    public void SetVisible(bool visible)
+    public void SetVisible(bool value)
     {
-        leftArmMeshTransform.gameObject.SetActive(visible);
-        rightArmMeshTransform.gameObject.SetActive(visible);
+        visible = value;
 
-        infoHud.gameObject.SetActive(visible);
-        map.gameObject.SetActive(visible);
-        inventory.gameObject.SetActive(visible);
+        leftArmMeshTransform.gameObject.SetActive(value);
+        rightArmMeshTransform.gameObject.SetActive(value);
+
+        infoHud.gameObject.SetActive(value);
+        map.gameObject.SetActive(value);
+        inventory.gameObject.SetActive(value);
     }
 
     public void SetLeftArmColor(int nameId, Color color)

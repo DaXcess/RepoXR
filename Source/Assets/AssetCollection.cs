@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using HarmonyLib;
 using JetBrains.Annotations;
 using RepoXR.Data;
 using RepoXR.Input;

@@ -2,23 +2,23 @@ name: Build Release
 
 on:
   push:
-    branches: ["main"]
-  pull_request: 
-    branches: ["main"]
-    
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
       DOTNET_INSTALL_DIR: ~/.dotnet
-      
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           filter: tree:0
-          
+
       - name: Set up variables
         id: vars
         run: |
@@ -33,26 +33,26 @@ jobs:
 
       - name: Restore NuGet packages
         run: dotnet restore
-        
+
       - name: Build NuGet package
         run: dotnet pack -p:Version='${{ steps.vars.outputs.version }}' -c Release
-        
+
       - name: Upload NuGet package
         if: github.event_name == 'push'
         run: |
           dotnet nuget push bin/Release/*.nupkg --api-key "$NUGET_TOKEN" --source https://nuget.daxcess.io/v3/index.json
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-          
+
       - name: Build app
         run: dotnet build -c Release
-        
+
       - name: Configure GPG Key
         run: |
           echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
         env:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-          
+
       - name: Prepare and bundle package
         run: |
           # Set up template
@@ -76,10 +76,18 @@ jobs:
           # Update Thunderstore manifest
           jq '.version_number = "${{ steps.vars.outputs.version }}"' ./package/manifest.json > ./package/manifest_new.json
           mv ./package/manifest_new.json ./package/manifest.json
-          
-      - name: Upload build artifacts
+
+      - name: Upload package artifact
         if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RepoXR-${{ steps.vars.outputs.version }}
           path: ./package
+
+      - name: Upload symbols artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v7
+        with:
+          name: RepoXR.pdb
+          path: ./bin/Release/netstandard2.1/RepoXR.pdb
+          archive: false

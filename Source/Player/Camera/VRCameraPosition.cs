@@ -119,11 +119,16 @@ public class VRCameraPosition : MonoBehaviour
             }
 
             MoveCameraToPosition(pos);
+
+            VRSession.Instance.Player.Rig.SetVisible(false);
         }
         else
         {
             if (PlayerAvatar.instance is { } player)
+            {
                 SemiFunc.LightManagerSetCullTargetTransform(player.transform);
+                VRSession.Instance.Player.Rig.SetVisible(!player.deadSet);
+            }
 
             if (Vector3.Distance(pos, transform.position) > 5)
             {

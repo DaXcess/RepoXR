@@ -103,6 +103,15 @@ public class VRInventorySlot : MonoBehaviour
         pingDuration = time;
     }
 
+    /// <summary>
+    /// Hide the slot
+    /// </summary>
+    public void Hide()
+    {
+        if (spot != null)
+            spot.batteryVisualLogic.transform.position = Vector3.down * 3000;
+    }
+
     private static float CalculateSpringOffset(float currentTime, float amount, float frequency, float duration)
     {
         var t = currentTime / duration;

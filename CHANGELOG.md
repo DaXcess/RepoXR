@@ -1,3 +1,12 @@
+# 1.2.3
+
+**Changes**:
+- The verbose logging option has been renamed and will now also try to load debug symbols
+
+**Fixes**:
+- Fixed the map tool rotations not being restored after experiencing a camera override
+- Fixed item slots still having a visible battery indicator during camera overrides
+
 # 1.2.2
 
 **Hotfix**:

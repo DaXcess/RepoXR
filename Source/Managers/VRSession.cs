@@ -11,7 +11,7 @@ public class VRSession : MonoBehaviour
     public static VRSession Instance { get; private set; }
 
     /// <summary>
-    /// Whether the game has VR enabled. THis field will only be populated after RepoXR has loaded.
+    /// Whether the game has VR enabled. This field will only be populated after RepoXR has loaded.
     /// </summary>
     public static bool InVR => Plugin.Flags.HasFlag(Flags.VR);
 

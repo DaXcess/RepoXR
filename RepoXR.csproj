@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <Description>Collecting Valuables in VR</Description>
-        <Version>1.2.2</Version>
+        <Version>1.2.3</Version>
         <Authors>DaXcess</Authors>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
@@ -29,6 +29,8 @@
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <NoWarn>1701;1702;8618</NoWarn>
+      <DebugSymbols>true</DebugSymbols>
+      <DebugType>portable</DebugType>
     </PropertyGroup>
 
     <ItemGroup>

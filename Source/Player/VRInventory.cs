@@ -181,6 +181,11 @@ public class VRInventory : MonoBehaviour
         slots[index].Ping(amount, frequency, time);
     }
 
+    public void HideSlots()
+    {
+        slots.Do(slot => slot.Hide());
+    }
+
     private static bool IsHoldingItem()
     {
         if (SemiFunc.RunIsArena() || PlayerController.instance.InputDisableTimer > 0)

@@ -5,6 +5,7 @@ using RepoXR.Managers;
 using RepoXR.Player.Camera;
 using UnityEngine;
 using UnityEngine.XR;
+using UnityEngine.XR.OpenXR;
 using Object = UnityEngine.Object;
 
 namespace RepoXR;
@@ -21,8 +22,8 @@ public class Config(string assemblyPath, ConfigFile file)
         "Disables the main functionality of this mod, can be used if you want to play without VR while keeping the mod installed.");
 
     [ConfigDescriptor]
-    public ConfigEntry<bool> VerboseLogging { get; } = file.Create("General", nameof(VerboseLogging), false,
-        "Enables verbose debug logging during OpenXR initialization");
+    public ConfigEntry<bool> ExtendedDebugging { get; } = file.Create("General", nameof(ExtendedDebugging), false,
+        "Enables verbose debug logging during OpenXR initialization and loads symbols during startup");
 
     [ConfigDescriptor(customName: "VR Prescence", falseText: "Shown", trueText: "Hidden")]
     public ConfigEntry<bool> DisableVRPresence { get; } = file.Create("General", nameof(DisableVRPresence), false,
@@ -141,6 +142,10 @@ public class Config(string assemblyPath, ConfigFile file)
         new ConfigDescription("The amount of smoothing that is applied to the custom camera.",
             new AcceptableValueRange<float>(0, 1)));
 
+    // [ConfigDescriptor(customName: "Render Mode", trueText: "Single Pass", falseText: "Multipass")]
+    public ConfigEntry<bool> SinglePassRendering { get; } = file.Create("Rendering", nameof(SinglePassRendering), false,
+        "Whether to render this game in Single Pass mode, which is more optimized but may not be supported by other mods or shaders. Do not enable unless you know what you're doing!");
+
     // Internal configuration
 
     public ConfigEntry<string> ControllerBindingsOverride { get; } = file.Create("Internal",
@@ -183,6 +188,13 @@ public class Config(string assemblyPath, ConfigFile file)
 
             if (RunManager.instance is {} runManager)
                 runManager.UpdateSteamRichPresence();
+        };
+
+        SinglePassRendering.SettingChanged += (_, _) =>
+        {
+            OpenXRSettings.Instance.renderMode = SinglePassRendering.Value
+                ?  OpenXRSettings.RenderMode.SinglePassInstanced
+                : OpenXRSettings.RenderMode.MultiPass;
         };
     }
 

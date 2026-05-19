@@ -393,7 +393,7 @@ internal static class OpenXR
             var displays = new List<XRDisplaySubsystem>();
             SubsystemManager.GetInstances(displays);
 
-            if (Plugin.Config.VerboseLogging.Value)
+            if (Plugin.Config.ExtendedDebugging.Value)
             {
                 Logger.LogWarning("OpenXR Diagnostics Report:");
 
@@ -402,7 +402,7 @@ internal static class OpenXR
 
                 Logger.LogWarning("");
                 Logger.LogWarning(
-                    $"To prevent diagnostic reports from being printed, disable the '{nameof(Config.VerboseLogging)}' option in the settings.");
+                    $"To prevent diagnostic reports from being printed, disable the '{nameof(Config.ExtendedDebugging)}' option in the settings.");
             }
 
             return displays.Count > 0;
@@ -419,7 +419,9 @@ internal static class OpenXR
             ((List<XRLoader>)xrManagerSettings.activeLoaders).Clear();
             ((List<XRLoader>)xrManagerSettings.activeLoaders).Add(xrLoader);
 
-            OpenXRSettings.Instance.renderMode = OpenXRSettings.RenderMode.MultiPass;
+            OpenXRSettings.Instance.renderMode = Plugin.Config.SinglePassRendering.Value
+                ? OpenXRSettings.RenderMode.SinglePassInstanced
+                : OpenXRSettings.RenderMode.MultiPass;
             OpenXRSettings.Instance.depthSubmissionMode = OpenXRSettings.DepthSubmissionMode.None;
             OpenXRSettings.Instance.features = AssetCollection.OpenXRFeatures.Features.ToArray();
         }

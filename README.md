@@ -38,6 +38,7 @@ Here is a list of RepoXR versions and which version(s) of R.E.P.O. it supports
 
 | RepoXR | R.E.P.O. Version |
 |--------|------------------|
+| v1.2.3 | v0.4.4           |
 | v1.2.2 | v0.4.3           |
 | v1.2.1 | v0.4.3           |
 | v1.2.0 | v0.4.3           |

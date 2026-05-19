@@ -20,9 +20,9 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PLUGIN_GUID = "io.daxcess.repoxr";
     public const string PLUGIN_NAME = "RepoXR";
-    public const string PLUGIN_VERSION = "1.2.2";
+    public const string PLUGIN_VERSION = "1.2.3";
 
-    public const string SUPPORTED_GAME_VERSION = "v0.4.3";
+    public const string SUPPORTED_GAME_VERSION = "v0.4.4";
 
     public new static Config Config { get; private set; } = null!;
     public static Flags Flags { get; private set; } = 0;
@@ -40,6 +40,12 @@ public class Plugin : BaseUnityPlugin
         RepoXR.Logger.source = Logger;
 
         Config = new Config(Info.Location, base.Config);
+
+        // Debug symbols are automatically embedded in debug builds, so we only load them in release builds
+#if RELEASE
+        if (Config.ExtendedDebugging.Value)
+            LoadDebugSymbols();
+#endif
 
         Logger.LogInfo($"Starting {PLUGIN_NAME} v{PLUGIN_VERSION} ({GetCommitHash()})");
 
@@ -172,6 +178,26 @@ public class Plugin : BaseUnityPlugin
                 BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)!
             .GetGetMethod(true);
     }
+
+#if RELEASE
+    private void LoadDebugSymbols()
+    {
+        // This URL automatically downloads the symbols from this version's GitHub release
+        const string debugSymbolsPath = $"https://repoxr.daxcess.io/api/symbols/{PLUGIN_VERSION}";
+
+        if (!Config.ExtendedDebugging.Value)
+            return;
+
+        try
+        {
+            Mono.LoadSymbolsForAssembly(Assembly.GetExecutingAssembly(), debugSymbolsPath);
+        }
+        catch
+        {
+            Logger.LogWarning("Failed to load debug symbols: error information will be limited");
+        }
+    }
+#endif
 }
 
 [Flags]
