@@ -51,6 +51,7 @@ public class VRInputSystem : MonoBehaviour
     {
         playerInput.actions["Chat"].performed += ChatPerformed;
         playerInput.actions["Chat"].canceled += ChatCanceled;
+        playerInput.onControlsChanged += OnControlsChanged;
 
         Plugin.Config.LeftHandDominant.SettingChanged += DominantHandChanged;
     }
@@ -59,6 +60,7 @@ public class VRInputSystem : MonoBehaviour
     {
         playerInput.actions["Chat"].performed -= ChatPerformed;
         playerInput.actions["Chat"].canceled -= ChatCanceled;
+        playerInput.onControlsChanged -= OnControlsChanged;
 
         Plugin.Config.LeftHandDominant.SettingChanged -= DominantHandChanged;
     }
@@ -201,5 +203,10 @@ public class VRInputSystem : MonoBehaviour
         }
         else
             playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverride.Value);
+    }
+
+    private static void OnControlsChanged(PlayerInput input)
+    {
+        Logger.LogInfo($"Detected controllers: {input.currentControlScheme}");
     }
 }

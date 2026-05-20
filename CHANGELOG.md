@@ -6,6 +6,8 @@
 **Fixes**:
 - Fixed the map tool rotations not being restored after experiencing a camera override
 - Fixed item slots still having a visible battery indicator during camera overrides
+- Fixed staff items charge progress based on head rotation instead of hand rotation
+- Fixed staff items not properly aligning with world up when not charged
 
 # 1.2.2
 
