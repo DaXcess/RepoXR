@@ -129,6 +129,12 @@ internal static class AssetCollection
 
         Cube = assetBundle.LoadAsset<GameObject>("JustACube");
 
+        if (RemappableControls?.controls == null)
+        {
+            Logger.LogError("Failed to load assets! FPTS may have failed to start up properly. Please check logs.");
+            return false;
+        }
+
         return true;
     }
 
