@@ -47,6 +47,33 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<bool> DetachedArms { get; } = file.Create("Gameplay", nameof(DetachedArms), false,
         "Whether your arms are attached to your body, or if they are separate");
 
+    [ConfigDescriptor(customName: "Two-Handed Grabbing", trueText: "Enabled", falseText: "Disabled")]
+    public ConfigEntry<bool> TwoHandedGrab { get; } = file.Create("Gameplay", nameof(TwoHandedGrab), false,
+        "Gives your off hand its own grab beam, so you can hold a separate object in each hand. Singleplayer only: the off-hand grabber shares your player's network view, so it stays disabled in multiplayer sessions.");
+
+    // Deliberately not called "Inventory*": earlier builds shipped keys by those names whose meaning has since
+    // changed, and BepInEx keeps whatever value is already in the config file. Renaming is what lets these defaults
+    // reach anyone who ran a previous version.
+
+    [ConfigDescriptor(customName: "Holster Height", pointerSize: 0.01f, stepSize: 0.05f, suffix: "m")]
+    public ConfigEntry<float> HolsterHeight { get; } = file.Create("Gameplay", nameof(HolsterHeight), -0.9f,
+        new ConfigDescription(
+            "How far below your head the inventory holsters sit. Adjust until they line up with your own waist.",
+            new AcceptableValueRange<float>(-1.2f, -0.2f)));
+
+    [ConfigDescriptor(customName: "Back Holster Height", pointerSize: 0.01f, stepSize: 0.05f, suffix: "m")]
+    public ConfigEntry<float> BackHolsterHeight { get; } =
+        file.Create("Gameplay", nameof(BackHolsterHeight), -0.45f,
+            new ConfigDescription(
+                "How far below your head the holster behind your back sits. Raise it towards your shoulder or lower it towards your belt, depending on how you like to reach behind you.",
+                new AcceptableValueRange<float>(-0.9f, -0.1f)));
+
+    [ConfigDescriptor(customName: "Holster Reach", pointerSize: 0.005f, stepSize: 0.01f, suffix: "m")]
+    public ConfigEntry<float> HolsterReach { get; } = file.Create("Gameplay", nameof(HolsterReach), 0.15f,
+        new ConfigDescription(
+            "How close your controller has to be to a holster to use it.",
+            new AcceptableValueRange<float>(0.08f, 0.5f)));
+
     [ConfigDescriptor]
     public ConfigEntry<HapticFeedbackOption> HapticFeedback { get; } =
         file.Create("Gameplay", nameof(HapticFeedback), HapticFeedbackOption.All,

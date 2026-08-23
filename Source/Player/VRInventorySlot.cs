@@ -19,6 +19,30 @@ public class VRInventorySlot : MonoBehaviour
     
     public Color targetColor = Color.clear;
     public ItemEquippable? heldItem;
+
+    /// <summary>
+    /// Hurt boxes belonging to the stowed item, kept switched off for as long as it's in the holster
+    /// </summary>
+    public HurtCollider[] hurtColliders = [];
+
+    private Vector3 anchorPosition;
+    private Quaternion anchorRotation;
+    private bool anchored;
+
+    /// <summary>
+    /// Place this holster at a world pose.
+    ///
+    /// World rather than local on purpose: the slots sit under prefab parents whose own offsets and rotations this
+    /// code has no business assuming anything about, and setting local positions against them put every holster in
+    /// the wrong place (and two of them on top of each other). The pose is applied here in LateUpdate rather than by
+    /// the caller so that it always lands before the line renderer below is rebuilt from it.
+    /// </summary>
+    public void SetAnchor(Vector3 position, Quaternion rotation)
+    {
+        anchorPosition = position;
+        anchorRotation = rotation;
+        anchored = true;
+    }
     
     private float heightOffset;
     private Color currentColor = Color.clear;
@@ -61,6 +85,12 @@ public class VRInventorySlot : MonoBehaviour
                 Vector3.Lerp(heldItem.transform.localPosition, Vector3.zero, 5 * Time.deltaTime);
             heldItem.transform.localRotation =
                 Quaternion.Slerp(heldItem.transform.localRotation, Quaternion.identity, 5 * Time.deltaTime);
+
+            // The item's own state machine can switch its hurt boxes back on while it's sitting against the
+            // player's body, so they get held down rather than just disabled once on equip
+            foreach (var hurt in hurtColliders)
+                if (hurt && hurt.gameObject.activeSelf)
+                    hurt.gameObject.SetActive(false);
         }
     }
 
@@ -75,14 +105,24 @@ public class VRInventorySlot : MonoBehaviour
             pingTime += Time.deltaTime;
         }
 
-        transform.localPosition = new Vector3(transform.localPosition.x, pingValue * 0.0025f, transform.localPosition.z);
+        if (anchored)
+            transform.SetPositionAndRotation(anchorPosition + anchorRotation * (Vector3.up * (pingValue * 0.0025f)),
+                anchorRotation);
+        else
+            transform.localPosition =
+                new Vector3(transform.localPosition.x, pingValue * 0.0025f, transform.localPosition.z);
+
+        // Holster mouth, lying flat in the slot's XZ plane. Sized to be a believable pouch you can see out of the
+        // corner of your eye and put a controller into, rather than the small marker this used to be.
+        const float halfWidth = 0.075f;
+        const float halfDepth = 0.11f;
 
         lineRenderer.positionCount = 4;
         lineRenderer.SetPositions([
-            transform.TransformPoint(new Vector3(-0.045f, height, -0.07f)),
-            transform.TransformPoint(new Vector3(0.045f, height, -0.07f)),
-            transform.TransformPoint(new Vector3(0.045f, height, 0.07f)),
-            transform.TransformPoint(new Vector3(-0.045f, height, 0.07f))
+            transform.TransformPoint(new Vector3(-halfWidth, height, -halfDepth)),
+            transform.TransformPoint(new Vector3(halfWidth, height, -halfDepth)),
+            transform.TransformPoint(new Vector3(halfWidth, height, halfDepth)),
+            transform.TransformPoint(new Vector3(-halfWidth, height, halfDepth))
         ]);
         
         if (spot != null)

@@ -209,6 +209,39 @@ internal static class InventoryPatches
     }
 
     /// <summary>
+    /// Deliver a retrieved item to whichever hand actually reached into the slot.
+    ///
+    /// The game resolves "the hand that is grabbing" through the shared <see cref="PhysGrabber.instance"/> static,
+    /// which always points at the dominant grabber, so without this an item pulled out of a slot with the off hand
+    /// would still fly into the dominant hand. Swapping the static for the duration of the call is enough, since
+    /// <see cref="ItemEquippable.ForceGrab"/> is the point where the receiving grabber is picked.
+    /// </summary>
+    [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.ForceGrab))]
+    [HarmonyPrefix]
+    private static void ForceGrabToRetrievingHand(ItemEquippable __instance, out PhysGrabber? __state)
+    {
+        __state = null;
+
+        if (VRSession.Instance is not { Player.Rig.inventoryController: { } inventory })
+            return;
+
+        var grabber = inventory.RetrieveGrabberFor(__instance);
+        if (!grabber || grabber == PhysGrabber.instance)
+            return;
+
+        __state = PhysGrabber.instance;
+        PhysGrabber.instance = grabber;
+    }
+
+    [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.ForceGrab))]
+    [HarmonyPostfix]
+    private static void RestoreForceGrabHand(PhysGrabber? __state)
+    {
+        if (__state)
+            PhysGrabber.instance = __state;
+    }
+
+    /// <summary>
     /// Hide the battery UI if it's equipped
     /// </summary>
     [HarmonyPatch(typeof(ItemBattery), nameof(ItemBattery.OverrideBatteryShow))]

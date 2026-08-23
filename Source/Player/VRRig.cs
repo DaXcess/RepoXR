@@ -87,6 +87,7 @@ public class VRRig : MonoBehaviour
 
         Plugin.Config.LeftHandDominant.SettingChanged += OnDominantHandChanged;
         Plugin.Config.DetachedArms.SettingChanged += OnDetachedArmsChanged;
+        Plugin.Config.TwoHandedGrab.SettingChanged += OnTwoHandedGrabChanged;
 
         // Update on load
         OnDetachedArmsChanged(null!, null!);
@@ -96,6 +97,9 @@ public class VRRig : MonoBehaviour
     {
         Plugin.Config.LeftHandDominant.SettingChanged -= OnDominantHandChanged;
         Plugin.Config.DetachedArms.SettingChanged -= OnDetachedArmsChanged;
+        Plugin.Config.TwoHandedGrab.SettingChanged -= OnTwoHandedGrabChanged;
+
+        VROffHandGrabber.Teardown();
     }
 
     private IEnumerator Start()
@@ -127,6 +131,14 @@ public class VRRig : MonoBehaviour
         
         // Update parents
         UpdateDominantTransforms();
+
+        // Second grab beam for the off hand (no-op unless enabled and in a singleplayer session)
+        VROffHandGrabber.Create();
+    }
+
+    private void OnTwoHandedGrabChanged(object sender, EventArgs args)
+    {
+        VROffHandGrabber.Refresh();
     }
 
     private void LateUpdate()
@@ -164,6 +176,12 @@ public class VRRig : MonoBehaviour
         playerAvatarRightArm.grabberClawParent.localPosition = Vector3.zero;
 
         PhysGrabber.instance.physGrabBeamComponent.PhysGrabPointOrigin = VRSession.Instance.Player.MainHand;
+
+        if (VROffHandGrabber.Instance is { Grabber.physGrabBeamComponent: { } offHandBeam })
+        {
+            offHandBeam.PhysGrabPointOrigin = VRSession.Instance.Player.SecondaryHand;
+            offHandBeam.PhysGrabPointOriginLocal = VRSession.Instance.Player.SecondaryHand;
+        }
 
         flashlight.transform.parent = headlampEnabled ? headLamp : VRSession.Instance.Player.SecondaryHand;
         flashlight.transform.localPosition = Vector3.zero;
@@ -276,7 +294,9 @@ public class VRRig : MonoBehaviour
             mapHeld = false;
             mapHeldLeftHand = false;
             mapTool.transform.parent.parent = map;
-            playerAvatar.physGrabber.enabled = true;
+
+            SetHandGrabberEnabled(true, true);
+            SetHandGrabberEnabled(false, true);
         }
 
         mapHeld = mapTool.Active;
@@ -326,12 +346,8 @@ public class VRRig : MonoBehaviour
                 VRMapTool.instance.leftHanded = false;
                 flashlight.hideFlashlight = !headlampEnabled && VRSession.IsLeftHanded;
 
-                // Prevent picking up items while the map is opened
-                if (!VRSession.IsLeftHanded)
-                {
-                    playerAvatar.physGrabber.ReleaseObject(-1);
-                    playerAvatar.physGrabber.enabled = false;
-                }
+                // Prevent picking up items with the hand that's now holding the map
+                SetHandGrabberEnabled(false, false);
             }
 
         // Left hand pickup logic
@@ -346,12 +362,8 @@ public class VRRig : MonoBehaviour
                 mapHeldLeftHand = true;
                 flashlight.hideFlashlight = !headlampEnabled && !VRSession.IsLeftHanded;
 
-                // Prevent picking up items while the map is opened
-                if (VRSession.IsLeftHanded)
-                {
-                    playerAvatar.physGrabber.ReleaseObject(-1);
-                    playerAvatar.physGrabber.enabled = false;
-                }
+                // Prevent picking up items with the hand that's now holding the map
+                SetHandGrabberEnabled(true, false);
             }
 
         // Disable map when sprinting
@@ -371,25 +383,55 @@ public class VRRig : MonoBehaviour
     }
 
     /// <summary>
+    /// Enable or disable the grabber belonging to a specific hand.
+    ///
+    /// With two-handed grabbing both hands own a grabber, so picking the map up in either hand has to suspend that
+    /// hand's beam specifically rather than always suspending the dominant one.
+    /// </summary>
+    private void SetHandGrabberEnabled(bool leftHand, bool enabled)
+    {
+        if (VRSession.IsLeftHanded == leftHand)
+        {
+            if (!enabled)
+                playerAvatar.physGrabber.ReleaseObject(-1);
+
+            playerAvatar.physGrabber.enabled = enabled;
+
+            return;
+        }
+
+        VROffHandGrabber.Instance?.SetEnabled(enabled);
+    }
+
+    /// <summary>
     /// Detects clipping through walls with the VR rig arms and disables grabbing and the cursor
     /// </summary>
     private void WallClipLogic()
     {
-        var mainCamera = CameraUtils.Instance.MainCamera.transform;
-        var direction = VRSession.Instance.Player.MainHand.position - mainCamera.position;
+        var player = VRSession.Instance.Player;
 
-        if (Physics.Raycast(new Ray(mainCamera.position, direction), out _,
-                Vector3.Distance(mainCamera.position, VRSession.Instance.Player.MainHand.position), Crosshair.LayerMask))
-        {
-            // HIT!
-            Crosshair.instance.gameObject.SetActive(false);
-            PhysGrabber.instance.grabDisableTimer = 0.1f;
-        }
-        else
-        {
-            // Not hit!
+        Check(player.MainHand, PhysGrabber.instance, Crosshair.instance);
 
-            Crosshair.instance.gameObject.SetActive(true);
+        // The off hand has a beam of its own when two-handed grabbing is on, so it needs the same treatment -
+        // otherwise it can reach straight through a wall that the dominant hand is correctly blocked by
+        if (VROffHandGrabber.ActiveGrabber is { } offHand)
+            Check(player.SecondaryHand, offHand, Crosshair.offHandInstance);
+
+        return;
+
+        static void Check(Transform hand, PhysGrabber grabber, Crosshair? crosshair)
+        {
+            var mainCamera = CameraUtils.Instance.MainCamera.transform;
+            var direction = hand.position - mainCamera.position;
+
+            var clipped = Physics.Raycast(new Ray(mainCamera.position, direction), out _,
+                Vector3.Distance(mainCamera.position, hand.position), Crosshair.LayerMask);
+
+            if (clipped && grabber)
+                grabber.grabDisableTimer = 0.1f;
+
+            if (crosshair)
+                crosshair!.gameObject.SetActive(!clipped);
         }
     }
 

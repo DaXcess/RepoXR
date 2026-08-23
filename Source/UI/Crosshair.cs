@@ -1,4 +1,5 @@
 ﻿using RepoXR.Managers;
+using RepoXR.Player;
 using UnityEngine;
 
 namespace RepoXR.UI;
@@ -6,15 +7,27 @@ namespace RepoXR.UI;
 public class Crosshair : MonoBehaviour
 {
     public static Crosshair instance;
-    
+
+    /// <summary>
+    /// The off hand's own reticle, which only exists while two-handed grabbing is on
+    /// </summary>
+    public static Crosshair? offHandInstance;
+
     public const int LayerMask = 1 << 0 | 1 << 9 | 1 << 10 | 1 << 16 | 1 << 20 | 1 << 23;
-    
+
+    /// <summary>
+    /// Whether this reticle belongs to the off hand rather than the dominant one
+    /// </summary>
+    public bool isOffHand;
+
     private new Transform camera;
     private Transform sprite;
 
     private void Awake()
     {
-        instance = this;
+        // The off-hand copy must not claim the static out from under the dominant hand's reticle
+        if (instance == null)
+            instance = this;
 
         camera = Camera.main!.transform;
         sprite = GetComponentInChildren<Aim>(true).transform;
@@ -22,7 +35,41 @@ public class Crosshair : MonoBehaviour
 
     private void OnDestroy()
     {
-        instance = null!;
+        if (instance == this)
+            instance = null!;
+
+        if (offHandInstance == this)
+            offHandInstance = null;
+    }
+
+    /// <summary>
+    /// Give the off hand a reticle of its own, copied from the dominant hand's finished one
+    /// </summary>
+    public static void CreateOffHand()
+    {
+        if (offHandInstance != null || instance == null)
+            return;
+
+        var copy = Instantiate(instance.gameObject, instance.transform.parent);
+        copy.name = "Crosshair (Off-Hand)";
+
+        // The overcharge ring reads the dominant grabber's charge, so it would show the wrong value out here
+        foreach (var overcharge in copy.GetComponentsInChildren<OverchargeRoundBarUI>(true))
+            Destroy(overcharge.gameObject);
+
+        var crosshair = copy.GetComponent<Crosshair>();
+        crosshair.isOffHand = true;
+
+        offHandInstance = crosshair;
+    }
+
+    public static void DestroyOffHand()
+    {
+        if (offHandInstance == null)
+            return;
+
+        Destroy(offHandInstance.gameObject);
+        offHandInstance = null;
     }
 
     private void Update()
@@ -30,15 +77,24 @@ public class Crosshair : MonoBehaviour
         if (VRSession.Instance is not { } session)
             return;
 
-        if (!Physics.Raycast(new Ray(session.Player.MainHand.position, session.Player.MainHand.forward), out var hit,
-                10, LayerMask))
+        var hand = isOffHand ? session.Player.SecondaryHand : session.Player.MainHand;
+        var grabber = isOffHand ? VROffHandGrabber.ActiveGrabber : PhysGrabber.instance;
+
+        // An off-hand reticle is meaningless without an off-hand grabber behind it
+        if (isOffHand && !grabber)
+        {
+            transform.position = Vector3.down * 3000;
+            return;
+        }
+
+        if (!Physics.Raycast(new Ray(hand.position, hand.forward), out var hit, 10, LayerMask))
         {
             transform.position = Vector3.down * 3000;
             return;
         }
 
         // Hide the crosshair if we are holding an item (keep overcharge though)
-        if (PhysGrabber.instance.grabbedObject)
+        if (grabber && grabber!.grabbedObject)
         {
             sprite.position = Vector3.down * 3000;
             return;

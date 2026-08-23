@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RepoXR.Managers;
+using RepoXR.Player;
 using RepoXR.Networking;
 using UnityEngine;
 
@@ -28,8 +29,10 @@ internal static class ValuableArcticSnowBikePatches
 
         static Transform GetSourceTransform(PlayerAvatar player)
         {
+            // Only the player is known here, not the grabber, so this falls back to whichever hand is the one
+            // actually holding something
             if (player.isLocal)
-                return VRSession.InVR ? VRSession.Instance.Player.MainHand : player.localCamera.transform;
+                return VRSession.InVR ? VROffHandGrabber.ActiveHand : player.localCamera.transform;
 
             if (!NetworkSystem.instance)
                 return player.localCamera.transform;

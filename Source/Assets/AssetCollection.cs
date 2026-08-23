@@ -135,6 +135,10 @@ internal static class AssetCollection
             return false;
         }
 
+        // Has to happen before PlayerInput takes ownership of the asset, so that saved binding overrides for the
+        // off-hand control can be matched up when they're loaded
+        Input.OffHandControls.Register();
+
         return true;
     }
 

@@ -82,7 +82,12 @@ internal static class PhysGrabberPatches
         if (grabbed + overcharge <= 0)
             return;
 
-        HapticManager.Impulse(HapticManager.Hand.Dominant, HapticManager.Type.Continuous, grabbed + overcharge);
+        // With two-handed grabbing the feedback has to follow the hand that's actually holding something
+        var hand = VROffHandGrabber.Instance is { } offHand && __instance == offHand.Grabber
+            ? HapticManager.Hand.Secondary
+            : HapticManager.Hand.Dominant;
+
+        HapticManager.Impulse(hand, HapticManager.Type.Continuous, grabbed + overcharge);
     }
 
     /// <summary>
@@ -168,7 +173,7 @@ internal static class PhysGrabberPatches
         if (VRSession.Instance is not { } session)
             return;
 
-        session.Player.Rig.inventoryController.TryEquipItem(item);
+        session.Player.Rig.inventoryController.TryEquipItem(__instance, item);
     }
 
     /// <summary>
@@ -250,9 +255,16 @@ internal static class PhysGrabberUniversalPatches
         static Quaternion GetRotation(PhysGrabber grabber)
         {
             if (grabber.playerAvatar.isLocal)
-                return VRSession.InVR
-                    ? VRSession.Instance.Player.MainHand.rotation * Quaternion.Euler(0, 180, 0)
-                    : grabber.climbStickTransform.rotation;
+            {
+                if (!VRSession.InVR)
+                    return grabber.climbStickTransform.rotation;
+
+                var hand = VROffHandGrabber.Instance is { } offHand && grabber == offHand.Grabber
+                    ? VRSession.Instance.Player.SecondaryHand
+                    : VRSession.Instance.Player.MainHand;
+
+                return hand.rotation * Quaternion.Euler(0, 180, 0);
+            }
 
             if (!NetworkSystem.instance)
                 return grabber.climbStickTransform.rotation;

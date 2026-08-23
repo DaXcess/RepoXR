@@ -43,6 +43,10 @@ public class VRInputSystem : MonoBehaviour
 
         playerInput.ActivateInput();
 
+        // The off hand's default control mirrors the dominant hand's, so it has to be resolved after the player's
+        // own overrides have been applied
+        OffHandControls.RefreshDefaults();
+
         inputToggle =
             JsonConvert.DeserializeObject<Dictionary<string, bool>>(Plugin.Config.InputToggleBindings.Value) ?? [];
     }
@@ -203,6 +207,8 @@ public class VRInputSystem : MonoBehaviour
         }
         else
             playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverride.Value);
+
+        OffHandControls.RefreshDefaults();
     }
 
     private static void OnControlsChanged(PlayerInput input)

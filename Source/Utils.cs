@@ -193,6 +193,15 @@ internal static class Utils
 
 public static class PlayerLocalCameraExtensions
 {
+    /// <summary>
+    /// While set, <see cref="GetHandOverrideTransform"/> resolves to the off hand instead of the dominant hand.
+    ///
+    /// This is scoped around the off-hand <see cref="PhysGrabber"/>'s own update/physics methods by
+    /// <see cref="RepoXR.Patches.Player.OffHandGrabberPatches"/>, since the game's grabber code has no concept of
+    /// "which hand is asking" - it just calls GetOverrideTransform() and gets a single answer.
+    /// </summary>
+    public static bool UseOffHand;
+
     public static MethodInfo GetHandOverrideTransformMethod =>
         AccessTools.Method(typeof(PlayerLocalCameraExtensions), nameof(GetHandOverrideTransform));
 
@@ -204,7 +213,7 @@ public static class PlayerLocalCameraExtensions
 
         // If we are in VR and the camera is local, return our VR hand transform
         if (VRSession.Instance is { } instance && camera.playerAvatar.isLocal)
-            return instance.Player.MainHand;
+            return UseOffHand ? instance.Player.SecondaryHand : instance.Player.MainHand;
 
         // If the player is a VR player, return their VR hand transform
         if (NetworkSystem.instance && NetworkSystem.instance.GetNetworkPlayer(camera.playerAvatar, out var player))

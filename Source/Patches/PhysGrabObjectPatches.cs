@@ -4,6 +4,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using RepoXR.Managers;
 using RepoXR.Networking;
+using RepoXR.Player;
 using UnityEngine;
 
 using static HarmonyLib.AccessTools;
@@ -16,8 +17,10 @@ internal static class PhysGrabObjectPatches
     // Used instead of "GetHandOverrideTransform" as it is easier to use and isn't affected by overrides anyway
     private static Transform GetCartSteerTransform(PhysGrabber grabber)
     {
+        // Resolved through the grabber rather than straight to MainHand: with two grabbers, pushing a cart with the
+        // off hand would otherwise steer from wherever the dominant hand happened to be
         if (grabber.playerAvatar.isLocal)
-            return VRSession.Instance is { } session ? session.Player.MainHand : grabber.transform;
+            return VRSession.Instance is not null ? VROffHandGrabber.HandFor(grabber) : grabber.transform;
 
         return NetworkSystem.instance.GetNetworkPlayer(grabber.playerAvatar, out var networkPlayer)
             ? networkPlayer.PrimaryHand

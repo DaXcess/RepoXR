@@ -15,6 +15,11 @@ internal static class CrosshairPatches
     [HarmonyPostfix]
     private static void OnCrosshairCreate(Aim __instance)
     {
+        // The off-hand reticle is a copy of the finished crosshair, so the Aim inside it must not wrap itself in
+        // yet another canvas when it wakes up
+        if (__instance.GetComponentInParent<Crosshair>())
+            return;
+
         var canvas = new GameObject("Crosshair").AddComponent<Canvas>();
         var offset = new GameObject("Crosshair Offset")
             { transform = { parent = canvas.transform, localEulerAngles = new Vector3(270, 270, 0) } };
