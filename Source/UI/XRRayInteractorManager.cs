@@ -246,7 +246,7 @@ public class XRRayInteractorManager : MonoBehaviour
             new InputActionProperty(AssetCollection.DefaultXRActions.FindAction($"{hand}/Activate"));
         controller.activateActionValue =
             new InputActionProperty(AssetCollection.DefaultXRActions.FindAction($"{hand}/Activate Value"));
-        controller.uiPressAction = new InputActionProperty(AssetCollection.DefaultXRActions.FindAction($"{hand}/UI Press"));
+        controller.uiPressAction = new InputActionProperty(AssetCollection.DefaultXRActions.FindAction($"{hand}/UI Press Value"));
         controller.uiPressActionValue =
             new InputActionProperty(AssetCollection.DefaultXRActions.FindAction($"{hand}/UI Press Value"));
         controller.uiScrollAction =

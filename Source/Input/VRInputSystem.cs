@@ -41,6 +41,8 @@ public class VRInputSystem : MonoBehaviour
         else
             playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverride.Value);
 
+        InputSystem.settings.defaultButtonPressPoint = Plugin.Config.ButtonPressPoint.Value;
+
         playerInput.ActivateInput();
 
         inputToggle =
@@ -54,6 +56,7 @@ public class VRInputSystem : MonoBehaviour
         playerInput.onControlsChanged += OnControlsChanged;
 
         Plugin.Config.LeftHandDominant.SettingChanged += DominantHandChanged;
+        Plugin.Config.ButtonPressPoint.SettingChanged += ButtonPressPointChanged;
     }
 
     private void OnDisable()
@@ -63,6 +66,7 @@ public class VRInputSystem : MonoBehaviour
         playerInput.onControlsChanged -= OnControlsChanged;
 
         Plugin.Config.LeftHandDominant.SettingChanged -= DominantHandChanged;
+        Plugin.Config.ButtonPressPoint.SettingChanged -= ButtonPressPointChanged;
     }
 
     // Special chat input section
@@ -203,6 +207,14 @@ public class VRInputSystem : MonoBehaviour
         }
         else
             playerInput.actions.LoadBindingOverridesFromJson(Plugin.Config.ControllerBindingsOverride.Value);
+    }
+
+    /// <summary>
+    /// Apply button press point changes
+    /// </summary>
+    private void ButtonPressPointChanged(object sender, EventArgs e)
+    {
+        InputSystem.settings.defaultButtonPressPoint = Plugin.Config.ButtonPressPoint.Value;
     }
 
     private static void OnControlsChanged(PlayerInput input)

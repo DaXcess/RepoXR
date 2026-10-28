@@ -152,12 +152,23 @@ public class RebindManager : MonoBehaviour
         
         playerInput.DeactivateInput();
         currentOption = option;
-        currentOperation = option.action.PerformInteractiveRebinding(bindingIndex)
-            .OnMatchWaitForAnother(0.1f).WithControlsHavingToMatchPath("<XRController>").WithTimeout(5)
-            .OnComplete(_ => CompleteRebind(option)).OnCancel(_ => CompleteRebind(option));
+        if (Plugin.Config.AllowAllBinds.Value)
+        {
+	    // Avoiding accidental input is harder with all the touch sensors.
+	    // Increase to match wait time to 0.5s to make it somewhat possible.
+            currentOperation = option.action.PerformInteractiveRebinding(bindingIndex)
+                .OnMatchWaitForAnother(0.5f).WithControlsHavingToMatchPath("<XRController>").WithExpectedControlType("").WithTimeout(5)
+                .OnComplete(_ => CompleteRebind(option)).OnCancel(_ => CompleteRebind(option));
+        }
+        else
+        {
+            currentOperation = option.action.PerformInteractiveRebinding(bindingIndex)
+                .OnMatchWaitForAnother(0.1f).WithControlsHavingToMatchPath("<XRController>").WithTimeout(5)
+                .OnComplete(_ => CompleteRebind(option)).OnCancel(_ => CompleteRebind(option));
 
-        foreach (var exclude in DISALLOWED_BINDINGS)
-            currentOperation.WithControlsExcluding(exclude);
+            foreach (var exclude in DISALLOWED_BINDINGS)
+                currentOperation.WithControlsExcluding(exclude);
+        }
 
         currentOperation.Start();
     }

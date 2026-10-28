@@ -107,6 +107,16 @@ public class Config(string assemblyPath, ConfigFile file)
     public ConfigEntry<bool> VehicleHeadForward { get; } = file.Create("Input", nameof(VehicleHeadForward), false,
         "When enabled, will make the scooters go forward based on head rotation instead of hand rotation.");
 
+    [ConfigDescriptor(pointerSize: 0.01f, stepSize: 0.01f)]
+    public ConfigEntry<float> ButtonPressPoint { get; } = file.Create("Input", nameof(ButtonPressPoint), 0.5f,
+        new ConfigDescription(
+            "The amount of force required to register an analog value as a button press. The lower the value, the more sensitive analog input becomes.",
+            new AcceptableValueRange<float>(0.01f, 1)));
+
+    [ConfigDescriptor]
+    public ConfigEntry<bool> AllowAllBinds { get; } = file.Create("Input", nameof(AllowAllBinds), false,
+        "Allow binding VR controls to any control type. This allows for binding touch sense and analog controls such as soft trigger pull in some cases. Icons may not be available and binding may be very difficult due to many inputs being detected at once.");
+
     // Rendering configuration
 
     [ConfigDescriptor(stepSize: 5f, suffix: "%")]
